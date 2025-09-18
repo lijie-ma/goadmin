@@ -1,0 +1,1 @@
+2025-09-18T17:51:30+08:00	INFO	logger/logger_test.go:117	使用多个选项配置的日志记录器	{"environment": "production"}
