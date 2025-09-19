@@ -1,8 +1,10 @@
-package main
+package cmd
 
 import (
 	"context"
 	"fmt"
+	"goadmin/pkg/db"
+	"goadmin/pkg/redis"
 	"net/http"
 	"os"
 	"os/signal"
@@ -37,6 +39,16 @@ func init() {
 
 // runServer 启动HTTP服务器
 func runServer() error {
+	// 加载配置文件
+	err := db.Init(&cfg.Database)
+	if err != nil {
+		return err
+	}
+	err = redis.Init(&cfg.Redis)
+	if err != nil {
+		return err
+	}
+
 	// 设置Gin模式
 	if cfg.App.Debug {
 		gin.SetMode(gin.DebugMode)

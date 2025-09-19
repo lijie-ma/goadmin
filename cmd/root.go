@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"fmt"
@@ -13,9 +13,10 @@ var (
 	configPath string
 	cfg        *config.Config
 	rootCmd    = &cobra.Command{
-		Use:   "goadmin",
-		Short: "GoAdmin 是一个后台管理系统",
-		Long:  `GoAdmin 是基于 Go 语言开发的现代化后台管理系统，提供用户管理、权限管理等功能。`,
+		Use:     "goadmin",
+		Short:   "GoAdmin 是一个后台管理系统",
+		Version: "1.0.0",
+		Long:    `GoAdmin 是基于 Go 语言开发的现代化后台管理系统，提供用户管理、权限管理等功能。`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// 跳过migrate命令的配置加载
 			if cmd.Name() == "migrate" && cmd.Parent().Name() == "goadmin" {
