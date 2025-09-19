@@ -74,8 +74,8 @@ func (l *zapLogger) With(fields ...Field) Logger {
 	}
 
 	newLogger := &zapLogger{
-		config:     l.config,
-		fields:     append(l.fields, zapFields...),
+		config: l.config,
+		// fields:     append(l.fields, zapFields...),
 		zapOptions: l.zapOptions,
 	}
 	newLogger.zap = l.zap.With(zapFields...)

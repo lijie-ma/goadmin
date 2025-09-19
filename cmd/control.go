@@ -3,7 +3,9 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"goadmin/internal/api"
 	"goadmin/pkg/db"
+	"goadmin/pkg/logger"
 	"goadmin/pkg/redis"
 	"net/http"
 	"os"
@@ -20,26 +22,18 @@ var (
 		Use:   "control",
 		Short: "控制API服务器",
 		Long:  `控制API服务器的启动、停止等操作`,
-	}
-
-	serveCmd = &cobra.Command{
-		Use:   "serve",
-		Short: "启动API服务器",
-		Long:  `启动API服务器，提供HTTP接口服务`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runServer()
 		},
 	}
 )
 
-func init() {
-	// 添加子命令
-	controlCmd.AddCommand(serveCmd)
-}
-
 // runServer 启动HTTP服务器
 func runServer() error {
-	// 加载配置文件
+	// 配置全局日志实例
+	logger.SetGlobal(logger.New(
+		logger.WithConfig(&cfg.Logger),
+	))
 	err := db.Init(&cfg.Database)
 	if err != nil {
 		return err
@@ -60,7 +54,7 @@ func runServer() error {
 	r := gin.Default()
 
 	// 配置路由
-	setupRoutes(r)
+	api.RegisterRouter(r)
 
 	// 创建HTTP服务器
 	srv := &http.Server{
@@ -95,39 +89,4 @@ func runServer() error {
 
 	fmt.Println("服务器已关闭")
 	return nil
-}
-
-// setupRoutes 配置API路由
-func setupRoutes(r *gin.Engine) {
-	// 健康检查
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-
-	// API路由组
-	api := r.Group("/api")
-	{
-		// 用户相关API
-		api.GET("/users", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "获取用户列表",
-			})
-		})
-
-		// 角色相关API
-		api.GET("/roles", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "获取角色列表",
-			})
-		})
-
-		// 权限相关API
-		api.GET("/permissions", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "获取权限列表",
-			})
-		})
-	}
 }
