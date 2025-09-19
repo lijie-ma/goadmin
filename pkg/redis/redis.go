@@ -13,45 +13,50 @@ import (
 var Client *redis.Client
 
 // 初始化Redis客户端
-func Init(cfg *config.Config) error {
+func Init(cfg *config.RedisConfig) error {
+	// 如果Redis未启用，直接返回
+	if !cfg.Enable {
+		return nil
+	}
+
 	// 解析超时配置
-	dialTimeout, err := time.ParseDuration(cfg.Redis.DialTimeout.String())
+	dialTimeout, err := time.ParseDuration(cfg.DialTimeout.String())
 	if err != nil {
 		return fmt.Errorf("解析Redis.DialTimeout失败: %w", err)
 	}
 
-	readTimeout, err := time.ParseDuration(cfg.Redis.ReadTimeout.String())
+	readTimeout, err := time.ParseDuration(cfg.ReadTimeout.String())
 	if err != nil {
 		return fmt.Errorf("解析Redis.ReadTimeout失败: %w", err)
 	}
 
-	writeTimeout, err := time.ParseDuration(cfg.Redis.WriteTimeout.String())
+	writeTimeout, err := time.ParseDuration(cfg.WriteTimeout.String())
 	if err != nil {
 		return fmt.Errorf("解析Redis.WriteTimeout失败: %w", err)
 	}
 
-	poolTimeout, err := time.ParseDuration(cfg.Redis.PoolTimeout.String())
+	poolTimeout, err := time.ParseDuration(cfg.PoolTimeout.String())
 	if err != nil {
 		return fmt.Errorf("解析Redis.PoolTimeout失败: %w", err)
 	}
 
-	idleTimeout, err := time.ParseDuration(cfg.Redis.IdleTimeout.String())
+	idleTimeout, err := time.ParseDuration(cfg.IdleTimeout.String())
 	if err != nil {
 		return fmt.Errorf("解析Redis.IdleTimeout失败: %w", err)
 	}
 
-	maxConnAge, err := time.ParseDuration(cfg.Redis.MaxConnAge.String())
+	maxConnAge, err := time.ParseDuration(cfg.MaxConnAge.String())
 	if err != nil {
 		return fmt.Errorf("解析Redis.MaxConnAge失败: %w", err)
 	}
 
 	// 创建Redis客户端
 	Client = redis.NewClient(&redis.Options{
-		Addr:            fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
-		Password:        cfg.Redis.Password,
-		DB:              cfg.Redis.DB,
-		PoolSize:        cfg.Redis.PoolSize,
-		MinIdleConns:    cfg.Redis.MinIdleConns,
+		Addr:            fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Password:        cfg.Password,
+		DB:              cfg.DB,
+		PoolSize:        cfg.PoolSize,
+		MinIdleConns:    cfg.MinIdleConns,
 		DialTimeout:     dialTimeout,
 		ReadTimeout:     readTimeout,
 		WriteTimeout:    writeTimeout,

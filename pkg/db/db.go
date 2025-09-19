@@ -17,34 +17,39 @@ import (
 var DB *gorm.DB
 
 // 初始化数据库连接
-func Init(cfg *config.Config) error {
+func Init(dbCfg *config.DatabaseConfig) error {
+	// 如果数据库未启用，直接返回
+	if !dbCfg.Enable {
+		return nil
+	}
+
 	var err error
 
 	// 初始化主库连接
-	DB, err = initDB(cfg.Database.Master)
+	DB, err = initDB(dbCfg.Master)
 	if err != nil {
 		return fmt.Errorf("初始化主库失败: %w", err)
 	}
 
 	// 如果配置了从库，添加数据库解析器
-	if len(cfg.Database.Slaves) > 0 {
+	if len(dbCfg.Slaves) > 0 {
 		resolverCfg := dbresolver.Config{
-			Sources:  []gorm.Dialector{mysql.Open(buildDSN(cfg.Database.Master))},
-			Replicas: make([]gorm.Dialector, len(cfg.Database.Slaves)),
+			Sources:  []gorm.Dialector{mysql.Open(buildDSN(dbCfg.Master))},
+			Replicas: make([]gorm.Dialector, len(dbCfg.Slaves)),
 			Policy:   dbresolver.RandomPolicy{}, // 随机策略
 		}
 
 		// 配置所有从库
-		for i, slave := range cfg.Database.Slaves {
+		for i, slave := range dbCfg.Slaves {
 			resolverCfg.Replicas[i] = mysql.Open(buildDSN(slave))
 		}
 
 		// 注册数据库解析器
 		err = DB.Use(dbresolver.Register(resolverCfg).
 			SetConnMaxIdleTime(time.Hour).
-			SetConnMaxLifetime(cfg.Database.Master.ConnMaxLifetime).
-			SetMaxIdleConns(cfg.Database.Master.MaxIdleConns).
-			SetMaxOpenConns(cfg.Database.Master.MaxOpenConns))
+			SetConnMaxLifetime(dbCfg.Master.ConnMaxLifetime).
+			SetMaxIdleConns(dbCfg.Master.MaxIdleConns).
+			SetMaxOpenConns(dbCfg.Master.MaxOpenConns))
 		if err != nil {
 			return fmt.Errorf("配置主从失败: %w", err)
 		}

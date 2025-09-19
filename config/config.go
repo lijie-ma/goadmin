@@ -28,6 +28,7 @@ type AppConfig struct {
 
 // DatabaseConfig 数据库配置
 type DatabaseConfig struct {
+	Enable bool       `yaml:"enable"`
 	Master DBConfig   `yaml:"master"`
 	Slaves []DBConfig `yaml:"slaves"`
 }
@@ -49,6 +50,7 @@ type DBConfig struct {
 
 // RedisConfig Redis配置
 type RedisConfig struct {
+	Enable       bool          `yaml:"enable"`
 	Host         string        `yaml:"host"`
 	Port         int           `yaml:"port"`
 	Password     string        `yaml:"password"`

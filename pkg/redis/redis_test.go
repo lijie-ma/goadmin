@@ -18,7 +18,7 @@ func TestInit(t *testing.T) {
 
 	// 初始化Redis
 	t.Log("开始初始化Redis...")
-	err = Init(cfg)
+	err = Init(&cfg.Redis)
 	if err != nil {
 		t.Fatalf("初始化Redis失败: %v", err)
 	}
@@ -64,4 +64,13 @@ func TestInit(t *testing.T) {
 
 	t.Logf("Redis SET/GET操作成功")
 	t.Log("Redis连接测试成功")
+
+	// 测试禁用Redis的情况
+	t.Log("\n测试禁用Redis...")
+	cfg.Redis.Enable = false
+	err = Init(&cfg.Redis)
+	if err != nil {
+		t.Fatalf("禁用Redis失败: %v", err)
+	}
+	t.Log("Redis禁用测试成功")
 }
