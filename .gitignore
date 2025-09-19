@@ -1,0 +1,6 @@
+goadmin
+cmd/goadmin
+*.log
+.vscode
+build
+.history

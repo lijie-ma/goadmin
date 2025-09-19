@@ -1,0 +1,69 @@
+-- +goose Up
+-- SQL in this section is executed when the migration is applied.
+
+-- 创建permissions表
+CREATE TABLE IF NOT EXISTS permissions (
+    id BIGINT UNSIGNED PRIMARY KEY,
+    ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    code VARCHAR(32) NOT NULL UNIQUE DEFAULT '',
+    name VARCHAR(50) NOT NULL UNIQUE DEFAULT '',
+    description VARCHAR(200) DEFAULT '',
+    path VARCHAR(200) NOT NULL DEFAULT '',
+    method VARCHAR(20) NOT NULL DEFAULT 'GET',
+    module VARCHAR(50) NOT NULL DEFAULT ''
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 创建roles表
+CREATE TABLE IF NOT EXISTS roles (
+    id BIGINT UNSIGNED PRIMARY KEY,
+    ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    code VARCHAR(32) NOT NULL UNIQUE DEFAULT '',
+    name VARCHAR(50) NOT NULL UNIQUE DEFAULT '',
+    description VARCHAR(200) DEFAULT '',
+    status INT DEFAULT '1' COMMENT '1:active,0:inactive'
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 创建users表
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT UNSIGNED PRIMARY KEY,
+    ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    username VARCHAR(50) NOT NULL UNIQUE DEFAULT '',
+    password VARCHAR(100) NOT NULL DEFAULT '',
+    email VARCHAR(100) UNIQUE DEFAULT '',
+    status int DEFAULT '1' COMMENT '0:inactive,1:active,2:locked,3:deleted'
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 创建role_permissions表
+CREATE TABLE IF NOT EXISTS role_permissions (
+    id BIGINT UNSIGNED PRIMARY KEY,
+    ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    role_code VARCHAR(32) NOT NULL DEFAULT '',
+    permission_code VARCHAR(32) NOT NULL DEFAULT ''
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 创建user_roles表
+CREATE TABLE IF NOT EXISTS user_roles (
+    id BIGINT UNSIGNED PRIMARY KEY,
+    ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id BIGINT UNSIGNED NOT NULL DEFAULT '0',
+    role_code VARCHAR(32) NOT NULL DEFAULT ''
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- +goose Down
+-- SQL in this section is executed when the migration is rolled back.
+DROP TABLE IF EXISTS permissions;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS role_permissions;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS user_roles;
