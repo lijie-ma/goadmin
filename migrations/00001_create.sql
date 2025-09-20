@@ -40,6 +40,7 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL DEFAULT '',
   `password` varchar(100) NOT NULL DEFAULT '',
   `email` varchar(100) DEFAULT '',
+  `role_code` VARCHAR(32) NOT NULL DEFAULT '',
   `status` int DEFAULT '1' COMMENT '0:inactive,1:active,2:locked,3:deleted',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
@@ -58,17 +59,15 @@ CREATE TABLE `role_permissions` (
   UNIQUE KEY `role_permission` (`role_code`,`permission_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
--- 创建user_roles表
-CREATE TABLE `user_roles` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `ctime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `mtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `user_id` int unsigned NOT NULL DEFAULT '0',
-  `role_code` varchar(32) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
+ CREATE TABLE `server_setting` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL DEFAULT '',
+  `value` varchar(1024) not null default '',
+  `mtime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ctime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='服务端配置';
 
 
 -- +goose Down
@@ -78,3 +77,4 @@ DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS role_permissions;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS user_roles;
+DROP TABLE IF EXISTS server_setting;
