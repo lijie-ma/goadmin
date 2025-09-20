@@ -10,6 +10,7 @@ func RegisterRouter(r *gin.Engine) {
 	r.Use(
 		middleware.Trace(),
 		middleware.Logger(),
+		middleware.Header(),
 		middleware.Recovery(),
 	)
 	// 健康检查
