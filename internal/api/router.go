@@ -2,6 +2,7 @@ package api
 
 import (
 	"goadmin/internal/api/admin/v1/captcha"
+	"goadmin/internal/api/admin/v1/user"
 	"goadmin/internal/context"
 	"goadmin/internal/middleware"
 
@@ -29,11 +30,14 @@ func RegisterRouter(r *gin.Engine) {
 func adminHandler(r *gin.Engine) {
 	adminGroup := r.Group("/admin/v1")
 	{
+		// 验证码路由
 		captchaRouter := adminGroup.Group("/captcha")
 		{
 			captchaRouter.GET("/generate", context.Build(captcha.GenerateHandler))
 			captchaRouter.POST("/check", context.Build(captcha.CheckHandler))
 		}
 
+		// 用户相关路由
+		user.RegisterRoutes(adminGroup)
 	}
 }

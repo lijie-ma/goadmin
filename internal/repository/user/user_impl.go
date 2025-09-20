@@ -19,9 +19,9 @@ type UserRepositoryImpl struct {
 }
 
 // NewUserRepository 创建用户仓储实例
-func NewUserRepository(dbInstance *gorm.DB) UserRepository {
+func NewUserRepository() UserRepository {
 	return &UserRepositoryImpl{
-		db.NewBaseRepository[user.User](dbInstance),
+		db.NewBaseRepository[user.User](db.GetDB()),
 	}
 }
 
@@ -41,7 +41,9 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, id uint64) (*user.User
 // GetByUsername 根据用户名获取用户
 func (r *UserRepositoryImpl) GetByUsername(ctx context.Context, username string) (*user.User, error) {
 	var u user.User
-	err := r.DB().WithContext(ctx).Where("username = ? AND status != ?", username, user.UserStatusDeleted).First(&u).Error
+	err := r.DB().WithContext(ctx).
+		Where("username = ? AND status != ?", username, user.UserStatusDeleted).
+		Preload("Role").First(&u).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

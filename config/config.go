@@ -16,6 +16,7 @@ type Config struct {
 	Database DatabaseConfig `yaml:"database"`
 	Redis    RedisConfig    `yaml:"redis"`
 	Logger   logger.Config  `yaml:"logger"`
+	JWT      JWTConfig      `yaml:"jwt"`
 }
 
 // AppConfig 应用基础配置
@@ -65,6 +66,23 @@ type RedisConfig struct {
 	MaxConnAge   time.Duration `yaml:"max_conn_age"`
 }
 
+// JWTConfig JWT配置
+type JWTConfig struct {
+	Secret          string        `yaml:"secret"`
+	AccessExpire    time.Duration `yaml:"access_expire"`
+	RefreshExpire   time.Duration `yaml:"refresh_expire"`
+	Issuer          string        `yaml:"issuer"`
+	RefreshTokenKey string        `yaml:"refresh_token_key"`
+}
+
+var (
+	cfg Config
+)
+
+func Get() *Config {
+	return &cfg
+}
+
 // LoadConfig 从指定路径加载配置文件
 func LoadConfig(configPath string) (*Config, error) {
 	if configPath == "" {
@@ -84,7 +102,6 @@ func LoadConfig(configPath string) (*Config, error) {
 	}
 
 	// 解析配置文件
-	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("解析配置文件失败: %w", err)
 	}
@@ -128,6 +145,14 @@ func parseTimeDurations(cfg *Config) error {
 		return err
 	}
 	if err := parseDuration(&cfg.Redis.MaxConnAge); err != nil {
+		return err
+	}
+
+	// JWT相关时间设置
+	if err := parseDuration(&cfg.JWT.AccessExpire); err != nil {
+		return err
+	}
+	if err := parseDuration(&cfg.JWT.RefreshExpire); err != nil {
 		return err
 	}
 

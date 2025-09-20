@@ -14,7 +14,7 @@ database:
     host: "192.168.56.104"
     port: 33060
     username: "root"
-    password: "123456"
+    password: "Qwert1234"
     database: "testdb"
     charset: "utf8mb4"
     max_idle_conns: 10
@@ -23,10 +23,10 @@ database:
     log_level: "info"  # gorm log level: silent, error, warn, info
   # 从库配置（可以配置多个）
   slaves:
-    - host: "localhost"
-      port: 3307
+    - host: "192.168.56.104"
+      port: 33060
       username: "root"
-      password: "123456"
+      password: "Qwert1234"
       database: "goadmin"
       charset: "utf8mb4"
       max_idle_conns: 10
@@ -36,9 +36,9 @@ database:
 # Redis配置
 redis:
   enable: true  # 是否启用Redis
-  host: "localhost"
-  port: 6379
-  password: ""
+  host: "192.168.56.104"
+  port: 63790
+  password: "testpassword"
   db: 0
   pool_size: 100
   min_idle_conns: 10
@@ -48,6 +48,14 @@ redis:
   pool_timeout: "4s"
   idle_timeout: "300s"
   max_conn_age: "3600s"
+
+# JWT配置
+jwt:
+  secret: "your-256-bit-secret"  # JWT签名密钥，至少32字节
+  access_expire: "24h"           # 访问令牌过期时间
+  refresh_expire: "168h"         # 刷新令牌过期时间（7天）
+  issuer: "goadmin"             # 令牌签发者
+  refresh_token_key: "refresh_token:" # Redis中刷新令牌的key前缀
 
 # 日志配置
 logger:
