@@ -1,6 +1,8 @@
 package api
 
 import (
+	"goadmin/internal/api/admin/v1/captcha"
+	"goadmin/internal/context"
 	"goadmin/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -21,27 +23,17 @@ func RegisterRouter(r *gin.Engine) {
 	})
 
 	// API路由组
-	api := r.Group("/api")
+	adminHandler(r)
+}
+
+func adminHandler(r *gin.Engine) {
+	adminGroup := r.Group("/admin/v1")
 	{
-		// 用户相关API
-		api.GET("/users", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "获取用户列表",
-			})
-		})
+		captchaRouter := adminGroup.Group("/captcha")
+		{
+			captchaRouter.GET("/generate", context.Build(captcha.GenerateHandler))
+			captchaRouter.POST("/check", context.Build(captcha.CheckHandler))
+		}
 
-		// 角色相关API
-		api.GET("/roles", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "获取角色列表",
-			})
-		})
-
-		// 权限相关API
-		api.GET("/permissions", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "获取权限列表",
-			})
-		})
 	}
 }

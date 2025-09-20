@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"goadmin/pkg/util"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // 定义用于存储追踪信息的上下文键
@@ -19,7 +19,7 @@ func Trace() gin.HandlerFunc {
 		// 尝试从请求头获取跟踪ID，如果没有则生成新的
 		traceID := c.GetHeader(TraceIDKey)
 		if traceID == "" {
-			traceID = generateTraceID()
+			traceID = util.GenerateUUID()
 		}
 
 		// 记录开始时间
@@ -44,10 +44,4 @@ func GetTraceID(c *gin.Context) string {
 		return "no-trace-id"
 	}
 	return traceID.(string)
-}
-
-// 生成唯一的跟踪ID
-func generateTraceID() string {
-	v, _ := uuid.NewV7()
-	return v.String()
 }
