@@ -14,7 +14,14 @@ import (
 
 // UserService 用户服务接口
 type UserService interface {
+	// Login 用户登录
 	Login(ctx *context.Context, req modeluser.LoginRequest) (*modeluser.LoginResponse, error)
+
+	// GenerateUserCredential 根据用户ID生成用户身份凭证
+	GenerateUserCredential(ctx *context.Context, userID uint64) (*token.TokenPair, error)
+
+	// GenerateUserSession 当前Session
+	GenerateUserSession(ctx *context.Context, userID uint64) (*modeluser.User, error)
 }
 
 // userService 用户服务实现
@@ -33,6 +40,19 @@ func NewUserService() UserService {
 
 func (*userService) logPrefix() string {
 	return "user-service"
+}
+
+// GenerateUserCredential 根据用户ID生成用户身份凭证
+func (s *userService) GenerateUserCredential(ctx *context.Context, userID uint64) (*token.TokenPair, error) {
+	// 生成JWT令牌
+	tokenPairs, err := token.NewJwtTokenService(&s.cfg.JWT).GenerateJWTTokenPair(
+		ctx, token.NewAdminClaims(userID, s.cfg.JWT.AccessExpire))
+	if err != nil {
+		ctx.Logger.Errorf("%s 生成用户凭证失败: %d %v", s.logPrefix(), userID, err)
+		return nil, err
+	}
+
+	return tokenPairs, nil
 }
 
 func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*modeluser.LoginResponse, error) {
@@ -63,8 +83,7 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 	}
 
 	// 生成JWT令牌
-	tokenPairs, err := token.NewJwtTokenService(&s.cfg.JWT).GenerateJWTTokenPair(
-		ctx, token.NewAdminClaims(u.ID, s.cfg.JWT.AccessExpire))
+	tokenPairs, err := s.GenerateUserCredential(ctx, u.ID)
 	if err != nil {
 		ctx.Logger.Errorf("%s jwt token: %s %v", s.logPrefix(), req.Username, err)
 		return nil, err
@@ -79,4 +98,19 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 		RoleCode:     u.RoleCode,
 		Email:        u.Email,
 	}, nil
+}
+
+// GenerateUserSession 当前Session
+func (s *userService) GenerateUserSession(ctx *context.Context, userID uint64) (*modeluser.User, error) {
+	u, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取用户信息失败: %d %v", s.logPrefix(), userID, err)
+		return nil, err
+	}
+
+	if !u.IsActive() {
+		ctx.Logger.Warnf("%s 账户状态异常: %s %s", s.logPrefix(), userID, u.Status.String())
+		return nil, fmt.Errorf("账户状态异常")
+	}
+	return u, nil
 }

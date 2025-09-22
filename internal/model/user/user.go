@@ -25,3 +25,7 @@ func (User) TableName() string {
 func (u *User) IsActive() bool {
 	return u.Status == UserStatusActive
 }
+
+func (u *User) IsSuperAdmin() bool {
+	return u.RoleCode == role.CodeSuperAdmin
+}

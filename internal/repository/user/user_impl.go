@@ -28,7 +28,9 @@ func NewUserRepository() UserRepository {
 // GetByID 根据ID获取用户
 func (r *UserRepositoryImpl) GetByID(ctx context.Context, id uint64) (*user.User, error) {
 	var u user.User
-	err := r.DB().WithContext(ctx).Where("id = ? AND status != ?", id, user.UserStatusDeleted).First(&u).Error
+	err := r.DB().WithContext(ctx).
+		Where("id = ? AND status != ?", id, user.UserStatusDeleted).
+		Preload("Role").First(&u).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

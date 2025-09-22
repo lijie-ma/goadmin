@@ -1,8 +1,9 @@
 package context
 
 import (
-	"goadmin/internal/middleware"
+	modeluser "goadmin/internal/model/user"
 	"goadmin/pkg/logger"
+	"goadmin/pkg/trace"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,14 +13,21 @@ type Context struct {
 	Logger logger.Logger
 }
 
+func (c *Context) Seession() *modeluser.User {
+	data, exists := c.Get(gin.AuthUserKey)
+	if !exists {
+		return nil
+	}
+	return data.(*modeluser.User)
+}
+
 type HandlerFunc = func(ctx *Context)
 
 func Build(h HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := &Context{
 			Context: c,
-			Logger: logger.Global().With(
-				logger.String(middleware.TraceIDKey, middleware.GetTraceID(c))),
+			Logger:  logger.Global().With(trace.GetTrace(c)),
 		}
 		h(ctx)
 	}

@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"goadmin/pkg/logger"
+	"goadmin/pkg/trace"
 	"io"
 	"time"
 
@@ -81,7 +82,7 @@ func Logger() gin.HandlerFunc {
 
 		// 根据状态码选择日志级别
 		logMsg := "HTTP Request"
-		log = log.With(logger.String(TraceIDKey, c.GetString(TraceIDKey)))
+		log = log.With(trace.GetTrace(c))
 		if status >= 500 {
 			log.Error(logMsg, logFields...)
 		} else if status >= 400 {
