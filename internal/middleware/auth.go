@@ -20,9 +20,11 @@ import (
 
 var (
 	// 白名单
-	whiteList = []string{
-		"/api/v1/user/login",
-		"/health",
+	whiteList = []string{}
+
+	permWhitelist = []string{
+		"admin/v1/user/changePwd",
+		"admin/v1/user/logout",
 	}
 	tokenHeadName = "Authorization"
 )
@@ -90,14 +92,16 @@ func generateUserSession(ctx *gin.Context, userID uint64) (*modeluser.User, erro
 
 // 是否有权限
 func hasPermission(ctx *gin.Context, u *modeluser.User) error {
-	if u.IsSuperAdmin() {
+	path := strings.TrimLeft(ctx.Request.URL.Path, "/")
+
+	if u.IsSuperAdmin() || slices.Contains(permWhitelist, path) {
 		return nil
 	}
 	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionURLsByRoleCode(ctx, u.RoleCode)
 	if err != nil {
 		return err
 	}
-	if !slices.Contains(perms, strings.TrimLeft(ctx.Request.URL.Path, "/")) {
+	if !slices.Contains(perms, path) {
 		return fmt.Errorf("没有权限")
 	}
 	return nil

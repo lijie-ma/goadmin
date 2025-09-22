@@ -2,6 +2,7 @@ package user
 
 import (
 	"goadmin/internal/context"
+	"goadmin/internal/middleware"
 	"goadmin/internal/repository/user"
 	"goadmin/internal/service/token"
 	userSrv "goadmin/internal/service/user"
@@ -25,8 +26,8 @@ func RegisterRoutes(r *gin.RouterGroup) {
 
 		// 需要认证的接口
 		authGroup := group.Group("/")
-		// TODO: 添加认证中间件
-		// authGroup.Use(middleware.JWT())
+
+		authGroup.Use(middleware.Auth())
 		{
 			authGroup.GET("/logout", context.Build(handler.Logout))
 			authGroup.POST("/changePwd", context.Build(handler.ChangePassword))

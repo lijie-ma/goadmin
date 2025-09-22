@@ -93,50 +93,11 @@ func (h *Handler) ChangePassword(ctx *context.Context) {
 		return
 	}
 
-	// 从上下文中获取当前用户ID
-	userID, exists := ctx.Get("user_id")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, schema.Response{
-			Code:    http.StatusUnauthorized,
-			Message: "未登录",
-		})
-		return
-	}
-
-	// 获取用户信息
-	u, err := h.userRepo.GetByID(ctx, userID.(uint64))
+	err := h.userSrv.ChangePassword(ctx, &req)
 	if err != nil {
-		ctx.Logger.Errorf("获取用户信息失败: %v", err)
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: "系统错误",
-		})
-		return
-	}
-
-	if u == nil {
-		ctx.JSON(http.StatusNotFound, schema.Response{
-			Code:    http.StatusNotFound,
-			Message: "用户不存在",
-		})
-		return
-	}
-
-	// 验证旧密码
-	if u.Password != req.OldPassword { // TODO: 使用加密后的密码比较
-		ctx.JSON(http.StatusBadRequest, schema.Response{
-			Code:    http.StatusBadRequest,
-			Message: "原密码错误",
-		})
-		return
-	}
-
-	// 更新密码
-	if err := h.userRepo.UpdatePassword(ctx, u.ID, req.NewPassword); err != nil {
-		ctx.Logger.Errorf("更新密码失败: %v", err)
-		ctx.JSON(http.StatusInternalServerError, schema.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "系统错误",
+			Message: err.Error(),
 		})
 		return
 	}
