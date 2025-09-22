@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"goadmin/internal/context"
 	modeluser "goadmin/internal/model/user"
+	"goadmin/internal/repository/role"
 	userrepo "goadmin/internal/repository/user"
 	"goadmin/internal/service/setting"
 	"goadmin/internal/service/token"
@@ -88,15 +89,21 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 		ctx.Logger.Errorf("%s jwt token: %s %v", s.logPrefix(), req.Username, err)
 		return nil, err
 	}
+	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionsByRoleCode(ctx, u.RoleCode)
+	if err != nil {
+		ctx.Logger.Errorf("%s get Permissions: %s %d %v", s.logPrefix(), req.Username, u.RoleCode, err)
+		return nil, err
+	}
 
 	return &modeluser.LoginResponse{
-		Token:        tokenPairs.AccessToken,
-		RefreshToken: tokenPairs.RefreshToken,
-		ExpiresAt:    tokenPairs.ExpiresAt,
-		Role:         u.Role,
-		Username:     u.Username,
-		RoleCode:     u.RoleCode,
-		Email:        u.Email,
+		Token:           tokenPairs.AccessToken,
+		RefreshToken:    tokenPairs.RefreshToken,
+		ExpiresAt:       tokenPairs.ExpiresAt,
+		Role:            u.Role,
+		Username:        u.Username,
+		RoleCode:        u.RoleCode,
+		Email:           u.Email,
+		PermissionCodes: perms,
 	}, nil
 }
 

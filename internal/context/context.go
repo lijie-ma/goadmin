@@ -13,7 +13,7 @@ type Context struct {
 	Logger logger.Logger
 }
 
-func (c *Context) Seession() *modeluser.User {
+func (c *Context) Session() *modeluser.User {
 	data, exists := c.Get(gin.AuthUserKey)
 	if !exists {
 		return nil

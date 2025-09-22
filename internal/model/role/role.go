@@ -13,7 +13,7 @@ type Role struct {
 	Description string `gorm:"size:200;default:''" json:"description"`
 	Status      int    `gorm:"default:1;comment:1:active,0:inactive" json:"status"`
 
-	Permissions []permission.Permission `gorm:"many2many:role_permissions;foreignKey:Code;joinForeignKey:RoleCode;References:PermissionCode;JoinReferences:Code" json:"permissions"`
+	Permissions []permission.Permission `gorm:"many2many:role_permissions;joinForeignKey:RoleCode;joinReferences:PermissionCode"`
 }
 
 // TableName 指定表名

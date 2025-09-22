@@ -7,9 +7,11 @@ import (
 	"goadmin/pkg/logger"
 	"goadmin/pkg/trace"
 	"net/http"
+	"slices"
 	"strings"
 
 	modeluser "goadmin/internal/model/user"
+	"goadmin/internal/repository/role"
 	userrepo "goadmin/internal/repository/user"
 	tokenService "goadmin/internal/service/token"
 
@@ -61,6 +63,12 @@ func Auth() gin.HandlerFunc {
 			abortWithError(c, http.StatusUnauthorized, err)
 			return
 		}
+		err = hasPermission(c, sessionData)
+		if err != nil {
+			abortWithError(c, http.StatusUnauthorized, err)
+			return
+		}
+
 		// 将用户存入上下文
 		c.Set(gin.AuthUserKey, sessionData)
 
@@ -78,6 +86,21 @@ func generateUserSession(ctx *gin.Context, userID uint64) (*modeluser.User, erro
 		return nil, fmt.Errorf("账户状态异常")
 	}
 	return u, nil
+}
+
+// 是否有权限
+func hasPermission(ctx *gin.Context, u *modeluser.User) error {
+	if u.IsSuperAdmin() {
+		return nil
+	}
+	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionURLsByRoleCode(ctx, u.RoleCode)
+	if err != nil {
+		return err
+	}
+	if !slices.Contains(perms, strings.TrimLeft(ctx.Request.URL.Path, "/")) {
+		return fmt.Errorf("没有权限")
+	}
+	return nil
 }
 
 // abortWithError 中止请求并返回错误

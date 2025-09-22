@@ -21,13 +21,14 @@ database:
     max_open_conns: 100
     conn_max_lifetime: "1h"
     log_level: "info"  # gorm log level: silent, error, warn, info
+
   # 从库配置（可以配置多个）
   slaves:
     - host: "192.168.56.104"
       port: 33060
       username: "root"
       password: "Qwert1234"
-      database: "goadmin"
+      database: "testdb"
       charset: "utf8mb4"
       max_idle_conns: 10
       max_open_conns: 100

@@ -1,15 +1,15 @@
 -- +goose Up
 -- SQL in this section is executed when the migration is applied.
-INSERT INTO roles (id, ctime, mtime, code, name, description, status)
-VALUES ('1', '2025-09-19 10:43:03', '2025-09-19 10:43:03', 'sup_admin', '超级管理员', '超级管理员', '1');
+INSERT INTO roles (id, code, name, description, status)
+VALUES ('1', 'sup_admin', '超级管理员', '超级管理员', '1');
 
 
-INSERT INTO users (id, ctime, mtime, username, password, email, status, role_code) VALUES
-('1', '2025-09-19 10:38:10', '2025-09-19 10:38:10', 'admin', '$2y$10$VZ6HMgqqnPb3cyxMbTbjl.PxYwlPwNTHJX2PCdDZ4aRehGi34AbkW', '', '1', 'sup_admin');
+--  admin 123456
+INSERT INTO users (id, username, password, email, status, role_code) VALUES
+('1', 'admin', '$2y$10$oPdNH9rQsliggddN1lifkeIhHFGVSUjKnfT.EcyPrPMZiTRWnBdHm', '', '1', 'sup_admin');
 
-
-INSERT INTO settings (id, name, value, mtime, ctime) VALUES
-('1', 'captcha_switch', '{"admin":0, "web":1}', '2025-09-20 01:33:40', '2025-09-20 01:33:40');
+INSERT INTO settings (id, name, value) VALUES
+('1', 'captcha_switch', '{"admin":0, "web":1}');
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
