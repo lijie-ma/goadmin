@@ -9,11 +9,10 @@ INSERT INTO users (id, ctime, mtime, username, password, email, status, role_cod
 
 
 INSERT INTO settings (id, name, value, mtime, ctime) VALUES
-('1', 'session_salt', 'Qwert', '2025-09-20 01:33:40', '2025-09-20 01:33:40'),
-('2', 'captcha_switch', '{"server":0, "web":1}', '2025-09-20 01:33:40', '2025-09-20 01:33:40');
+('1', 'captcha_switch', '{"admin":0, "web":1}', '2025-09-20 01:33:40', '2025-09-20 01:33:40');
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
 delete from roles where code = 'sup_admin';
 delete from users where username = 'admin';
-delete from settings where name in ('session_salt', 'captcha_switch');
+delete from settings where name in ('captcha_switch');

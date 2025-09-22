@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"goadmin/internal/context"
 	"goadmin/internal/model/captcha"
+	"goadmin/internal/service/setting"
 	"goadmin/pkg/redis"
 	"goadmin/pkg/util"
 	"sync"
@@ -66,6 +67,17 @@ func getCapt() (slide.Captcha, error) {
 }
 
 func Generate(ctx *context.Context) (any, error) {
+	captchaCfg, err := setting.GetCaptchaSwitch(ctx, setting.NewServerSettingService())
+	if err != nil {
+		ctx.Logger.Errorf("%s GetCaptchaSwitch %+v", logPrefix, err)
+		return nil, err
+	}
+	if !captchaCfg.IsAdminOn() {
+		return map[string]any{
+			"switch": 0,
+		}, nil
+	}
+
 	capt, err := getCapt()
 	if err != nil {
 		ctx.Logger.Errorf("%s capt %+v", logPrefix, err)
@@ -97,6 +109,7 @@ func Generate(ctx *context.Context) (any, error) {
 	redis.GetClient().Set(ctx, key, string(dotsByte), time.Minute)
 
 	return map[string]any{
+		"switch":       1,
 		"key":          key,
 		"image_base64": masterImageBase64,
 		"tile_base64":  tileImageBase64,

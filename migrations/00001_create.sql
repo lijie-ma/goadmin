@@ -59,6 +59,7 @@ CREATE TABLE `role_permissions` (
   UNIQUE KEY `role_permission` (`role_code`,`permission_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 创建permissions表 10000 以内为系统内置权限
  CREATE TABLE `server_setting` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL DEFAULT '',
@@ -67,7 +68,7 @@ CREATE TABLE `role_permissions` (
   `ctime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='服务端配置';
+) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COMMENT='服务端配置';
 
 
 -- +goose Down

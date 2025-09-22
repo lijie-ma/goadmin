@@ -5,6 +5,7 @@ import (
 	"goadmin/internal/context"
 	modeluser "goadmin/internal/model/user"
 	userrepo "goadmin/internal/repository/user"
+	"goadmin/internal/service/setting"
 	"goadmin/internal/service/token"
 	"goadmin/pkg/util"
 
@@ -35,6 +36,15 @@ func (*userService) logPrefix() string {
 }
 
 func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*modeluser.LoginResponse, error) {
+	captchaCfg, err := setting.GetCaptchaSwitch(ctx, setting.NewServerSettingService())
+	if err != nil {
+		ctx.Logger.Errorf("%s GetCaptchaSwitch %+v", s.logPrefix(), err)
+		return nil, err
+	}
+	if captchaCfg.IsAdminOn() && !token.NewTokenService().ValidateToken(ctx, req.Token) {
+		ctx.Logger.Errorf("%s ValidateToken faild %s %s", s.logPrefix(), req.Username, req.Token)
+		return nil, err
+	}
 	// 获取用户信息
 	u, err := s.userRepo.GetByUsername(ctx, req.Username)
 	if err != nil {

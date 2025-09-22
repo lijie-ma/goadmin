@@ -6,7 +6,7 @@ import "goadmin/internal/model/role"
 type LoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
-	Token    string `json:"token" binding:"required"` // 验证码token
+	Token    string `json:"token"` // 验证码token
 }
 
 // LoginResponse 登录响应
