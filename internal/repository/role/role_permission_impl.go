@@ -33,9 +33,11 @@ func NewRolePermissionRepositoryWithDB() RolePermissionRepository {
 // GetPermissionsByRoleCode 根据角色代码获取权限列表
 func (r *RolePermissionRepositoryImpl) GetPermissionsByRoleCode(ctx context.Context, roleCode string) ([]string, error) {
 	var permissions []string
-	err := r.DB().WithContext(ctx).Model(&role.RolePermission{}).
-		Where("role_code = ?", roleCode).
-		Pluck("permission_code", &permissions).Error
+	err := r.DB().WithContext(ctx).
+		Raw("? UNION ?",
+			r.DB().Model(&role.RolePermission{}).Select("permission_code").Where("role_code = ?", roleCode),
+			r.DB().Model(&permission.Permission{}).Select("code").Where("global_flag = ?", permission.GlobalFlagYes),
+		).Pluck("permission_code", &permissions).Error
 	return permissions, err
 }
 
@@ -47,8 +49,8 @@ func (r *RolePermissionRepositoryImpl) GetPermissionURLsByRoleCode(
 	roleTable := (role.RolePermission{}).TableName()
 
 	err := r.DB().WithContext(ctx).Model(&role.RolePermission{}).
-		Joins(fmt.Sprintf("%s as rp left join %s as p on rp.permission_code = p.code", roleTable, permTable)).
-		Where("role_code = ?", roleCode).
+		Joins(fmt.Sprintf("%s as rp RIGHT JOIN %s as p ON rp.permission_code = p.code", roleTable, permTable)).
+		Where("role_code = ? OR p.global_flag = ?", roleCode, permission.GlobalFlagYes).
 		Pluck("p.path", &path).Error
 	return path, err
 }

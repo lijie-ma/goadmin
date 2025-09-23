@@ -22,10 +22,6 @@ var (
 	// 白名单
 	whiteList = []string{}
 
-	permWhitelist = []string{
-		"admin/v1/user/changePwd",
-		"admin/v1/user/logout",
-	}
 	tokenHeadName = "Authorization"
 )
 
@@ -94,7 +90,7 @@ func generateUserSession(ctx *gin.Context, userID uint64) (*modeluser.User, erro
 func hasPermission(ctx *gin.Context, u *modeluser.User) error {
 	path := strings.TrimLeft(ctx.Request.URL.Path, "/")
 
-	if u.IsSuperAdmin() || slices.Contains(permWhitelist, path) {
+	if u.IsSuperAdmin() {
 		return nil
 	}
 	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionURLsByRoleCode(ctx, u.RoleCode)

@@ -2,6 +2,8 @@ package api
 
 import (
 	"goadmin/internal/api/admin/v1/captcha"
+	"goadmin/internal/api/admin/v1/role"
+	"goadmin/internal/api/admin/v1/setting"
 	"goadmin/internal/api/admin/v1/user"
 	"goadmin/internal/context"
 	"goadmin/internal/middleware"
@@ -39,5 +41,11 @@ func adminHandler(r *gin.Engine) {
 
 		// 用户相关路由
 		user.RegisterRoutes(adminGroup)
+
+		// 系统设置相关路由
+		setting.RegisterRoutes(adminGroup)
+
+		// 角色相关路由
+		role.RegisterRoutes(adminGroup)
 	}
 }

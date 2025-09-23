@@ -1,104 +1,99 @@
 package setting
 
 import (
+	"context"
 	"encoding/json"
-	"goadmin/internal/context"
 	"goadmin/internal/model/server"
-	serverrepo "goadmin/internal/repository/server"
+	serverRepo "goadmin/internal/repository/server"
 	"goadmin/pkg/db"
 )
 
-// ServerSettingService 服务端配置服务接口
+// ServerSettingService 服务端设置服务接口
 type ServerSettingService interface {
-	// Get 获取配置值
-	//  值将存放到valuePointer 中
-	Get(ctx *context.Context, name string, valuePointer any) error
+	// GetByName 根据名称获取服务端配置
+	GetByName(ctx context.Context, name string) (*server.ServerSetting, error)
 
-	// Set 设置配置值
-	//  value 将被 json 序列化
-	Set(ctx *context.Context, name string, value any) error
+	// SetByName 设置服务端配置
+	SetByName(ctx context.Context, name string, value string) error
 
-	// GetBatch 批量获取配置值
-	GetBatch(ctx *context.Context, names []string) (map[string]string, error)
+	// GetValue 根据名称获取服务端配置值
+	GetValue(ctx context.Context, name string) (string, error)
+
+	// Exists 检查服务端配置是否存在
+	Exists(ctx context.Context, name string) (bool, error)
+
+	// BatchGetValues 批量获取服务端配置值
+	BatchGetValues(ctx context.Context, names []string) (map[string]string, error)
+
+	// Get 获取服务端配置，解析为指定类型
+	Get(ctx context.Context, name string, value interface{}) error
+
+	// Set 设置服务端配置，支持结构体类型
+	Set(ctx context.Context, name string, value interface{}) error
 }
 
-// serverSettingService 服务端配置服务实现
-type serverSettingService struct {
-	settingRepo serverrepo.ServerSettingRepository
+// serverSettingServiceImpl 服务端设置服务实现
+type serverSettingServiceImpl struct {
+	repo serverRepo.ServerSettingRepository
 }
 
-// NewServerSettingService 创建服务端配置服务实例
+// NewServerSettingService 创建服务端设置服务
 func NewServerSettingService() ServerSettingService {
-	return &serverSettingService{
-		settingRepo: serverrepo.NewServerSettingRepository(db.GetDB()), // 这里的 nil 会使用全局 DB 实例
+	return &serverSettingServiceImpl{
+		repo: serverRepo.NewServerSettingRepository(db.GetDB()),
 	}
 }
 
-func (*serverSettingService) logPrefix() string {
-	return "server-setting-service"
+// GetByName 根据名称获取服务端配置
+func (s *serverSettingServiceImpl) GetByName(ctx context.Context, name string) (*server.ServerSetting, error) {
+	return s.repo.GetByName(ctx, name)
 }
 
-// Get 获取配置值
-func (s *serverSettingService) Get(ctx *context.Context, name string, valuePointer any) error {
-	setting, err := s.settingRepo.GetByName(ctx, name)
+// SetByName 设置服务端配置
+func (s *serverSettingServiceImpl) SetByName(ctx context.Context, name string, value string) error {
+	setting, err := s.GetByName(ctx, name)
 	if err != nil {
-		ctx.Logger.Errorf("%s 获取配置失败: %s %v", s.logPrefix(), name, err)
 		return err
 	}
 
 	if setting == nil {
-		return nil
-	}
-
-	err = json.Unmarshal([]byte(setting.Value), valuePointer)
-	if err != nil {
-		ctx.Logger.Errorf("%s 解析配置值失败: %s %v", s.logPrefix(), name, err)
+		// 创建新配置
+		setting = &server.ServerSetting{
+			Name:  name,
+			Value: value,
+		}
+		err = s.repo.Create(ctx, setting)
 		return err
 	}
 
-	return nil
+	// 更新配置
+	setting.Value = value
+	return s.repo.Update(ctx, setting)
 }
 
-// Set 设置配置值
-func (s *serverSettingService) Set(ctx *context.Context, name string, value any) error {
-	str, err := json.Marshal(value)
+// GetValue 根据名称获取服务端配置值
+func (s *serverSettingServiceImpl) GetValue(ctx context.Context, name string) (string, error) {
+	setting, err := s.GetByName(ctx, name)
 	if err != nil {
-		ctx.Logger.Errorf("%s 序列化配置值失败: %s %v", s.logPrefix(), name, err)
-		return err
-	}
-	// 先检查配置是否存在
-	exists, err := s.settingRepo.Exists(ctx, name)
-	if err != nil {
-		ctx.Logger.Errorf("%s 检查配置是否存在失败: %s %v", s.logPrefix(), name, err)
-		return err
+		return "", err
 	}
 
-	setting := &server.ServerSetting{
-		Name:  name,
-		Value: string(str),
+	if setting == nil {
+		return "", nil
 	}
 
-	if exists {
-		// 如果存在则更新
-		err = s.settingRepo.Update(ctx, setting)
-	} else {
-		// 如果不存在则创建
-		err = s.settingRepo.Create(ctx, setting)
-	}
-
-	if err != nil {
-		ctx.Logger.Errorf("%s 保存配置失败: %s %v", s.logPrefix(), name, err)
-		return err
-	}
-
-	return nil
+	return setting.Value, nil
 }
 
-// GetBatch 批量获取配置值
-func (s *serverSettingService) GetBatch(ctx *context.Context, names []string) (map[string]string, error) {
-	settings, err := s.settingRepo.BatchGet(ctx, names)
+// Exists 检查服务端配置是否存在
+func (s *serverSettingServiceImpl) Exists(ctx context.Context, name string) (bool, error) {
+	return s.repo.Exists(ctx, name)
+}
+
+// BatchGetValues 批量获取服务端配置值
+func (s *serverSettingServiceImpl) BatchGetValues(ctx context.Context, names []string) (map[string]string, error) {
+	settings, err := s.repo.BatchGet(ctx, names)
 	if err != nil {
-		ctx.Logger.Errorf("%s 批量获取配置失败: %v %v", s.logPrefix(), names, err)
 		return nil, err
 	}
 
@@ -108,4 +103,28 @@ func (s *serverSettingService) GetBatch(ctx *context.Context, names []string) (m
 	}
 
 	return result, nil
+}
+
+// Get 获取服务端配置，解析为指定类型
+func (s *serverSettingServiceImpl) Get(ctx context.Context, name string, value interface{}) error {
+	val, err := s.GetValue(ctx, name)
+	if err != nil {
+		return err
+	}
+
+	if val == "" {
+		return nil
+	}
+
+	return json.Unmarshal([]byte(val), value)
+}
+
+// Set 设置服务端配置，支持结构体类型
+func (s *serverSettingServiceImpl) Set(ctx context.Context, name string, value interface{}) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	return s.SetByName(ctx, name, string(data))
 }
