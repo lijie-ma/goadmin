@@ -22,14 +22,14 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			// 角色管理
 			group.GET("", context.Build(handler.ListRoles))
 			group.GET("/active", context.Build(handler.ListActiveRoles))
-			group.GET("/:id", context.Build(handler.GetRole))
-			group.POST("", context.Build(handler.CreateRole))
-			group.POST("/:id", context.Build(handler.UpdateRole))
-			group.DELETE("/:id", context.Build(handler.DeleteRole))
+			group.POST("/get", context.Build(handler.GetRole))
+			group.POST("/create", context.Build(handler.CreateRole))
+			group.POST("/update", context.Build(handler.UpdateRole))
+			group.POST("/delete", context.Build(handler.DeleteRole))
 
 			// 角色权限管理
-			group.GET("/permissions/:code", context.Build(handler.GetRolePermissions))
-			group.POST("/permissions", context.Build(handler.AssignPermissions))
+			group.POST("/permissions/get", context.Build(handler.GetRolePermissions))
+			group.POST("/permissions/assign", context.Build(handler.AssignPermissions))
 		}
 	}
 }

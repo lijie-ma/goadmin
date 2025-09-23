@@ -47,17 +47,19 @@ func (h *Handler) ListRoles(ctx *context.Context) {
 
 // GetRole 获取角色详情
 func (h *Handler) GetRole(ctx *context.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
-	if err != nil {
+	var req struct {
+		ID uint64 `json:"id" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的角色ID",
+			Message: "无效的请求参数",
 		})
 		return
 	}
 
-	role, err := h.roleSrv.GetRoleWithPermissions(ctx, id)
+	role, err := h.roleSrv.GetRoleWithPermissions(ctx, req.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
@@ -109,16 +111,6 @@ func (h *Handler) CreateRole(ctx *context.Context) {
 
 // UpdateRole 更新角色
 func (h *Handler) UpdateRole(ctx *context.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, schema.Response{
-			Code:    http.StatusBadRequest,
-			Message: "无效的角色ID",
-		})
-		return
-	}
-
 	var req modelrole.Role
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
@@ -128,8 +120,15 @@ func (h *Handler) UpdateRole(ctx *context.Context) {
 		return
 	}
 
-	req.ID = id
-	err = h.roleSrv.UpdateRole(ctx, &req)
+	if req.ID == 0 {
+		ctx.JSON(http.StatusBadRequest, schema.Response{
+			Code:    http.StatusBadRequest,
+			Message: "角色ID不能为空",
+		})
+		return
+	}
+
+	err := h.roleSrv.UpdateRole(ctx, &req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
@@ -146,17 +145,19 @@ func (h *Handler) UpdateRole(ctx *context.Context) {
 
 // DeleteRole 删除角色
 func (h *Handler) DeleteRole(ctx *context.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
-	if err != nil {
+	var req struct {
+		ID uint64 `json:"id" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的角色ID",
+			Message: "无效的请求参数",
 		})
 		return
 	}
 
-	err = h.roleSrv.DeleteRole(ctx, id)
+	err := h.roleSrv.DeleteRole(ctx, req.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
@@ -203,16 +204,19 @@ func (h *Handler) AssignPermissions(ctx *context.Context) {
 
 // GetRolePermissions 获取角色的权限列表
 func (h *Handler) GetRolePermissions(ctx *context.Context) {
-	roleCode := ctx.Param("code")
-	if roleCode == "" {
+	var req struct {
+		Code string `json:"code" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的角色代码",
+			Message: "无效的请求参数",
 		})
 		return
 	}
 
-	permissions, err := h.roleSrv.GetRolePermissions(ctx, roleCode)
+	permissions, err := h.roleSrv.GetRolePermissions(ctx, req.Code)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,

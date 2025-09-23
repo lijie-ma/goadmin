@@ -66,16 +66,19 @@ func (h *Handler) SetCaptchaSwitch(ctx *context.Context) {
 
 // GetByName 根据名称获取配置
 func (h *Handler) GetByName(ctx *context.Context) {
-	name := ctx.Param("name")
-	if name == "" {
+	var req struct {
+		Name string `json:"name" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "配置名称不能为空",
+			Message: "无效的请求参数",
 		})
 		return
 	}
 
-	setting, err := h.settingSrv.GetByName(ctx.Request.Context(), name)
+	setting, err := h.settingSrv.GetByName(ctx.Request.Context(), req.Name)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
@@ -101,16 +104,11 @@ func (h *Handler) GetByName(ctx *context.Context) {
 
 // SetByName 设置配置值
 func (h *Handler) SetByName(ctx *context.Context) {
-	name := ctx.Param("name")
-	if name == "" {
-		ctx.JSON(http.StatusBadRequest, schema.Response{
-			Code:    http.StatusBadRequest,
-			Message: "配置名称不能为空",
-		})
-		return
+	var req struct {
+		Name  string `json:"name" binding:"required"`
+		Value string `json:"value" binding:"required"`
 	}
 
-	var req server.ServerSetting
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
@@ -119,8 +117,7 @@ func (h *Handler) SetByName(ctx *context.Context) {
 		return
 	}
 
-	req.Name = name // 使用URL中的名称
-	err := h.settingSrv.SetByName(ctx.Request.Context(), name, req.Value)
+	err := h.settingSrv.SetByName(ctx.Request.Context(), req.Name, req.Value)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,

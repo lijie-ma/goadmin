@@ -20,13 +20,13 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		group.Use(middleware.Auth())
 		{
 			// 基础配置操作
-			group.GET("/:name", context.Build(handler.GetByName))
-			group.PUT("/:name", context.Build(handler.SetByName))
+			group.POST("/get", context.Build(handler.GetByName))
+			group.POST("/set", context.Build(handler.SetByName))
 			group.POST("/batch", context.Build(handler.BatchGetValues))
 
 			// 验证码开关配置
 			group.GET("/captcha-switch", context.Build(handler.GetCaptchaSwitch))
-			group.POST("/captcha-switch", context.Build(handler.SetCaptchaSwitch))
+			group.PUT("/captcha-switch", context.Build(handler.SetCaptchaSwitch))
 		}
 	}
 }

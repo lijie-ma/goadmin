@@ -126,6 +126,10 @@ func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.Role) err
 		return fmt.Errorf("角色不存在")
 	}
 
+	if existingRole.IsSystem() {
+		return fmt.Errorf("系统角色不能被修改")
+	}
+
 	// 如果更改了代码，检查新代码是否已存在
 	if existingRole.Code != roleModel.Code {
 		codeExists, err := s.roleRepo.GetByCode(ctx, roleModel.Code)
