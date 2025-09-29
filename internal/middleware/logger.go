@@ -12,8 +12,6 @@ import (
 
 // Logger 返回一个记录HTTP请求日志的中间件
 func Logger() gin.HandlerFunc {
-	log := logger.Global()
-
 	return func(c *gin.Context) {
 		// 请求开始时间
 		start := time.Now()
@@ -82,7 +80,7 @@ func Logger() gin.HandlerFunc {
 
 		// 根据状态码选择日志级别
 		logMsg := "HTTP Request"
-		log = log.With(trace.GetTrace(c))
+		log := logger.Global().With(trace.GetTrace(c))
 		if status >= 500 {
 			log.Error(logMsg, logFields...)
 		} else if status >= 400 {
