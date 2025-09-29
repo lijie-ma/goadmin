@@ -37,15 +37,27 @@ func (r *BaseRepository[T]) GetByID(ctx context.Context, id uint64) (*T, error) 
 	return &model, nil
 }
 
-// List 获取记录列表
-func (r *BaseRepository[T]) List(ctx context.Context, page, pageSize int) ([]*T, int64, error) {
+// applyOptions 应用查询选项
+func (r *BaseRepository[T]) applyOptions(db *gorm.DB, opts ...QueryOption[T]) *gorm.DB {
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	return db
+}
+
+// List 获取记录列表，支持分页和自定义查询条件
+func (r *BaseRepository[T]) List(ctx context.Context, page, pageSize int, opts ...QueryOption[T]) ([]*T, int64, error) {
 	var (
 		models []*T
 		total  int64
 	)
 
+	// 构建查询
+	query := r.db.WithContext(ctx).Model(new(T))
+	query = r.applyOptions(query, opts...)
+
 	// 获取总数
-	if err := r.db.WithContext(ctx).Model(new(T)).Count(&total).Error; err != nil {
+	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -61,13 +73,25 @@ func (r *BaseRepository[T]) List(ctx context.Context, page, pageSize int) ([]*T,
 	}
 
 	// 查询数据
-	err := r.db.WithContext(ctx).
+	err := query.
 		Offset(offset).
 		Limit(pageSize).
-		Order("id DESC").
 		Find(&models).Error
 
 	return models, total, err
+}
+
+// Find 根据条件查询记录，不分页
+func (r *BaseRepository[T]) Find(ctx context.Context, opts ...QueryOption[T]) ([]*T, error) {
+	var models []*T
+
+	// 构建查询
+	query := r.db.WithContext(ctx)
+	query = r.applyOptions(query, opts...)
+
+	// 查询数据
+	err := query.Find(&models).Error
+	return models, err
 }
 
 // Update 更新记录
@@ -106,10 +130,16 @@ func (r *BaseRepository[T]) GetByIDs(ctx context.Context, ids []uint64) ([]*T, e
 	return models, err
 }
 
-// Count 获取记录总数
-func (r *BaseRepository[T]) Count(ctx context.Context) (int64, error) {
+// Count 获取记录总数，支持自定义查询条件
+func (r *BaseRepository[T]) Count(ctx context.Context, opts ...QueryOption[T]) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(new(T)).Count(&count).Error
+
+	// 构建查询
+	query := r.db.WithContext(ctx).Model(new(T))
+	query = r.applyOptions(query, opts...)
+
+	// 获取总数
+	err := query.Count(&count).Error
 	return count, err
 }
 

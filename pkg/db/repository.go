@@ -2,11 +2,51 @@ package db
 
 import (
 	"context"
+
+	"gorm.io/gorm"
 )
 
 // Model 定义了基础模型接口
 type Model interface {
 	TableName() string
+}
+
+// QueryOption 查询选项
+type QueryOption[T Model] func(*gorm.DB) *gorm.DB
+
+// Where 条件查询选项
+func Where[T Model](query interface{}, args ...interface{}) QueryOption[T] {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where(query, args...)
+	}
+}
+
+// Order 排序查询选项
+func Order[T Model](value string) QueryOption[T] {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Order(value)
+	}
+}
+
+// Preload 预加载关联查询选项
+func Preload[T Model](query string, args ...interface{}) QueryOption[T] {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(query, args...)
+	}
+}
+
+// Joins 关联查询选项
+func Joins[T Model](query string, args ...interface{}) QueryOption[T] {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Joins(query, args...)
+	}
+}
+
+// Select 字段选择查询选项
+func Select[T Model](query interface{}, args ...interface{}) QueryOption[T] {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Select(query, args...)
+	}
 }
 
 // BaseRepository 基础仓储接口
@@ -17,8 +57,8 @@ type Repository[T Model] interface {
 	// GetByID 根据ID获取记录
 	GetByID(ctx context.Context, id uint64) (*T, error)
 
-	// List 获取记录列表
-	List(ctx context.Context, page, pageSize int) ([]*T, int64, error)
+	// List 获取记录列表，支持分页和自定义查询条件
+	List(ctx context.Context, page, pageSize int, opts ...QueryOption[T]) ([]*T, int64, error)
 
 	// Update 更新记录
 	Update(ctx context.Context, model *T) error
@@ -35,6 +75,9 @@ type Repository[T Model] interface {
 	// GetByIDs 根据ID列表获取多条记录
 	GetByIDs(ctx context.Context, ids []uint64) ([]*T, error)
 
-	// Count 获取记录总数
-	Count(ctx context.Context) (int64, error)
+	// Count 获取记录总数，支持自定义查询条件
+	Count(ctx context.Context, opts ...QueryOption[T]) (int64, error)
+
+	// Find 根据条件查询记录，不分页
+	Find(ctx context.Context, opts ...QueryOption[T]) ([]*T, error)
 }
