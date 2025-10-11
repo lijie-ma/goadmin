@@ -29,3 +29,7 @@ func (s UserStatus) String() string {
 		return "未知状态"
 	}
 }
+
+const (
+	SupAdminUserID = 1 // 超级管理员用户ID
+)

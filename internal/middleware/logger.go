@@ -59,6 +59,7 @@ func Logger() gin.HandlerFunc {
 			logger.Int("size", size),
 			logger.String("latency", latency.String()),
 			logger.String("user-agent", c.Request.UserAgent()),
+			trace.GetTrace(c),
 		}
 
 		// 根据内容类型和大小判断是否记录请求体
@@ -80,13 +81,12 @@ func Logger() gin.HandlerFunc {
 
 		// 根据状态码选择日志级别
 		logMsg := "HTTP Request"
-		log := logger.Global().With(trace.GetTrace(c))
 		if status >= 500 {
-			log.Error(logMsg, logFields...)
+			logger.Global().Error(logMsg, logFields...)
 		} else if status >= 400 {
-			log.Warn(logMsg, logFields...)
+			logger.Global().Warn(logMsg, logFields...)
 		} else {
-			log.Info(logMsg, logFields...)
+			logger.Global().Info(logMsg, logFields...)
 		}
 	}
 }

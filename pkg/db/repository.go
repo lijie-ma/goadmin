@@ -6,6 +6,10 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	ErrRecordNotFound = gorm.ErrRecordNotFound
+)
+
 // Model 定义了基础模型接口
 type Model interface {
 	TableName() string

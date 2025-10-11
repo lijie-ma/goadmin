@@ -57,7 +57,7 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 		sessionData, err := generateUserSession(c, claims.UserID)
-		if err != nil || !claims.IsAdmin() {
+		if err != nil {
 			abortWithError(c, http.StatusUnauthorized, err)
 			return
 		}

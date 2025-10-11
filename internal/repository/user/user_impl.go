@@ -6,8 +6,6 @@ import (
 	"goadmin/internal/model/user"
 	"goadmin/pkg/db"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // 确保UserRepositoryImpl实现了UserRepository接口
@@ -32,7 +30,7 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, id uint64) (*user.User
 		Where("id = ? AND status != ?", id, user.UserStatusDeleted).
 		Preload("Role").First(&u).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -47,7 +45,7 @@ func (r *UserRepositoryImpl) GetByUsername(ctx context.Context, username string)
 		Where("username = ? AND status != ?", username, user.UserStatusDeleted).
 		Preload("Role").First(&u).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -60,7 +58,7 @@ func (r *UserRepositoryImpl) GetByEmail(ctx context.Context, email string) (*use
 	var u user.User
 	err := r.DB().WithContext(ctx).Where("email = ? AND status != ?", email, user.UserStatusDeleted).First(&u).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
