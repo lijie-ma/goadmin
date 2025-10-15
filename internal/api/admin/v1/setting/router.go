@@ -20,9 +20,9 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		group.Use(middleware.Auth())
 		{
 			// 基础配置操作
-			group.POST("/get", context.Build(handler.GetByName))
+			group.GET("/get", context.Build(handler.GetByName))
 			group.POST("/set", context.Build(handler.SetByName))
-			group.POST("/batch", context.Build(handler.BatchGetValues))
+			group.GET("/batch", context.Build(handler.BatchGetValues))
 
 			// 验证码开关配置
 			group.GET("/captcha-switch", context.Build(handler.GetCaptchaSwitch))

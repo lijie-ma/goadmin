@@ -67,10 +67,10 @@ func (h *Handler) SetCaptchaSwitch(ctx *context.Context) {
 // GetByName 根据名称获取配置
 func (h *Handler) GetByName(ctx *context.Context) {
 	var req struct {
-		Name string `json:"name" binding:"required"`
+		Name string `form:"name" json:"name" binding:"required"`
 	}
 
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
 			Message: "无效的请求参数",
@@ -135,7 +135,7 @@ func (h *Handler) SetByName(ctx *context.Context) {
 // BatchGetValues 批量获取配置值
 func (h *Handler) BatchGetValues(ctx *context.Context) {
 	var req struct {
-		Names []string `json:"names" binding:"required"`
+		Names []string `form:"names" json:"names" binding:"required"`
 	}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
