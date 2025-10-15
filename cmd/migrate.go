@@ -130,6 +130,8 @@ func runMigrate(command string, steps int64) error {
 		driverName = cfg.Database.Master.Driver
 	}
 
+	migrationsDir = filepath.Join(migrationsDir, driverName)
+
 	if databaseDSN == "" {
 		return fmt.Errorf("未提供数据库连接字符串，请通过--dsn参数指定或在配置文件中配置")
 	}
