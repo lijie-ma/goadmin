@@ -5,9 +5,11 @@ import (
 	"goadmin/config"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/plugin/dbresolver"
@@ -34,14 +36,14 @@ func Init(dbCfg *config.DatabaseConfig) error {
 	// 如果配置了从库，添加数据库解析器
 	if len(dbCfg.Slaves) > 0 {
 		resolverCfg := dbresolver.Config{
-			Sources:  []gorm.Dialector{mysql.Open(buildDSN(dbCfg.Master))},
+			Sources:  []gorm.Dialector{buildDialect(dbCfg.Master)},
 			Replicas: make([]gorm.Dialector, len(dbCfg.Slaves)),
 			Policy:   dbresolver.RandomPolicy{}, // 随机策略
 		}
 
 		// 配置所有从库
 		for i, slave := range dbCfg.Slaves {
-			resolverCfg.Replicas[i] = mysql.Open(buildDSN(slave))
+			resolverCfg.Replicas[i] = buildDialect(slave)
 		}
 
 		// 注册数据库解析器
@@ -72,7 +74,7 @@ func initDB(dbCfg config.DBConfig) (*gorm.DB, error) {
 	)
 
 	// 打开数据库连接
-	db, err := gorm.Open(mysql.Open(buildDSN(dbCfg)), &gorm.Config{
+	db, err := gorm.Open(buildDialect(dbCfg), &gorm.Config{
 		Logger: gormLogger,
 	})
 	if err != nil {
@@ -93,16 +95,17 @@ func initDB(dbCfg config.DBConfig) (*gorm.DB, error) {
 	return db, nil
 }
 
-// 构建数据库连接DSN
-func buildDSN(cfg config.DBConfig) string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
-		cfg.Username,
-		cfg.Password,
-		cfg.Host,
-		cfg.Port,
-		cfg.Database,
-		cfg.Charset,
-	)
+func buildDialect(dbCfg config.DBConfig) (dialect gorm.Dialector) {
+	switch strings.ToLower(dbCfg.Driver) {
+	case "mysql":
+		dialect = mysql.Open(dbCfg.DSN())
+	case "postgres":
+		dialect = postgres.New(postgres.Config{
+			DSN:                  dbCfg.DSN(),
+			PreferSimpleProtocol: true, // disables implicit prepared statement usage
+		})
+	}
+	return
 }
 
 // 解析日志级别

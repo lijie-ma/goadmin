@@ -5,6 +5,7 @@ import (
 	"goadmin/pkg/logger"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -47,6 +48,29 @@ type DBConfig struct {
 	MaxOpenConns    int           `yaml:"max_open_conns"`
 	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime"`
 	LogLevel        string        `yaml:"log_level"`
+}
+
+func (dbCfg *DBConfig) DSN() string {
+	switch strings.ToLower(dbCfg.Driver) {
+	case "mysql":
+		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
+			dbCfg.Username,
+			dbCfg.Password,
+			dbCfg.Host,
+			dbCfg.Port,
+			dbCfg.Database,
+			dbCfg.Charset,
+		)
+	case "postgres", "postgresql":
+		return fmt.Sprintf(`postgresql://%s:%s@%s:%d/%s?sslmode=disable`,
+			dbCfg.Username,
+			dbCfg.Password,
+			dbCfg.Host,
+			dbCfg.Port,
+			dbCfg.Database)
+	default:
+		return ""
+	}
 }
 
 // RedisConfig Redis配置

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )
@@ -125,9 +126,8 @@ func runMigrate(command string, steps int64) error {
 
 	// 如果没有提供DSN，则从配置中获取
 	if databaseDSN == "" && cfg != nil {
-		master := cfg.Database.Master
-		databaseDSN = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true",
-			master.Username, master.Password, master.Host, master.Port, master.Database)
+		databaseDSN = cfg.Database.Master.DSN()
+		driverName = cfg.Database.Master.Driver
 	}
 
 	if databaseDSN == "" {

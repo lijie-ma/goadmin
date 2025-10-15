@@ -10,7 +10,7 @@ database:
   enable: true  # 是否启用数据库
   # 主库配置
   master:
-    driver: "mysql"
+    driver: "mysql"   # postgres mysql
     host: "192.168.56.104"
     port: 33060
     username: "root"
@@ -24,7 +24,8 @@ database:
 
   # 从库配置（可以配置多个）
   slaves:
-    - host: "192.168.56.104"
+    - driver: "mysql"   # postgres mysql
+      host: "192.168.56.104"
       port: 33060
       username: "root"
       password: "Qwert1234"
