@@ -101,8 +101,8 @@ func buildDialect(dbCfg config.DBConfig) (dialect gorm.Dialector) {
 		dialect = mysql.Open(dbCfg.DSN())
 	case "postgres":
 		dialect = postgres.New(postgres.Config{
-			DSN:                  dbCfg.DSN(),
-			PreferSimpleProtocol: true, // disables implicit prepared statement usage
+			DSN: dbCfg.DSN(),
+			// PreferSimpleProtocol: true, // disables implicit prepared statement usage
 		})
 	}
 	return
