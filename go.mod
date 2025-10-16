@@ -11,6 +11,7 @@ require (
 	github.com/mozillazg/go-pinyin v0.21.0
 	github.com/pressly/goose/v3 v3.25.0
 	github.com/redis/go-redis/v9 v9.14.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.10.1
 	github.com/wenlng/go-captcha-assets v1.0.7
 	github.com/wenlng/go-captcha/v2 v2.0.4
