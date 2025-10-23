@@ -33,3 +33,7 @@ func GetTrace(c *gin.Context) logger.Field {
 	}
 	return logger.String(TraceIDKey, traceID.(string))
 }
+
+func NewTraceID() logger.Field {
+	return logger.String(TraceIDKey, util.GenerateUUID())
+}

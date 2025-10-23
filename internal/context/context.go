@@ -21,6 +21,16 @@ func (c *Context) Session() *modeluser.User {
 	return data.(*modeluser.User)
 }
 
+func (c *Context) ToCli() *CliContext {
+	return &CliContext{
+		Context: c,
+		CancelFunc: func() {
+			c.Abort()
+		},
+		Logger: c.Logger,
+	}
+}
+
 type HandlerFunc = func(ctx *Context)
 
 func Build(h HandlerFunc) gin.HandlerFunc {

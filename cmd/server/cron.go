@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
+
+	bizCron "goadmin/internal/cron"
 
 	"github.com/robfig/cron/v3"
 )
@@ -36,11 +37,10 @@ func (cm *CronManager) Start(ctx context.Context) error {
 		})
 	}
 
-	// 示例任务
-	add("*/30 * * * * *", func() error {
-		log.Println("[Cron] tick:", time.Now().Format(time.RFC3339))
-		return nil
-	})
+	tasks := bizCron.Register()
+	for _, task := range tasks {
+		add(task.Spec, task.Fn)
+	}
 
 	cm.c.Start()
 	defer cm.c.Stop()
