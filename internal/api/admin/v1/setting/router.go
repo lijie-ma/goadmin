@@ -25,8 +25,8 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			group.GET("/batch", context.Build(handler.BatchGetValues))
 
 			// 验证码开关配置
-			group.GET("/captcha-switch", context.Build(handler.GetCaptchaSwitch))
-			group.PUT("/captcha-switch", context.Build(handler.SetCaptchaSwitch))
+			group.GET("/get_captcha_switch", context.Build(handler.GetCaptchaSwitch))
+			group.POST("/set_captcha_switch", context.Build(handler.SetCaptchaSwitch))
 		}
 	}
 }

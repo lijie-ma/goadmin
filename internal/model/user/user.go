@@ -29,3 +29,23 @@ func (u *User) IsActive() bool {
 func (u *User) IsSuperAdmin() bool {
 	return u.RoleCode == role.CodeSuperAdmin
 }
+
+// GetID 实现 Session 接口
+func (u *User) GetID() uint64 {
+	return u.ID
+}
+
+// GetUsername 实现 Session 接口
+func (u *User) GetUsername() string {
+	return u.Username
+}
+
+// GetStatus 实现 Session 接口
+func (u *User) GetStatus() int {
+	return int(u.Status)
+}
+
+// GetRole 实现 Session 接口
+func (u *User) GetRole() *role.Role {
+	return &u.Role
+}

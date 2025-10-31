@@ -125,21 +125,21 @@ func (s *userService) GenerateUserSession(ctx *context.Context, userID uint64) (
 }
 
 func (s *userService) ChangePassword(ctx *context.Context, req *modeluser.ChangePasswordRequest) error {
-	if !util.ValidatePasswordAndHash(req.OldPassword, ctx.Session().Password) {
-		ctx.Logger.Warnf("%s 密码错误: %s", s.logPrefix(), ctx.Session().Username)
+	if !util.ValidatePasswordAndHash(req.OldPassword, ctx.Session().(*modeluser.User).Password) {
+		ctx.Logger.Warnf("%s 密码错误: %s", s.logPrefix(), ctx.Session().GetUsername())
 		return fmt.Errorf("密码错误")
 	}
 
 	encryptPwd, err := util.Password2Hash(req.NewPassword)
 	if err != nil {
-		ctx.Logger.Warnf("%s Password2Hash: %s %+v", s.logPrefix(), ctx.Session().Username, err)
+		ctx.Logger.Warnf("%s Password2Hash: %s %+v", s.logPrefix(), ctx.Session().GetUsername(), err)
 		return err
 	}
 
 	// 更新密码
-	err = s.userRepo.UpdatePassword(ctx, ctx.Session().ID, encryptPwd)
+	err = s.userRepo.UpdatePassword(ctx, ctx.Session().GetID(), encryptPwd)
 	if err != nil {
-		ctx.Logger.Warnf("%s UpdatePassword: %s %+v", s.logPrefix(), ctx.Session().Username, err)
+		ctx.Logger.Warnf("%s UpdatePassword: %s %+v", s.logPrefix(), ctx.Session().GetUsername(), err)
 		return err
 	}
 	return nil

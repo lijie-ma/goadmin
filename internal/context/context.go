@@ -1,7 +1,6 @@
 package context
 
 import (
-	modeluser "goadmin/internal/model/user"
 	"goadmin/pkg/logger"
 	"goadmin/pkg/trace"
 
@@ -13,12 +12,12 @@ type Context struct {
 	Logger logger.Logger
 }
 
-func (c *Context) Session() *modeluser.User {
+func (c *Context) Session() Session {
 	data, exists := c.Get(gin.AuthUserKey)
 	if !exists {
 		return nil
 	}
-	return data.(*modeluser.User)
+	return data.(Session)
 }
 
 func (c *Context) ToCli() *CliContext {
