@@ -37,7 +37,11 @@ func runServer() error {
 	}
 
 	services := task.NewServiceManager()
-	services.AddService(server.NewCronManager(), server.NewWebServer(cfg))
+	services.AddService(
+		server.NewCronManager(),
+		 server.NewWebServer(cfg),
+		 server.NewHookServer(),
+		)
 
 	services.Run()
 	return nil

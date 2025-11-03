@@ -21,6 +21,16 @@ type CliContext struct {
 	Logger     logger.Logger
 }
 
+func (c *CliContext) Close() {
+	if c.CancelFunc != nil {
+		c.CancelFunc()
+	}
+	c.Context = nil
+	c.CancelFunc = nil
+	c.Logger = nil
+	cliCtxPool.Put(c)
+}
+
 func NewCliContext(parent context.Context) *CliContext {
 	// 从池中取出
 	cliCtx := cliCtxPool.Get().(*CliContext)
@@ -31,19 +41,4 @@ func NewCliContext(parent context.Context) *CliContext {
 	cliCtx.CancelFunc = cancel
 	cliCtx.Logger = logger.Global().With(trace.NewTraceID())
 	return cliCtx
-}
-
-func PutCliContext(c *CliContext) {
-	if c == nil {
-		return
-	}
-	// 清理资源，防止数据污染
-	if c.CancelFunc != nil {
-		c.CancelFunc()
-	}
-	c.Context = nil
-	c.CancelFunc = nil
-	c.Logger = nil
-	// 放回池中
-	cliCtxPool.Put(c)
 }

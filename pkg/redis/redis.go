@@ -20,19 +20,7 @@ func Init(cfg *config.RedisConfig) error {
 	}
 
 	// 创建Redis客户端
-	Client = redis.NewClient(&redis.Options{
-		Addr:            fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		Password:        cfg.Password,
-		DB:              cfg.DB,
-		PoolSize:        cfg.PoolSize,
-		MinIdleConns:    cfg.MinIdleConns,
-		DialTimeout:     cfg.DialTimeout,
-		ReadTimeout:     cfg.ReadTimeout,
-		WriteTimeout:    cfg.WriteTimeout,
-		PoolTimeout:     cfg.PoolTimeout,
-		ConnMaxIdleTime: cfg.IdleTimeout,
-		ConnMaxLifetime: cfg.MaxConnAge,
-	})
+	Client = NewClient(cfg, cfg.DB)
 
 	// 测试连接
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -48,4 +36,21 @@ func Init(cfg *config.RedisConfig) error {
 // GetClient 获取Redis客户端实例
 func GetClient() *redis.Client {
 	return Client
+}
+
+// NewClient 创建Redis客户端实例
+func NewClient(cfg *config.RedisConfig, dbSelect int) *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr:            fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Password:        cfg.Password,
+		DB:              dbSelect,
+		PoolSize:        cfg.PoolSize,
+		MinIdleConns:    cfg.MinIdleConns,
+		DialTimeout:     cfg.DialTimeout,
+		ReadTimeout:     cfg.ReadTimeout,
+		WriteTimeout:    cfg.WriteTimeout,
+		PoolTimeout:     cfg.PoolTimeout,
+		ConnMaxIdleTime: cfg.IdleTimeout,
+		ConnMaxLifetime: cfg.MaxConnAge,
+	})
 }
