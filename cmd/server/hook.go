@@ -5,6 +5,7 @@ package server
 import (
 	"context"
 	cusCtx "goadmin/internal/context"
+	"runtime"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -12,11 +13,18 @@ import (
 type HookFunc func(ctx *cusCtx.CliContext) error
 
 type HookServer struct {
-	hooks []HookFunc
+	hooks       []HookFunc
+	parallelNum int // 并发数
 }
 
 func NewHookServer() *HookServer {
-	return &HookServer{}
+	num := runtime.NumCPU() - 1
+	if num < 1 {
+		num = 1
+	}
+	return &HookServer{
+		parallelNum: num,
+	}
 }
 
 func (s *HookServer) register() error {
@@ -35,7 +43,8 @@ func (s *HookServer) Name() string {
 
 func (s *HookServer) Start(ctx context.Context) error {
 	s.register()
-	var g errgroup.Group
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(s.parallelNum)
 	for _, hook := range s.hooks {
 		g.Go(func() error {
 			cliCtx := cusCtx.NewCliContext(ctx)
