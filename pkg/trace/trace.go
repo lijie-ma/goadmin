@@ -9,8 +9,7 @@ import (
 
 // 定义用于存储追踪信息的上下文键
 const (
-	TraceIDKey    = "X-Trace-ID"
-	TraceStartKey = "X-Trace-Start"
+	TraceIDKey = "X-Request-ID"
 )
 
 // SetTraceID 设置跟踪ID

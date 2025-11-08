@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -148,22 +150,10 @@ func setSecurityHeaders(c *gin.Context) {
 
 // 检查字符串切片是否包含指定值
 func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(slice, item)
 }
 
 // 将字符串切片连接为逗号分隔的字符串
 func join(slice []string) string {
-	result := ""
-	for i, s := range slice {
-		if i > 0 {
-			result += ", "
-		}
-		result += s
-	}
-	return result
+	return strings.Join(slice, ", ")
 }
