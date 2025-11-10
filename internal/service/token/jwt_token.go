@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"goadmin/config"
 	"goadmin/internal/context"
-	"goadmin/pkg/redis"
+	"goadmin/pkg/redisx"
 	"goadmin/pkg/util"
 	"time"
 
@@ -48,7 +48,7 @@ func (s *JwtTokenService) GenerateJWTTokenPair(ctx *context.Context, claims Clai
 	// 存储用户ID和访问令牌的相关信息，用于刷新时生成新的访问令牌
 	refreshData := claims.String()
 
-	err = redis.GetClient().Set(ctx, refreshKey, refreshData, refreshExpire).Err()
+	err = redisx.GetClient().Set(ctx, refreshKey, refreshData, refreshExpire).Err()
 	if err != nil {
 		ctx.Logger.Errorf("%s 构建新的令牌失败: %s %s %v", s.logPrefix(), refreshKey, refreshData, err)
 		return nil, fmt.Errorf("保存刷新令牌失败: %w", err)
@@ -66,7 +66,7 @@ func (s *JwtTokenService) RefreshJWTToken(
 	ctx *context.Context, refreshToken string, f func(Claims) (Claims, error)) (*TokenPair, error) {
 	// 验证刷新令牌是否存在
 	refreshKey := s.getRefreshTokenKey(refreshToken)
-	str, err := redis.GetClient().Get(ctx, refreshKey).Result()
+	str, err := redisx.GetClient().Get(ctx, refreshKey).Result()
 	if err != nil {
 		ctx.Logger.Errorf("%s 刷新令牌无效或已过期: %s %v", s.logPrefix(), refreshKey, err)
 		return nil, fmt.Errorf("刷新令牌无效或已过期: %w", err)
@@ -111,7 +111,7 @@ func (s *JwtTokenService) ValidateJWTToken(tokenString string) (*Claims, error) 
 // InvalidateRefreshToken 使刷新令牌失效
 func (s *JwtTokenService) InvalidateRefreshToken(ctx *context.Context, refreshToken string) error {
 	refreshKey := s.getRefreshTokenKey(refreshToken)
-	return redis.GetClient().Del(ctx, refreshKey).Err()
+	return redisx.GetClient().Del(ctx, refreshKey).Err()
 }
 
 // 生成JWT令牌

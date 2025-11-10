@@ -4,7 +4,7 @@ import (
 	"goadmin/cmd/server"
 	"goadmin/pkg/db"
 	"goadmin/pkg/logger"
-	"goadmin/pkg/redis"
+	"goadmin/pkg/redisx"
 	"goadmin/pkg/task"
 
 	"github.com/spf13/cobra"
@@ -31,7 +31,7 @@ func runServer() error {
 	if err != nil {
 		return err
 	}
-	err = redis.Init(&cfg.Redis)
+	err = redisx.Init(&cfg.Redis)
 	if err != nil {
 		return err
 	}
@@ -39,9 +39,9 @@ func runServer() error {
 	services := task.NewServiceManager()
 	services.AddService(
 		server.NewCronManager(),
-		 server.NewWebServer(cfg),
-		 server.NewHookServer(),
-		)
+		server.NewWebServer(cfg),
+		server.NewHookServer(),
+	)
 
 	services.Run()
 	return nil

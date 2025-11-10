@@ -6,7 +6,7 @@ import (
 	"goadmin/internal/context"
 	"goadmin/internal/model/captcha"
 	"goadmin/internal/service/setting"
-	"goadmin/pkg/redis"
+	"goadmin/pkg/redisx"
 	"goadmin/pkg/util"
 	"sync"
 	"time"
@@ -106,7 +106,7 @@ func Generate(ctx *context.Context) (any, error) {
 	}
 	dotsByte, _ := json.Marshal(blockData)
 	key := util.GenerateUUIDWithoutHyphen()
-	redis.GetClient().Set(ctx, key, string(dotsByte), time.Minute)
+	redisx.GetClient().Set(ctx, key, string(dotsByte), time.Minute)
 
 	return map[string]any{
 		"switch":       1,
@@ -121,7 +121,7 @@ func Generate(ctx *context.Context) (any, error) {
 }
 
 func Check(ctx *context.Context, formData captcha.CheckForm) error {
-	redisClient := redis.GetClient()
+	redisClient := redisx.GetClient()
 	catchData, err := redisClient.Get(ctx, formData.Key).Result()
 	if err != nil {
 		ctx.Logger.Errorf("%s redis Get %+v", logPrefix, err)

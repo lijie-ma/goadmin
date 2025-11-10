@@ -2,7 +2,7 @@ package token
 
 import (
 	"goadmin/internal/context"
-	"goadmin/pkg/redis"
+	"goadmin/pkg/redisx"
 	"goadmin/pkg/util"
 	"time"
 )
@@ -33,7 +33,7 @@ func (s *TokenService) GenerateToken(ctx *context.Context, expiration ...time.Du
 	}
 	// 将token存储到Redis中
 	key := "token:" + token
-	err := redis.GetClient().Set(ctx, key, true, exp).Err()
+	err := redisx.GetClient().Set(ctx, key, true, exp).Err()
 	if err != nil {
 		ctx.Logger.Errorf("%s 构建新的令牌失败: %s %+v", s.logPrefix(), key, err)
 		return "", err
@@ -45,18 +45,18 @@ func (s *TokenService) GenerateToken(ctx *context.Context, expiration ...time.Du
 // DeleteToken 删除指定的token
 func (s *TokenService) DeleteToken(ctx *context.Context, token string) error {
 	key := "token:" + token
-	return redis.GetClient().Del(ctx, key).Err()
+	return redisx.GetClient().Del(ctx, key).Err()
 }
 
 // ValidateToken 验证token是否有效
 func (s *TokenService) ValidateToken(ctx *context.Context, token string) bool {
 	key := "token:" + token
-	exists, err := redis.GetClient().Exists(ctx, key).Result()
+	exists, err := redisx.GetClient().Exists(ctx, key).Result()
 	return err == nil && exists == 1
 }
 
 // ExtendToken 延长token的有效期
 func (s *TokenService) ExtendToken(ctx *context.Context, token string, duration time.Duration) error {
 	key := "token:" + token
-	return redis.GetClient().Expire(ctx, key, duration).Err()
+	return redisx.GetClient().Expire(ctx, key, duration).Err()
 }
