@@ -1,0 +1,8 @@
+[UserNotFound]
+other = "未找到用户（ID：{{.id}}）"
+
+[WelcomeUser]
+other = "欢迎你，{{.name}}！"
+
+[ServerError]
+other = "服务器内部错误，请稍后再试。"

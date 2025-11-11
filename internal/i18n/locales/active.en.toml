@@ -1,0 +1,10 @@
+# English Language File
+
+[UserNotFound]
+other = "User with ID {{.id}} not found."
+
+[WelcomeUser]
+other = "Welcome, {{.name}}!"
+
+[ServerError]
+other = "Internal server error, please try again later."
