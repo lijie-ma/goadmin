@@ -168,7 +168,7 @@ func TestFieldHelpers(t *testing.T) {
 
 	// 测试错误字段
 	err := &testError{"测试错误"}
-	log.Info("错误日志", Error(err))
+	log.Info("错误日志", ErrorField(err))
 }
 
 // 实现一个简单的错误类型用于测试

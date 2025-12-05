@@ -15,10 +15,7 @@ const (
 // SetTraceID 设置跟踪ID
 // 如果原来有跟踪ID，则使用原来的，否则生成新的
 func SetTraceID(c *gin.Context) {
-	traceID := c.GetHeader(TraceIDKey)
-	if traceID == "" {
-		traceID = util.GenerateUUID()
-	}
+	traceID := GetTraceValue(c)
 	c.Set(TraceIDKey, traceID)
 	// 设置响应头中的跟踪ID
 	c.Header(TraceIDKey, traceID)
@@ -26,11 +23,16 @@ func SetTraceID(c *gin.Context) {
 
 // GetTrace 从Gin上下文获取跟踪ID
 func GetTrace(c *gin.Context) logger.Field {
-	traceID, exists := c.Get(TraceIDKey)
-	if !exists {
-		return logger.String(TraceIDKey, "no-trace-id")
+	return logger.String(TraceIDKey, GetTraceValue(c))
+}
+
+// GetTrace 从Gin上下文获取跟踪ID
+func GetTraceValue(c *gin.Context) string {
+	traceID := c.GetHeader(TraceIDKey)
+	if traceID == "" {
+		traceID = util.GenerateUUID()
 	}
-	return logger.String(TraceIDKey, traceID.(string))
+	return traceID
 }
 
 func NewTraceID() logger.Field {

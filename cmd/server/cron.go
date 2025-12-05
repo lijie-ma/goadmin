@@ -2,10 +2,11 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"runtime/debug"
 
 	bizCron "goadmin/internal/cron"
+	"goadmin/pkg/logger"
 
 	"github.com/robfig/cron/v3"
 )
@@ -21,37 +22,31 @@ func NewCronManager() *CronManager {
 func (cm *CronManager) Name() string { return "CronManager" }
 
 func (cm *CronManager) Start(ctx context.Context) error {
-	errChan := make(chan error, 1)
-
 	// 封装任务注册
-	add := func(spec string, fn func() error) {
-		_, _ = cm.c.AddFunc(spec, func() {
+	add := func(job *bizCron.Job) {
+		_, _ = cm.c.AddFunc(job.Spec, func() {
 			defer func() {
 				if r := recover(); r != nil {
-					errChan <- fmt.Errorf("panic in job: %v", r)
+					logger.Errorf("[Cron] job %s panic: %v %s", job.Name, r, debug.Stack())
 				}
 			}()
-			if err := fn(); err != nil {
-				errChan <- err
+			if err := job.Fn(); err != nil {
+				logger.Errorf("[Cron] job %s error: %v", job.Name, err)
 			}
 		})
 	}
 
 	tasks := bizCron.Register()
 	for _, task := range tasks {
-		add(task.Spec, task.Fn)
+		add(task)
 	}
 
 	cm.c.Start()
 	defer cm.c.Stop()
 
-	select {
-	case <-ctx.Done():
-		log.Println("[Cron] stop signal from context")
-		return ctx.Err()
-	case err := <-errChan:
-		return fmt.Errorf("cron job error: %w", err)
-	}
+	<-ctx.Done()
+	log.Println("[Cron] stop signal from context")
+	return ctx.Err()
 }
 
 func (cm *CronManager) Stop(ctx context.Context) error {

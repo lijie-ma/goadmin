@@ -203,10 +203,79 @@ func Float64(key string, value float64) Field {
 	return Field{Key: key, Value: value}
 }
 
-func Error(err error) Field {
+func ErrorField(err error) Field {
 	return Field{Key: "error", Value: err}
 }
 
 func Any(key string, value interface{}) Field {
 	return Field{Key: key, Value: value}
+}
+
+// 包级别导出函数，直接使用全局logger实例
+func Debug(msg string, fields ...Field) {
+	Global().Debug(msg, fields...)
+}
+
+func Info(msg string, fields ...Field) {
+	Global().Info(msg, fields...)
+}
+
+func Warn(msg string, fields ...Field) {
+	Global().Warn(msg, fields...)
+}
+
+func Error(msg string, fields ...Field) {
+	Global().Error(msg, fields...)
+}
+
+func DPanic(msg string, fields ...Field) {
+	Global().DPanic(msg, fields...)
+}
+
+func Panic(msg string, fields ...Field) {
+	Global().Panic(msg, fields...)
+}
+
+func Fatal(msg string, fields ...Field) {
+	Global().Fatal(msg, fields...)
+}
+
+func Debugf(format string, args ...interface{}) {
+	Global().Debugf(format, args...)
+}
+
+func Infof(format string, args ...interface{}) {
+	Global().Infof(format, args...)
+}
+
+func Warnf(format string, args ...interface{}) {
+	Global().Warnf(format, args...)
+}
+
+func Errorf(format string, args ...interface{}) {
+	Global().Errorf(format, args...)
+}
+
+func DPanicf(format string, args ...interface{}) {
+	Global().DPanicf(format, args...)
+}
+
+func Panicf(format string, args ...interface{}) {
+	Global().Panicf(format, args...)
+}
+
+func Fatalf(format string, args ...interface{}) {
+	Global().Fatalf(format, args...)
+}
+
+func With(fields ...Field) Logger {
+	return Global().With(fields...)
+}
+
+func WithContext(ctx context.Context) Logger {
+	return Global().WithContext(ctx)
+}
+
+func Sync() error {
+	return Global().Sync()
 }
