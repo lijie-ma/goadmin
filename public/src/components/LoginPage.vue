@@ -114,8 +114,9 @@ const captchaState = reactive({
 
 // 验证码API配置
 const captchaConfig = {
-  newUrl: 'http://localhost:8080/admin/v1/captcha/generate',
-  verifyUrl: 'http://localhost:8080/admin/v1/captcha/check'
+  newUrl: '/api/admin/v1/captcha/generate',
+  verifyUrl: '/api/admin/v1/captcha/check',
+  checkUrl: '/admin/v1/setting/get_captcha_switch'  // 检查是否需要验证码的接口
 }
 
 // 关闭验证码弹框
@@ -357,8 +358,36 @@ const handleLoginSubmit = async (captchaData) => {
 
 // 处理登录按钮点击
 const handleLogin = async () => {
-  showCaptcha.value = true
-  await loadCaptcha()
+  try {
+    // 先检查是否需要验证码
+    const checkResponse = await fetch(captchaConfig.checkUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (checkResponse.code !== 200) {
+      throw new Error('检查验证码状态失败')
+    }
+
+    const checkResult = await checkResponse.json()
+
+    // 判断是否需要验证码
+    if (checkResult.data.admin === 1) {
+      // 需要验证码，显示验证码弹框
+      showCaptcha.value = true
+      await loadCaptcha()
+    } else {
+      // 不需要验证码，直接登录
+      await handleLoginSubmit()
+    }
+  } catch (error) {
+    console.error('检查验证码状态失败:', error)
+    // 出错时默认显示验证码
+    showCaptcha.value = true
+    await loadCaptcha()
+  }
 }
 
 // 组件卸载时清理事件监听
