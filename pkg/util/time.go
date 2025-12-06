@@ -101,3 +101,21 @@ func ZNow() time.Time {
 func ZParse(layout, value string) (time.Time, error) {
 	return time.ParseInLocation(layout, value, time.Local)
 }
+
+// StartOfDay 返回当天开始时间（00:00:00）
+func StartOfDay(t time.Time) time.Time {
+	loc := t.Location()
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, loc)
+}
+
+// EndOfDay 返回当天的结束时间（23:59:59）
+func EndOfDay(t time.Time) time.Time {
+	loc := t.Location()
+	return time.Date(
+		t.Year(),
+		t.Month(),
+		t.Day(),
+		23, 59, 59, int(time.Second-time.Nanosecond),
+		loc,
+	)
+}

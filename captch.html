@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Slider Captcha Demo</title>
+<style>
+  :root {
+	  --w: 300px;
+	  --h: 220px;
+	  --slider-h: 40px;
+	  --thumb-w: 40px;
+	}
+
+	body {
+	  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  height: 100vh;
+	  background: #f0f2f5;
+	  margin: 0;
+	}
+
+	.captcha-wrap {
+	  width: calc(var(--w) + 40px);
+	  background: #fff;
+	  padding: 20px;
+	  border-radius: 8px;
+	  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+	}
+
+	.canvas-wrap {
+	  position: relative;
+	  width: var(--w);
+	  height: var(--h);
+	  margin: 0 auto;
+	  background: #e9eef5;
+	  border-radius: 6px;
+	  overflow: hidden;
+	}
+
+	canvas#bg {
+	  display: block;
+	  border-radius: 6px;
+	}
+
+	canvas#piece {
+	  position: absolute;
+	  top: 0;
+	  left: 0;
+	  pointer-events: none;
+	  transition: transform 0.05s linear;
+	}
+
+	.mask {
+	  position: absolute;
+	  left: 0;
+	  top: 0;
+	  right: 0;
+	  bottom: 0;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  font-size: 14px;
+	  color: #666;
+	  background: rgba(255, 255, 255, 0.8);
+	}
+
+	.slider-area {
+	  width: var(--w);
+	  margin: 12px auto 0;
+	  height: var(--slider-h);
+	  display: flex;
+	  align-items: center;
+	  background: #f3f6f9;
+	  border-radius: 20px;
+	  padding: 6px;
+	  box-sizing: border-box;
+	}
+
+	.track {
+	  position: relative;
+	  flex: 1;
+	  height: 100%;
+	  background: #fff;
+	  border-radius: 14px;
+	  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+	  display: flex;
+	  align-items: center;
+	}
+
+	.thumb {
+	  width: var(--thumb-w);
+	  height: calc(var(--slider-h) - 12px);
+	  background: #fff;
+	  border-radius: 8px;
+	  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  cursor: pointer;
+	  user-select: none;
+	}
+
+	.thumb .bar {
+	  width: 10px;
+	  height: 10px;
+	  background: #2d8cf0;
+	  border-radius: 2px;
+	}
+
+	.progress {
+	  position: absolute;
+	  left: 0;
+	  top: 0;
+	  bottom: 0;
+	  background: linear-gradient(90deg, #2d8cf0, #4aa3ff);
+	  border-radius: 14px;
+	  width: 0;
+	  transition: none;
+	}
+
+	.controls {
+	  display: flex;
+	  gap: 12px;
+	  margin-top: 10px;
+	  align-items: center;
+	  justify-content: center;
+	}
+
+	button {
+	  padding: 8px 12px;
+	  border: 0;
+	  background: #2d8cf0;
+	  color: #fff;
+	  border-radius: 6px;
+	  cursor: pointer;
+	}
+
+	button.secondary {
+	  background: #fff;
+	  color: #2d8cf0;
+	  border: 1px solid #e6eefc;
+	}
+
+	.msg {
+	  text-align: center;
+	  margin-top: 8px;
+	  color: #666;
+	  font-size: 13px;
+	  min-height: 18px;
+	}
+
+	.success {
+	  color: green;
+	}
+
+	.fail {
+	  color: #d9534f;
+	}
+
+</style>
+</head>
+<body>
+  <div class="captcha-wrap">
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="bg" width="300" height="220"></canvas>
+      <canvas id="piece" width="300" height="220"></canvas>
+      <div class="mask" id="mask">Loading captcha...</div>
+    </div>
+
+    <div class="slider-area" aria-hidden="false">
+      <div class="track" id="track">
+        <div class="progress" id="progress"></div>
+        <div class="thumb" id="thumb" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="refresh">Refresh</button>
+      <button id="tryAgain" class="secondary" style="display:none">Try Again</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
+
+<script>
+const cfg = {
+  newUrl: 'http://127.0.0.1:8080/web/v1/captcha/generate',   // 生成
+  verifyUrl: 'http://127.0.0.1:8080/web/v1/captcha/check'    // 校验
+};
+
+const canvas = document.getElementById('bg');
+const pieceCanvas = document.getElementById('piece');
+const ctx = canvas.getContext('2d');
+const pctx = pieceCanvas.getContext('2d');
+const mask = document.getElementById('mask');
+const thumb = document.getElementById('thumb');
+const track = document.getElementById('track');
+const progress = document.getElementById('progress');
+const refreshBtn = document.getElementById('refresh');
+const tryBtn = document.getElementById('tryAgain');
+const msgEl = document.getElementById('msg');
+
+let state = {
+  token: null,
+  pieceX: 0,
+  pieceY: 0,
+  pieceW: 60,
+  dragging: false,
+  startX: 0,
+  thumbStartLeft: 0,
+  maxMove: 0,
+  pieceData: null
+};
+
+function setMsg(text, cls) {
+  msgEl.textContent = text || '';
+  msgEl.className = cls ? ('msg ' + cls) : 'msg';
+}
+
+async function loadCaptcha() {
+  setMsg('');
+  mask.style.display = 'flex';
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  pctx.clearRect(0,0,pieceCanvas.width,pieceCanvas.height);
+  progress.style.width = '0';
+  thumb.style.transform = 'translateX(0px)';
+  thumb.setAttribute('aria-valuenow', 0);
+  tryBtn.style.display = 'none';
+
+  try {
+    const r = await fetch(cfg.newUrl, { cache: 'no-store' });
+    if (!r.ok) throw new Error('Network error');
+    const res = await r.json();
+    state.token = res.data.key;
+    const bgSrc = res.data.image_base64;
+    const pieceSrc = res.data.tile_base64;
+    state.pieceX = res.data.tile_x;
+    state.pieceY = res.data.tile_y;
+    state.pieceW = res.data.tile_width || 60;
+
+    const bgImg = new Image();
+    bgImg.onload = () => {
+      ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+      ctx.clearRect(state.pieceX, state.pieceY, state.pieceW, state.pieceW);
+
+      if (pieceSrc) {
+        const pieceImg = new Image();
+        pieceImg.onload = () => {
+          pctx.drawImage(pieceImg, 0, state.pieceY, state.pieceW, state.pieceW);
+          // 保存一份用于拖动
+          const temp = document.createElement('canvas');
+          const tctx = temp.getContext('2d');
+          temp.width = state.pieceW;
+          temp.height = state.pieceW;
+          tctx.drawImage(pieceImg, 0, 0, state.pieceW, state.pieceW);
+          state.pieceData = tctx.getImageData(0, 0, state.pieceW, state.pieceW);
+          mask.style.display = 'none';
+        };
+        pieceImg.src = pieceSrc;
+      }
+      const trackRect = track.getBoundingClientRect();
+      const thumbRect = thumb.getBoundingClientRect();
+      state.maxMove = trackRect.width - thumbRect.width;
+    };
+    bgImg.src = bgSrc;
+  } catch (err) {
+    mask.textContent = 'Failed to load captcha';
+    console.error(err);
+  }
+}
+
+function thumbToOffset(thumbX) {
+  const maxOffset = canvas.width - state.pieceW;
+  return Math.round((thumbX / state.maxMove) * maxOffset);
+}
+
+function updatePiece(thumbX) {
+  if (!state.pieceData) return;
+  const offset = thumbToOffset(thumbX);
+  pieceCanvas.style.transform = `translateX(${offset}px)`;
+}
+
+function pointerDown(e) {
+  e.preventDefault();
+  state.dragging = true;
+  state.startX = (e.touches ? e.touches[0].clientX : e.clientX);
+  const transform = thumb.style.transform || 'translateX(0px)';
+  const m = transform.match(/translateX\(([-\d.]+)px\)/);
+  state.thumbStartLeft = m ? parseFloat(m[1]) : 0;
+  setMsg('');
+}
+
+function pointerMove(e) {
+  if (!state.dragging) return;
+  const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
+  const dx = clientX - state.startX;
+  let newLeft = state.thumbStartLeft + dx;
+  if (newLeft < 0) newLeft = 0;
+  if (newLeft > state.maxMove) newLeft = state.maxMove;
+  thumb.style.transform = `translateX(${newLeft}px)`;
+  const percent = Math.round((newLeft / state.maxMove) * 100);
+  progress.style.width = `${(newLeft + thumb.offsetWidth/2)}px`;
+  thumb.setAttribute('aria-valuenow', percent);
+  updatePiece(newLeft);
+}
+
+async function pointerUp(e) {
+  if (!state.dragging) return;
+  state.dragging = false;
+
+  const transform = thumb.style.transform || 'translateX(0px)';
+  const m = transform.match(/translateX\(([-\d.]+)px\)/);
+  const left = m ? parseFloat(m[1]) : 0;
+  const offset = thumbToOffset(left);
+
+  setMsg('Verifying...');
+  try {
+  console.log(offset)
+    const r = await fetch(cfg.verifyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ "key": state.token, "x":offset , "y": state.pieceY})
+    });
+    const j = await r.json();
+    if (j.ok) {
+      progress.style.width = track.getBoundingClientRect().width + 'px';
+      setMsg('Verification passed', 'success');
+      tryBtn.style.display = 'none';
+    } else {
+      setMsg(j.message || 'Verification failed', 'fail');
+      tryBtn.style.display = 'inline-block';
+      resetSlider();
+    }
+  } catch (err) {
+    console.error(err);
+    setMsg('Verify request failed', 'fail');
+    tryBtn.style.display = 'inline-block';
+    resetSlider();
+  }
+}
+
+function resetSlider() {
+  progress.style.width = '0';
+  thumb.style.transform = 'translateX(0px)';
+  thumb.setAttribute('aria-valuenow', 0);
+  pieceCanvas.style.transform = 'translateX(0px)';
+}
+
+thumb.addEventListener('mousedown', pointerDown);
+thumb.addEventListener('touchstart', pointerDown, {passive:true});
+window.addEventListener('mousemove', pointerMove);
+window.addEventListener('touchmove', pointerMove, {passive:false});
+window.addEventListener('mouseup', pointerUp);
+window.addEventListener('touchend', pointerUp);
+
+refreshBtn.addEventListener('click', () => loadCaptcha());
+tryBtn.addEventListener('click', () => loadCaptcha());
+
+loadCaptcha();
+</script>
+</body>
+</html>

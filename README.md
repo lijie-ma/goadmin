@@ -24,3 +24,17 @@
    - go build  -o goadmin main.go
    - goadmin migrate up   初始DB
    - goadmin control -c config/config.yaml 启动后台管理服务
+
+### 页面
+```
+cd public/src
+
+npm install
+
+# 启动开发服务器
+npm run dev
+```
+    http://localhost:3000
+    用户名：admin
+    密码：123456
+
