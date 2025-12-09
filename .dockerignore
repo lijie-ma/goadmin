@@ -1,0 +1,60 @@
+# 版本控制
+.git
+.gitignore
+.gitattributes
+
+# 依赖目录
+node_modules
+vendor
+
+# 构建输出
+dist
+build
+*.exe
+*.dll
+*.so
+*.dylib
+
+# 开发工具配置
+.idea
+.vscode
+*.sublime-*
+*.swp
+*.swo
+
+# 日志文件
+logs
+*.log
+npm-debug.log*
+
+# 环境配置
+.env
+.env.*
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 测试文件
+*_test.go
+*.test
+coverage.txt
+.coverage
+
+# 文档
+docs
+*.md
+
+# 临时文件
+tmp
+temp
+*.tmp
+
+# Docker相关
+.docker
+docker-compose.override.yml
+
+# 其他
+*.bak
+*.cache
+*.pid
