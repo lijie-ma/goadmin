@@ -11,8 +11,8 @@ database:
   # 主库配置
   master:
     driver: "mysql"   # postgres mysql
-    host: "192.168.56.109"
-    port: 33060
+    host: "mysql"
+    port: 3306
     username: "goadmin"
     password: "Qwert1234"
     database: "goadmin"
@@ -25,8 +25,8 @@ database:
   # 从库配置（可以配置多个）
   slaves:
     - driver: "mysql"   # postgres mysql
-      host: "192.168.56.109"
-      port: 33060
+      host: "mysql"
+      port: 3306
       username: "goadmin"
       password: "Qwert1234"
       database: "goadmin"
@@ -38,7 +38,7 @@ database:
 # Redis配置
 redis:
   enable: true  # 是否启用Redis
-  host: "192.168.56.109"
+  host: "redis"
   port: 63790
   password: "Qwert1234"
   db: 0
