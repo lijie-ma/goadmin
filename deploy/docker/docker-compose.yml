@@ -8,7 +8,7 @@ services:
       MYSQL_ROOT_PASSWORD: rootpassword123
       MYSQL_DATABASE: goadmin
       MYSQL_USER: goadmin
-      MYSQL_PASSWORD: goadmin123
+      MYSQL_PASSWORD: Qwert1234
       TZ: Asia/Shanghai
     ports:
       - "3306:3306"
@@ -26,11 +26,13 @@ services:
 
   # Redis缓存服务
   redis:
-    image: redis:7-alpine
+    image: redis:7.0
     container_name: goadmin-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
+    environment:
+        - AUTH:Qwert1234
     volumes:
       - redis_data:/data
     networks:

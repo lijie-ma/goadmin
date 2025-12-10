@@ -11,11 +11,11 @@ database:
   # 主库配置
   master:
     driver: "mysql"   # postgres mysql
-    host: "192.168.56.104"
+    host: "192.168.56.109"
     port: 33060
-    username: "root"
+    username: "goadmin"
     password: "Qwert1234"
-    database: "testdb"
+    database: "goadmin"
     charset: "utf8mb4"
     max_idle_conns: 10
     max_open_conns: 100
@@ -25,11 +25,11 @@ database:
   # 从库配置（可以配置多个）
   slaves:
     - driver: "mysql"   # postgres mysql
-      host: "192.168.56.104"
+      host: "192.168.56.109"
       port: 33060
-      username: "root"
+      username: "goadmin"
       password: "Qwert1234"
-      database: "testdb"
+      database: "goadmin"
       charset: "utf8mb4"
       max_idle_conns: 10
       max_open_conns: 100
@@ -38,9 +38,9 @@ database:
 # Redis配置
 redis:
   enable: true  # 是否启用Redis
-  host: "192.168.56.104"
+  host: "192.168.56.109"
   port: 63790
-  password: "testpassword"
+  password: "Qwert1234"
   db: 0
   pool_size: 100
   min_idle_conns: 10
