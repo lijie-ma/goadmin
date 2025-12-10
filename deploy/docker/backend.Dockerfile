@@ -17,13 +17,16 @@ RUN go mod download
 COPY . .
 
 # 构建应用
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o goadmin main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags="-s -w" -o goadmin main.go
 
 # 运行阶段
-FROM alpine:latest
+FROM alpine:3.23
 
-# 安装必要的运行时依赖
-RUN apk --no-cache add ca-certificates tzdata
+# 使用国内镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+
+# 更新索引并安装依赖
+RUN apk update && apk --no-cache add ca-certificates tzdata
 
 # 设置时区为上海
 RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
