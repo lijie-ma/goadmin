@@ -50,12 +50,6 @@ services:
       context: ../..
       dockerfile: deploy/docker/backend.Dockerfile
     container_name: goadmin-db-init
-    environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_USER: goadmin
-      DB_PASSWORD: Qwert1234
-      DB_NAME: goadmin
     depends_on:
       mysql:
         condition: service_healthy
