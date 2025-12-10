@@ -25,8 +25,8 @@ FROM alpine:3.23
 # 使用国内镜像源
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 
-# 更新索引并安装依赖
-RUN apk update && apk --no-cache add ca-certificates tzdata
+# 更新索引并安装依赖（包括 mysql-client 用于数据库初始化）
+RUN apk update && apk --no-cache add ca-certificates tzdata mysql-client bash
 
 # 设置时区为上海
 RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
@@ -47,6 +47,10 @@ COPY --from=builder /app/config ./config
 COPY --from=builder /app/internal/i18n/locales ./internal/i18n/locales
 COPY --from=builder /app/migrations ./migrations
 
+# 复制并设置初始化脚本
+COPY deploy/docker/init-db.sh /app/init-db.sh
+RUN chmod +x /app/init-db.sh
+
 # 创建日志目录
 RUN mkdir -p /app/logs && \
     chown -R appuser:appuser /app
@@ -58,4 +62,4 @@ USER appuser
 EXPOSE 8080
 
 # 启动应用
-CMD ["./goadmin", "--config", "/app/config/config.yaml"]
+CMD ["./goadmin", "control", "--config", "/app/config/config.yaml"]
