@@ -69,9 +69,14 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 		ctx.Logger.Errorf("%s Generate GetValue %+v", s.logPrefix(), err)
 		return nil, err
 	}
-	if captchaCfg.IsAdminOn() && !token.NewTokenService().ValidateToken(ctx, req.Token) {
-		ctx.Logger.Errorf("%s ValidateToken faild %s %s", s.logPrefix(), req.Username, req.Token)
-		return nil, errors.WithMessage(errorsx.ErrReqired, "token")
+	if captchaCfg.IsAdminOn() {
+		if req.Token == "" {
+			return nil, errors.WithMessage(errorsx.ErrReqired, "token")
+		}
+		if !token.NewTokenService().ValidateToken(ctx, req.Token) {
+			ctx.Logger.Errorf("%s ValidateToken faild %s %s", s.logPrefix(), req.Username, req.Token)
+			return nil, errors.WithMessage(errorsx.ErrInvalid, "token")
+		}
 	}
 	// 获取用户信息
 	u, err := s.userRepo.GetByUsername(ctx, req.Username)
