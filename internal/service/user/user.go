@@ -7,11 +7,14 @@ import (
 	modeluser "goadmin/internal/model/user"
 	"goadmin/internal/repository/role"
 	userrepo "goadmin/internal/repository/user"
+	"goadmin/internal/service/errorsx"
 	"goadmin/internal/service/setting"
 	"goadmin/internal/service/token"
 	"goadmin/pkg/util"
 
 	"goadmin/config"
+
+	"github.com/pkg/errors"
 )
 
 // UserService 用户服务接口
@@ -68,7 +71,7 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 	}
 	if captchaCfg.IsAdminOn() && !token.NewTokenService().ValidateToken(ctx, req.Token) {
 		ctx.Logger.Errorf("%s ValidateToken faild %s %s", s.logPrefix(), req.Username, req.Token)
-		return nil, err
+		return nil, errors.WithMessage(errorsx.ErrReqired, "token")
 	}
 	// 获取用户信息
 	u, err := s.userRepo.GetByUsername(ctx, req.Username)
@@ -79,7 +82,7 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 
 	if u == nil || !util.ValidatePasswordAndHash(req.Password, u.Password) {
 		ctx.Logger.Warnf("%s 用户名或密码错误: %s %v", s.logPrefix(), req.Username, err)
-		return nil, fmt.Errorf("用户名或密码错误")
+		return nil, errors.WithMessage(errorsx.ErrNotFound, "用户")
 	}
 
 	if !u.IsActive() {
