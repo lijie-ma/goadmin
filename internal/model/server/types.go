@@ -11,9 +11,8 @@ const (
 
 // CaptchaSwitch 验证码开关
 type CaptchaSwitchConfig struct {
-	Admin  Switch `json:"admin"`  // 管理后台开关
-	Mobile Switch `json:"mobile"` // 移动端开关
-	Web    Switch `json:"web"`    // 网页端开关
+	Admin Switch `json:"admin" binding:"gte=0,lte=1"` // 管理后台开关
+	Web   Switch `json:"web" binding:"gte=0,lte=1"`   // 网页端开关
 }
 
 // IsAdminOn 管理后台验证码是否开启
@@ -21,12 +20,23 @@ func (c *CaptchaSwitchConfig) IsAdminOn() bool {
 	return c.Admin == SwitchOn
 }
 
-// IsMobileOn 移动端验证码是否开启
-func (c *CaptchaSwitchConfig) IsMobileOn() bool {
-	return c.Mobile == SwitchOn
-}
-
 // IsWebOn 网页端验证码是否开启
 func (c *CaptchaSwitchConfig) IsWebOn() bool {
 	return c.Web == SwitchOn
+}
+
+type SystemConfig struct {
+	SystemName string `json:"systemName" binding:"required"`
+	Logo       string `json:"logo"`
+	Language   string `json:"language" binding:"required"`
+}
+
+// CaptchaSwitchConfig 验证码开关配置
+
+// SystemSettings 系统设置
+type SystemSettingsRequest SystemSettingsResponse
+
+type SystemSettingsResponse struct {
+	SystemConfig
+	CaptchaSwitchConfig
 }

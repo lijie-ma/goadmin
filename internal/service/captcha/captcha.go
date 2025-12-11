@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"goadmin/internal/context"
 	"goadmin/internal/model/captcha"
+	"goadmin/internal/model/server"
 	"goadmin/internal/service/setting"
 	"goadmin/pkg/redisx"
 	"goadmin/pkg/util"
@@ -67,9 +68,10 @@ func getCapt() (slide.Captcha, error) {
 }
 
 func Generate(ctx *context.Context) (any, error) {
-	captchaCfg, err := setting.GetCaptchaSwitch(ctx, setting.NewServerSettingService())
+	var captchaCfg server.CaptchaSwitchConfig
+	err := setting.NewServerSettingService().GetValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
 	if err != nil {
-		ctx.Logger.Errorf("%s GetCaptchaSwitch %+v", logPrefix, err)
+		ctx.Logger.Errorf("%s Generate GetValue %+v", logPrefix, err)
 		return nil, err
 	}
 	if !captchaCfg.IsAdminOn() {

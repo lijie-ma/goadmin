@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"goadmin/internal/context"
+	"goadmin/internal/model/server"
 	modeluser "goadmin/internal/model/user"
 	"goadmin/internal/repository/role"
 	userrepo "goadmin/internal/repository/user"
@@ -59,9 +60,10 @@ func (s *userService) GenerateUserCredential(ctx *context.Context, userID uint64
 }
 
 func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*modeluser.LoginResponse, error) {
-	captchaCfg, err := setting.GetCaptchaSwitch(ctx, setting.NewServerSettingService())
+	var captchaCfg server.CaptchaSwitchConfig
+	err := setting.NewServerSettingService().GetValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
 	if err != nil {
-		ctx.Logger.Errorf("%s GetCaptchaSwitch %+v", s.logPrefix(), err)
+		ctx.Logger.Errorf("%s Generate GetValue %+v", s.logPrefix(), err)
 		return nil, err
 	}
 	if captchaCfg.IsAdminOn() && !token.NewTokenService().ValidateToken(ctx, req.Token) {

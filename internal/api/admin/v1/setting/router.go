@@ -17,16 +17,17 @@ func RegisterRoutes(r *gin.RouterGroup) {
 	group := r.Group("/setting")
 	{
 		// 验证码开关配置
-		group.GET("/get_captcha_switch", context.Build(handler.GetCaptchaSwitch))
+		group.GET("/get_settings", context.Build(handler.GetSettings))
 
 		// 需要认证的接口
 		authGroup := group.Use(middleware.Auth())
 		{
+			// 系统设置操作
+			authGroup.POST("/set_settings", context.Build(handler.UpdateSettings))
+
 			// 基础配置操作
 			authGroup.GET("/get", context.Build(handler.GetByName))
 			authGroup.POST("/set", context.Build(handler.SetByName))
-			authGroup.GET("/batch", context.Build(handler.BatchGetValues))
-			authGroup.POST("/set_captcha_switch", context.Build(handler.SetCaptchaSwitch))
 		}
 
 	}
