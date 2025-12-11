@@ -44,22 +44,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # 数据库初始化服务
-  db-init:
-    build:
-      context: ../..
-      dockerfile: deploy/docker/backend.Dockerfile
-    container_name: goadmin-db-init
-    depends_on:
-      mysql:
-        condition: service_healthy
-    networks:
-      - goadmin-network
-    volumes:
-      - ../../config:/app/config:ro
-    command: ["/app/init-db.sh"]
-    restart: "no"  # 只运行一次
-
   # 后端服务
   backend:
     build:
@@ -75,8 +59,6 @@ services:
       - ../../config:/app/config:ro
       - backend_logs:/app/logs
     depends_on:
-      db-init:
-        condition: service_completed_successfully
       mysql:
         condition: service_healthy
       redis:

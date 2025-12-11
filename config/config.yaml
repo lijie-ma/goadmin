@@ -39,7 +39,7 @@ database:
 redis:
   enable: true  # 是否启用Redis
   host: "redis"
-  port: 63790
+  port: 6379
   password: "Qwert1234"
   db: 0
   pool_size: 100
