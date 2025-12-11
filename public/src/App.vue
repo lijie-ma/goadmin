@@ -1,43 +1,49 @@
 <template>
-  <router-view v-slot="{ Component }">
-    <transition name="fade-transform" mode="out-in">
-      <component :is="Component" />
-    </transition>
-  </router-view>
+  <el-config-provider :locale="locale">
+    <router-view></router-view>
+  </el-config-provider>
 </template>
 
 <script setup>
-// 这里可以添加全局的逻辑
+import { ref } from 'vue'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+
+const locale = ref(zhCn)
 </script>
 
 <style>
-/* 全局样式 */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 #app {
   height: 100%;
 }
 
-/* 路由切换动画 */
-.fade-transform-enter-active,
-.fade-transform-leave-active {
-  transition: all 0.3s;
+* {
+  box-sizing: border-box;
 }
 
-.fade-transform-enter-from {
-  opacity: 0;
-  transform: translateX(-30px);
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.fade-transform-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #909399;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #606266;
 }
 </style>

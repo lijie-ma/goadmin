@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       // 代理API请求到后端
       '/api': {
-        target: 'http://localhost:8080', // 后端服务地址
+        target: 'http://192.168.56.109', // 后端服务地址
         changeOrigin: true,
         secure: false
       }

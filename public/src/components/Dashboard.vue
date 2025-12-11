@@ -1,202 +1,250 @@
 <template>
-  <div class="dashboard-container">
+  <div class="dashboard">
+    <h1>仪表板</h1>
+
     <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stats-row">
-      <el-col :xs="24" :sm="12" :md="12" :lg="6">
-        <el-card class="stats-card">
-          <div class="stats-item">
-            <div class="stats-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-              <el-icon :size="30"><User /></el-icon>
+    <div class="stats-cards">
+      <el-row :gutter="20">
+        <el-col :xs="24" :sm="12" :lg="6">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div class="stat-icon users">
+                <el-icon :size="24"><User /></el-icon>
+              </div>
+              <div class="stat-data">
+                <div class="stat-value">1,234</div>
+                <div class="stat-label">用户总数</div>
+              </div>
             </div>
-            <div class="stats-info">
-              <div class="stats-value">{{ statsData.users }}</div>
-              <div class="stats-label">用户总数</div>
+          </el-card>
+        </el-col>
+        <el-col :xs="24" :sm="12" :lg="6">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div class="stat-icon views">
+                <el-icon :size="24"><View /></el-icon>
+              </div>
+              <div class="stat-data">
+                <div class="stat-value">23,456</div>
+                <div class="stat-label">页面访问量</div>
+              </div>
             </div>
-          </div>
-        </el-card>
-      </el-col>
+          </el-card>
+        </el-col>
+        <el-col :xs="24" :sm="12" :lg="6">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div class="stat-icon orders">
+                <el-icon :size="24"><ShoppingCart /></el-icon>
+              </div>
+              <div class="stat-data">
+                <div class="stat-value">345</div>
+                <div class="stat-label">订单数量</div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :xs="24" :sm="12" :lg="6">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div class="stat-icon revenue">
+                <el-icon :size="24"><Coin /></el-icon>
+              </div>
+              <div class="stat-data">
+                <div class="stat-value">¥234,567</div>
+                <div class="stat-label">营业收入</div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
 
-      <el-col :xs="24" :sm="12" :md="12" :lg="6">
-        <el-card class="stats-card">
-          <div class="stats-item">
-            <div class="stats-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-              <el-icon :size="30"><View /></el-icon>
-            </div>
-            <div class="stats-info">
-              <div class="stats-value">{{ statsData.views }}</div>
-              <div class="stats-label">今日访问</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :xs="24" :sm="12" :md="12" :lg="6">
-        <el-card class="stats-card">
-          <div class="stats-item">
-            <div class="stats-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-              <el-icon :size="30"><ShoppingCart /></el-icon>
-            </div>
-            <div class="stats-info">
-              <div class="stats-value">{{ statsData.orders }}</div>
-              <div class="stats-label">订单数量</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-
-      <el-col :xs="24" :sm="12" :md="12" :lg="6">
-        <el-card class="stats-card">
-          <div class="stats-item">
-            <div class="stats-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-              <el-icon :size="30"><Coin /></el-icon>
-            </div>
-            <div class="stats-info">
-              <div class="stats-value">￥{{ statsData.revenue }}</div>
-              <div class="stats-label">营业收入</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 图表区域 -->
-    <el-row :gutter="20" class="chart-row">
-      <el-col :xs="24" :sm="24" :md="24" :lg="16">
-        <el-card>
-          <template #header>
-            <div class="card-header">
-              <span>数据趋势</span>
-              <el-radio-group v-model="chartData.period" size="small">
-                <el-radio-button label="week">本周</el-radio-button>
-                <el-radio-button label="month">本月</el-radio-button>
-                <el-radio-button label="year">本年</el-radio-button>
-              </el-radio-group>
-            </div>
+    <!-- 最近活动表格 -->
+    <el-card class="activity-card">
+      <template #header>
+        <div class="card-header">
+          <span>最近活动</span>
+        </div>
+      </template>
+      <el-table :data="recentActivities" style="width: 100%">
+        <el-table-column prop="time" label="时间" width="180" />
+        <el-table-column prop="user" label="用户" width="120" />
+        <el-table-column prop="action" label="操作" />
+        <el-table-column prop="status" label="状态" width="100">
+          <template #default="scope">
+            <el-tag :type="scope.row.status === 'success' ? 'success' : 'danger'">
+              {{ scope.row.status === 'success' ? '成功' : '失败' }}
+            </el-tag>
           </template>
-          <div class="chart-container">
-            <div class="chart-placeholder">
-              <el-icon :size="48" color="#409EFF"><DataLine /></el-icon>
-              <p>图表数据加载中...</p>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
+        </el-table-column>
+      </el-table>
+    </el-card>
 
-      <el-col :xs="24" :sm="24" :md="24" :lg="8">
-        <el-card>
-          <template #header>
-            <div class="card-header">
-              <span>系统信息</span>
-            </div>
-          </template>
-          <div class="system-info">
-            <div v-for="(item, index) in systemInfo" :key="index" class="info-item">
-              <span class="label">{{ item.label }}:</span>
-              <span class="value">{{ item.value }}</span>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 快捷操作 -->
+    <el-card class="quick-actions">
+      <template #header>
+        <div class="card-header">
+          <span>快捷操作</span>
+        </div>
+      </template>
+      <el-row :gutter="20">
+        <el-col :span="6">
+          <el-button type="primary" @click="handleQuickAction('users')">
+            <el-icon><User /></el-icon>
+            用户管理
+          </el-button>
+        </el-col>
+        <el-col :span="6">
+          <el-button type="success" @click="handleQuickAction('roles')">
+            <el-icon><Lock /></el-icon>
+            角色管理
+          </el-button>
+        </el-col>
+        <el-col :span="6">
+          <el-button type="warning" @click="handleQuickAction('settings')">
+            <el-icon><Setting /></el-icon>
+            系统设置
+          </el-button>
+        </el-col>
+        <el-col :span="6">
+          <el-button type="info" @click="handleQuickAction('help')">
+            <el-icon><QuestionFilled /></el-icon>
+            帮助中心
+          </el-button>
+        </el-col>
+      </el-row>
+    </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { User, View, ShoppingCart, Coin, DataLine } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import {
+  User,
+  View,
+  ShoppingCart,
+  Coin,
+  Lock,
+  Setting,
+  QuestionFilled
+} from '@element-plus/icons-vue'
 
-// 统计数据
-const statsData = reactive({
-  users: 2458,
-  views: 1234,
-  orders: 456,
-  revenue: '45,678.00'
-})
+const router = useRouter()
 
-// 图表数据
-const chartData = reactive({
-  period: 'week',
-  // 这里可以添加实际的图表数据
-})
-
-// 系统信息
-const systemInfo = ref([
-  { label: '系统版本', value: 'v1.0.0' },
-  { label: '服务器环境', value: 'CentOS 7.9' },
-  { label: '数据库版本', value: 'MySQL 8.0' },
-  { label: '缓存服务', value: 'Redis 6.2' },
-  { label: '运行时间', value: '30天' }
+const recentActivities = ref([
+  {
+    time: '2024-12-11 16:30:00',
+    user: 'Admin',
+    action: '登录系统',
+    status: 'success'
+  },
+  {
+    time: '2024-12-11 16:25:00',
+    user: 'User001',
+    action: '修改密码',
+    status: 'success'
+  },
+  {
+    time: '2024-12-11 16:20:00',
+    user: 'User002',
+    action: '上传文件',
+    status: 'success'
+  },
+  {
+    time: '2024-12-11 16:15:00',
+    user: 'User003',
+    action: '删除数据',
+    status: 'failed'
+  }
 ])
 
-onMounted(() => {
-  // 这里可以添加初始化逻辑，如获取实际数据等
-})
+const handleQuickAction = (action) => {
+  const routes = {
+    users: '/users',
+    roles: '/roles',
+    settings: '/settings',
+    help: '/help'
+  }
+  if (routes[action]) {
+    router.push(routes[action])
+  }
+}
 </script>
 
 <style scoped>
-.dashboard-container {
+.dashboard {
   padding: 20px;
 }
 
-.stats-row {
+h1 {
+  margin-bottom: 24px;
+  font-weight: 500;
+  font-size: 24px;
+  color: #303133;
+}
+
+.stats-cards {
+  margin-bottom: 24px;
+}
+
+.stat-card {
   margin-bottom: 20px;
 }
 
-.stats-card {
-  cursor: pointer;
-  transition: transform 0.3s;
-  margin-bottom: 20px;
-}
-
-@media (max-width: 768px) {
-  .stats-card {
-    margin-bottom: 25px;
-  }
-}
-
-.stats-card:hover {
-  transform: translateY(-5px);
-}
-
-.stats-item {
+.stat-content {
   display: flex;
   align-items: center;
+  padding: 20px;
 }
 
-.stats-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   margin-right: 16px;
+  color: white;
 }
 
-.stats-info {
-  flex: 1;
+.stat-icon.users {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.stats-value {
+.stat-icon.views {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-icon.orders {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-icon.revenue {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.stat-value {
   font-size: 24px;
   font-weight: bold;
   color: #303133;
-  line-height: 1.2;
-  margin-bottom: 4px;
+  line-height: 1;
+  margin-bottom: 8px;
 }
 
-.stats-label {
+.stat-label {
   font-size: 14px;
   color: #909399;
 }
 
-.chart-row {
-  margin-bottom: 20px;
+.activity-card {
+  margin-bottom: 24px;
 }
 
-.chart-row .el-card {
-  margin-bottom: 20px;
+.quick-actions {
+  margin-bottom: 24px;
 }
 
 .card-header {
@@ -205,38 +253,12 @@ onMounted(() => {
   align-items: center;
 }
 
-.chart-container {
-  height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.el-button {
+  width: 100%;
+  margin-bottom: 10px;
 }
 
-.chart-placeholder {
-  text-align: center;
-  color: #909399;
-}
-
-.chart-placeholder p {
-  margin-top: 12px;
-}
-
-.system-info {
-  .info-item {
-    display: flex;
-    margin-bottom: 12px;
-    line-height: 1.8;
-
-    .label {
-      color: #606266;
-      margin-right: 8px;
-      min-width: 80px;
-    }
-
-    .value {
-      color: #303133;
-      flex: 1;
-    }
-  }
+.el-button .el-icon {
+  margin-right: 8px;
 }
 </style>

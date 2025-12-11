@@ -1,6 +1,6 @@
 <template>
   <div class="settings-container">
-    <el-card class="settings-card">
+    <el-card class="settings-card" v-loading="loading">
       <template #header>
         <div class="card-header">
           <h2 class="title">系统设置</h2>
@@ -34,6 +34,21 @@
           </el-select>
         </el-form-item>
 
+        <!-- 主题设置 -->
+        <el-divider content-position="left">主题设置</el-divider>
+        <el-form-item label="主题色">
+          <el-color-picker v-model="settings.theme.primaryColor" />
+        </el-form-item>
+        <el-form-item label="导航模式">
+          <el-radio-group v-model="settings.theme.navMode">
+            <el-radio label="sidebar">侧边栏</el-radio>
+            <el-radio label="top">顶部导航</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="暗黑模式">
+          <el-switch v-model="settings.theme.darkMode" />
+        </el-form-item>
+
         <!-- 安全设置 -->
         <el-divider content-position="left">安全设置</el-divider>
         <el-form-item label="登录验证码">
@@ -49,7 +64,7 @@
 
         <!-- 保存按钮 -->
         <el-form-item>
-          <el-button type="primary" @click="saveSettings">保存设置</el-button>
+          <el-button type="primary" @click="saveSettings" :loading="saving">保存设置</el-button>
           <el-button @click="resetSettings">重置</el-button>
         </el-form-item>
       </el-form>
@@ -58,9 +73,13 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import axios from 'axios'
+
+const loading = ref(false)
+const saving = ref(false)
 
 const settings = reactive({
   systemName: '后台管理系统',
@@ -95,29 +114,71 @@ const beforeLogoUpload = (file) => {
   return false
 }
 
-const saveSettings = () => {
-  ElMessage.success('设置保存成功')
+const loadSettings = async () => {
+  loading.value = true
+  try {
+    const response = await axios.get('/api/admin/v1/setting/settings', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    if (response.data.code === 200) {
+      Object.assign(settings, response.data.data)
+      ElMessage.success('设置加载成功')
+    } else {
+      throw new Error(response.data.message)
+    }
+  } catch (error) {
+    ElMessage.error(`加载设置失败: ${error.message}`)
+  } finally {
+    loading.value = false
+  }
+}
+
+const saveSettings = async () => {
+  saving.value = true
+  try {
+    const response = await axios.put('/api/admin/v1/setting/settings', settings, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    if (response.data.code === 200) {
+      ElMessage.success('设置保存成功')
+    } else {
+      throw new Error(response.data.message)
+    }
+  } catch (error) {
+    ElMessage.error(`保存设置失败: ${error.message}`)
+  } finally {
+    saving.value = false
+  }
+}
+
+const defaultSettings = {
+  systemName: '后台管理系统',
+  logo: '',
+  theme: {
+    primaryColor: '#409EFF',
+    navMode: 'sidebar',
+    darkMode: false
+  },
+  language: 'zh_CN',
+  timezone: 'Asia/Shanghai',
+  security: {
+    captchaEnabled: true,
+    passwordStrength: 'medium'
+  }
 }
 
 const resetSettings = () => {
-  // 重置设置到默认值
-  Object.assign(settings, {
-    systemName: '后台管理系统',
-    logo: '',
-    theme: {
-      primaryColor: '#409EFF',
-      navMode: 'sidebar',
-      darkMode: false
-    },
-    language: 'zh_CN',
-    timezone: 'Asia/Shanghai',
-    security: {
-      captchaEnabled: true,
-      passwordStrength: 'medium'
-    }
-  })
+  Object.assign(settings, defaultSettings)
   ElMessage.info('已重置为默认设置')
 }
+
+onMounted(() => {
+  loadSettings()
+})
 </script>
 
 <style scoped>

@@ -1,21 +1,29 @@
 <template>
   <el-container class="layout-container">
-    <!-- 侧边栏 -->
-    <el-aside width="200px">
+    <el-aside width="200px" class="aside">
       <div class="logo">
-        <h1>管理系统</h1>
+        <img :src="systemSettings.logo || '/logo.png'" alt="Logo">
+        <span>{{ systemSettings.systemName }}</span>
       </div>
       <el-menu
-        :default-active="route.path"
-        class="el-menu-vertical"
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
-        router
+        class="menu"
+        :default-active="activeMenu"
+        :router="true"
+        :background-color="systemSettings.theme?.navMode === 'dark' ? '#001529' : '#fff'"
+        :text-color="systemSettings.theme?.navMode === 'dark' ? '#fff' : '#303133'"
+        :active-text-color="systemSettings.theme?.primaryColor || '#409EFF'"
       >
         <el-menu-item index="/dashboard">
           <el-icon><Monitor /></el-icon>
           <span>仪表盘</span>
+        </el-menu-item>
+        <el-menu-item index="/users">
+          <el-icon><User /></el-icon>
+          <span>用户管理</span>
+        </el-menu-item>
+        <el-menu-item index="/roles">
+          <el-icon><Lock /></el-icon>
+          <span>角色管理</span>
         </el-menu-item>
         <el-menu-item index="/settings">
           <el-icon><Setting /></el-icon>
@@ -23,59 +31,86 @@
         </el-menu-item>
       </el-menu>
     </el-aside>
-
     <el-container>
-      <!-- 顶部导航 -->
-      <el-header>
+      <el-header class="header">
         <div class="header-left">
-          <el-icon class="fold-btn" @click="isCollapse = !isCollapse">
-            <Fold v-if="!isCollapse" />
-            <Expand v-else />
-          </el-icon>
+          <el-button @click="toggleCollapse" link>
+            <el-icon :size="20"><Expand /></el-icon>
+          </el-button>
+          <el-breadcrumb separator="/">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>{{ currentRoute }}</el-breadcrumb-item>
+          </el-breadcrumb>
         </div>
         <div class="header-right">
-          <el-dropdown trigger="click">
+          <el-dropdown>
             <span class="user-info">
-              <el-avatar :size="32" :src="userAvatar">
-                {{ username?.charAt(0)?.toUpperCase() }}
-              </el-avatar>
-              <span class="username">{{ username || '管理员' }}</span>
+              <el-avatar :size="32" src="/avatar.png" />
+              {{ userInfo.username }}
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
+                <el-dropdown-item>个人中心</el-dropdown-item>
+                <el-dropdown-item>修改密码</el-dropdown-item>
+                <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
       </el-header>
-
-      <!-- 主要内容区 -->
-      <el-main>
-        <router-view v-slot="{ Component }">
-          <transition name="fade-transform" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
+      <el-main class="main">
+        <router-view />
       </el-main>
     </el-container>
   </el-container>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, Fold, Expand, Setting } from '@element-plus/icons-vue'
+import { Monitor, User, Lock, Setting, Expand } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const isCollapse = ref(false)
-const username = ref('管理员')
-const userAvatar = ref('')
 
-const handleLogout = () => {
-  // 清除token等登录信息
-  router.push('/login')
+// 模拟数据 - 实际应该从API获取
+const systemSettings = ref({
+  systemName: '后台管理系统',
+  logo: '/logo.png',
+  theme: {
+    primaryColor: '#409EFF',
+    navMode: 'light',
+    darkMode: false
+  }
+})
+
+const userInfo = ref({
+  username: 'Admin'
+})
+
+const activeMenu = computed(() => route.path)
+const currentRoute = computed(() => {
+  const routeMap = {
+    '/dashboard': '仪表盘',
+    '/users': '用户管理',
+    '/roles': '角色管理',
+    '/settings': '系统设置'
+  }
+  return routeMap[route.path] || '未知页面'
+})
+
+const toggleCollapse = () => {
+  isCollapse.value = !isCollapse.value
+}
+
+const handleLogout = async () => {
+  try {
+    // 调用登出API
+    await router.push('/login')
+  } catch (error) {
+    console.error('登出失败:', error)
+  }
 }
 </script>
 
@@ -84,31 +119,30 @@ const handleLogout = () => {
   height: 100vh;
 }
 
+.aside {
+  background-color: v-bind('systemSettings.theme.navMode === "dark" ? "#001529" : "#fff"');
+  border-right: 1px solid #e6e6e6;
+}
+
 .logo {
   height: 60px;
+  padding: 10px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: #2b2f3a;
+  color: v-bind('systemSettings.theme.navMode === "dark" ? "#fff" : "#303133"');
+  border-bottom: 1px solid #e6e6e6;
 }
 
-.logo h1 {
-  color: #fff;
-  font-size: 18px;
-  margin: 0;
+.logo img {
+  height: 32px;
+  margin-right: 12px;
 }
 
-.el-aside {
-  background-color: #304156;
-  color: #fff;
-  overflow: hidden;
-}
-
-.el-menu-vertical {
+.menu {
   border-right: none;
 }
 
-.el-header {
+.header {
   background-color: #fff;
   border-bottom: 1px solid #e6e6e6;
   display: flex;
@@ -120,12 +154,7 @@ const handleLogout = () => {
 .header-left {
   display: flex;
   align-items: center;
-}
-
-.fold-btn {
-  font-size: 20px;
-  cursor: pointer;
-  color: #606266;
+  gap: 20px;
 }
 
 .header-right {
@@ -137,32 +166,11 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   cursor: pointer;
+  gap: 8px;
 }
 
-.username {
-  margin-left: 8px;
-  font-size: 14px;
-  color: #606266;
-}
-
-.el-main {
-  background-color: #f0f2f5;
+.main {
+  background-color: #f5f7fa;
   padding: 20px;
-}
-
-/* 路由切换动画 */
-.fade-transform-enter-active,
-.fade-transform-leave-active {
-  transition: all 0.3s;
-}
-
-.fade-transform-enter-from {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-.fade-transform-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
 }
 </style>

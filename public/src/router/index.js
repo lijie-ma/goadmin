@@ -1,33 +1,38 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '../components/LoginPage.vue'
-import AppLayout from '../components/layout/AppLayout.vue'
 import Dashboard from '../components/Dashboard.vue'
-import SettingsPage from '../components/SettingsPage.vue'
+import AppLayout from '../components/layout/AppLayout.vue'
 
 const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: LoginPage,
-    meta: { requiresAuth: false }
+    component: LoginPage
   },
   {
     path: '/',
     component: AppLayout,
     redirect: '/dashboard',
-    meta: { requiresAuth: true },
     children: [
       {
-        path: 'dashboard',
+        path: '/dashboard',
         name: 'Dashboard',
-        component: Dashboard,
-        meta: { title: '仪表盘' }
+        component: Dashboard
       },
       {
-        path: 'settings',
+        path: '/users',
+        name: 'Users',
+        component: () => import('../components/UserManagement.vue')
+      },
+      {
+        path: '/roles',
+        name: 'Roles',
+        component: () => import('../components/RoleManagement.vue')
+      },
+      {
+        path: '/settings',
         name: 'Settings',
-        component: SettingsPage,
-        meta: { title: '系统设置' }
+        component: () => import('../components/SettingsPage.vue')
       }
     ]
   }
@@ -40,16 +45,12 @@ const router = createRouter({
 
 // 路由守卫
 router.beforeEach((to, from, next) => {
-  // 检查是否需要认证
-  if (to.meta.requiresAuth) {
-    // 这里应该检查用户是否已登录（比如检查token）
-    // 暂时简化处理
-    const token = localStorage.getItem('token')
-    if (!token) {
-      next('/login')
-    } else {
-      next()
-    }
+  const token = localStorage.getItem('token')
+
+  if (to.path === '/login') {
+    next()
+  } else if (!token) {
+    next('/login')
   } else {
     next()
   }
