@@ -42,7 +42,8 @@ INSERT INTO permissions (code, name, description, path, module, global_flag) VAL
 
 
 INSERT INTO server_setting (id, name, value) VALUES
-(1, 'captcha_switch', '{"admin":1, "web":1}');
+(1, 'captcha_switch', '{"admin":1, "web":1}'),
+('2', 'system_config', '{"system_name":"admin", "logo":"", "language":"zh-CN"}');
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.

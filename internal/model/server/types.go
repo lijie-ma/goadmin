@@ -26,7 +26,7 @@ func (c *CaptchaSwitchConfig) IsWebOn() bool {
 }
 
 type SystemConfig struct {
-	SystemName string `json:"systemName" binding:"required"`
+	SystemName string `json:"system_name" binding:"required"`
 	Logo       string `json:"logo"`
 	Language   string `json:"language" binding:"required"`
 }
