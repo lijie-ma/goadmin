@@ -333,7 +333,7 @@ const handleLoginSubmit = async (captchaData) => {
   try {
     formData.token = captchaData?.token
     loading.value = true
-    const response = await fetch('/api/admin/v1/login', {
+    const response = await fetch('/api/admin/v1/user/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -367,7 +367,7 @@ const handleLogin = async () => {
       }
     })
 
-    if (checkResponse.code !== 200) {
+    if (checkResponse.status !== 200) {
       throw new Error('检查验证码状态失败')
     }
 
