@@ -74,6 +74,10 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+// 路由实例
+const router = useRouter()
 
 // 表单数据
 const formData = reactive({
@@ -347,7 +351,14 @@ const handleLoginSubmit = async (captchaData) => {
 
     const data = await response.json()
     console.log('登录成功', data)
-    // 这里可以处理登录成功后的操作，如保存token等
+
+    // 保存token到localStorage
+    if (data.data && data.data.token) {
+      localStorage.setItem('token', data.data.token)
+    }
+
+    // 跳转到后台首页
+    router.push('/dashboard')
   } catch (error) {
     console.error('登录失败:', error)
     alert('登录失败，请重试')
