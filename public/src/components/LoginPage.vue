@@ -116,7 +116,7 @@ const captchaState = reactive({
 const captchaConfig = {
   newUrl: '/api/admin/v1/captcha/generate',
   verifyUrl: '/api/admin/v1/captcha/check',
-  checkUrl: '/admin/v1/setting/get_captcha_switch'  // 检查是否需要验证码的接口
+  checkUrl: '/api/admin/v1/setting/get_captcha_switch'  // 检查是否需要验证码的接口
 }
 
 // 关闭验证码弹框
