@@ -10,26 +10,15 @@ deploy/docker/
 ├── frontend.Dockerfile     # 前端 Vue 应用的 Dockerfile
 ├── nginx.conf             # Nginx 配置文件
 ├── docker-compose.yml     # Docker Compose 编排文件
-├── .env.example          # 环境变量示例文件
 └── README.md             # 本文档
 ```
 
 ## 快速开始
 
-### 1. 准备环境变量
 
-复制环境变量示例文件并修改配置：
-
-```bash
-cd deploy/docker
-cp .env.example .env
-# 编辑 .env 文件，修改数据库密码等敏感信息
-```
-
-### 2. 构建和启动服务
+### 1. 构建和启动服务
 
 在项目根目录执行：
-
 ```bash
 cd deploy/docker
 docker-compose up -d --build
@@ -78,6 +67,11 @@ docker-compose down -v
 - MySQL 8.0
 - 字符集: utf8mb4
 - 自动初始化数据库和表结构
+```
+    注意 mysql 默认 password plugin 为 caching_sha2_password, 请修改 mysql root 密码
+    alter user 'goadmin'@'%' identified with mysql_native_password by 'Qwert1234';
+    flush privileges;
+```
 
 ### 缓存服务 (redis)
 
