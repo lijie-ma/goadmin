@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '../components/LoginPage.vue'
 import AppLayout from '../components/layout/AppLayout.vue'
 import Dashboard from '../components/Dashboard.vue'
+import SettingsPage from '../components/SettingsPage.vue'
 
 const routes = [
   {
@@ -21,6 +22,12 @@ const routes = [
         name: 'Dashboard',
         component: Dashboard,
         meta: { title: '仪表盘' }
+      },
+      {
+        path: 'settings',
+        name: 'Settings',
+        component: SettingsPage,
+        meta: { title: '系统设置' }
       }
     ]
   }

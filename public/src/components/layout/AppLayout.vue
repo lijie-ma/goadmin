@@ -11,10 +11,15 @@
         background-color="#304156"
         text-color="#bfcbd9"
         active-text-color="#409EFF"
+        router
       >
         <el-menu-item index="/dashboard">
           <el-icon><Monitor /></el-icon>
           <span>仪表盘</span>
+        </el-menu-item>
+        <el-menu-item index="/settings">
+          <el-icon><Setting /></el-icon>
+          <span>系统设置</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -60,7 +65,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, Fold, Expand } from '@element-plus/icons-vue'
+import { Monitor, Fold, Expand, Setting } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
