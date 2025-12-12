@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <h2>管理系统登录</h2>
+      <h2>{{ systemTitle }}</h2>
       <form @submit.prevent="handleLogin">
         <div class="form-item">
           <input
@@ -79,6 +79,9 @@ import { useRouter } from 'vue-router'
 // 路由实例
 const router = useRouter()
 
+// 系统标题
+const systemTitle = ref('管理系统登录')
+
 // 表单数据
 const formData = reactive({
   username: '',
@@ -119,9 +122,11 @@ const captchaState = reactive({
 // 验证码API配置
 const captchaConfig = {
   newUrl: '/api/admin/v1/captcha/generate',
-  verifyUrl: '/api/admin/v1/captcha/check',
-  checkUrl: '/api/admin/v1/setting/get_settings'  // 检查是否需要验证码的接口
+  verifyUrl: '/api/admin/v1/captcha/check'
 }
+
+// 验证码开启状态
+const needCaptcha = ref(false)
 
 // 关闭验证码弹框
 const closeCaptcha = () => {
@@ -367,39 +372,53 @@ const handleLoginSubmit = async (captchaData) => {
   }
 }
 
-// 处理登录按钮点击
-const handleLogin = async () => {
+// 获取系统设置
+const getSystemSettings = async () => {
   try {
-    // 先检查是否需要验证码
-    const checkResponse = await fetch(captchaConfig.checkUrl, {
+    const response = await fetch('/api/admin/v1/setting/get_settings', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
       }
     })
 
-    if (checkResponse.status !== 200) {
-      throw new Error('检查验证码状态失败')
-    }
+    if (response.status === 200) {
+      const result = await response.json()
 
-    const checkResult = await checkResponse.json()
+      // 从配置中获取系统标题
+      if (result.data && result.data.system_name) {
+        systemTitle.value = result.data.system_name
+      }
 
-    // 判断是否需要验证码
-    if (checkResult.data.admin === 1) {
-      // 需要验证码，显示验证码弹框
-      showCaptcha.value = true
-      await loadCaptcha()
-    } else {
-      // 不需要验证码，直接登录
-      await handleLoginSubmit()
+      // 从配置中获取验证码开启状态
+      if (result.data && typeof result.data.admin === 'number') {
+        needCaptcha.value = result.data.admin === 1
+      }
     }
   } catch (error) {
-    console.error('检查验证码状态失败:', error)
-    // 出错时默认显示验证码
-    showCaptcha.value = true
-    await loadCaptcha()
+    console.error('获取系统设置失败:', error)
+    // 出错时使用默认值
+    needCaptcha.value = true // 默认开启验证码
   }
 }
+
+// 处理登录按钮点击
+const handleLogin = async () => {
+  // 使用从系统设置中获取的验证码开启状态
+  if (needCaptcha.value) {
+    // 需要验证码，显示验证码弹框
+    showCaptcha.value = true
+    await loadCaptcha()
+  } else {
+    // 不需要验证码，直接登录
+    await handleLoginSubmit()
+  }
+}
+
+// 组件挂载时获取系统设置
+onMounted(() => {
+  getSystemSettings()
+})
 
 // 组件卸载时清理事件监听
 onUnmounted(() => {
