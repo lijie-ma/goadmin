@@ -365,9 +365,10 @@ const handleLoginSubmit = async (captchaData) => {
     const data = await response.json()
     console.log('登录成功', data)
 
-    // 保存token到localStorage
+    // 保存token到sessionStorage
     if (data.data && data.data.token) {
-      localStorage.setItem('token', data.data.token)
+      sessionStorage.setItem('user', JSON.stringify(data.data))
+      sessionStorage.setItem('token', data.data.token)
     }
 
     // 跳转到后台首页
