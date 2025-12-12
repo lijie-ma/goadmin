@@ -75,6 +75,7 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import md5 from 'js-md5'
 
 // 路由实例
 const router = useRouter()
@@ -340,14 +341,21 @@ const pointerUp = async (e) => {
 // 处理登录表单提交
 const handleLoginSubmit = async (captchaData) => {
   try {
-    formData.token = captchaData?.token
+    formData.token = captchaData?.token ?? ''
     loading.value = true
+
+    // 对密码进行 MD5 加密
+    const loginData = {
+      ...formData,
+      password: md5(formData.password) // 使用 MD5 加密密码
+    }
+
     const response = await fetch('/api/admin/v1/user/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(loginData)
     })
 
     if (!response.ok) {
