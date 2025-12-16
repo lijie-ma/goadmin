@@ -37,11 +37,19 @@ type HeaderConfig struct {
 // DefaultHeaderConfig 默认头部配置
 func DefaultHeaderConfig() HeaderConfig {
 	return HeaderConfig{
-		EnableCORS:         true,
-		AllowOrigins:       []string{"*"},
-		AllowMethods:       []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:       []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-Trace-ID"},
-		ExposeHeaders:      []string{"Content-Length", "X-Trace-ID"},
+		EnableCORS:   true,
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Type",
+			"Content-Length",
+			"Accept-Encoding",
+			"X-CSRF-Token",
+			"Authorization",
+			"Cache-Control",
+			"X-Request-ID"},
+		ExposeHeaders:      []string{"Content-Length", "X-Request-ID"},
 		AllowCredentials:   true,
 		MaxAge:             86400,
 		ServerName:         "GoAdmin",
