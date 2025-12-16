@@ -117,7 +117,7 @@ const beforeLogoUpload = (file) => {
 const loadSettings = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/admin/v1/setting/settings', {
+    const response = await axios.get('/admin/v1/setting/get_settings', {
       headers: {
         'Authorization': `Bearer ${sessionStorage.getItem('token')}`
       }
@@ -138,7 +138,7 @@ const loadSettings = async () => {
 const saveSettings = async () => {
   saving.value = true
   try {
-    const response = await axios.put('/api/admin/v1/setting/settings', settings, {
+    const response = await axios.put('/api/admin/v1/setting/set_settings', settings, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }

@@ -21,7 +21,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(router)
 
 // 配置axios
-axios.defaults.baseURL = 'http://localhost:8080/api'
+axios.defaults.baseURL = 'http://192.168.56.109/'
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
 // 请求拦截器

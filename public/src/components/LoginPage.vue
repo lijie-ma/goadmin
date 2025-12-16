@@ -76,6 +76,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import md5 from 'js-md5'
+import axios from 'axios'
 
 // 路由实例
 const router = useRouter()
@@ -173,12 +174,13 @@ const loadCaptcha = async () => {
   resetSlider()
 
   try {
-    const response = await fetch(captchaConfig.newUrl, {
-      cache: 'no-store'
+    const response = await axios.get(captchaConfig.newUrl, {
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
     })
-    if (!response.ok) throw new Error('网络错误')
 
-    const res = await response.json()
+    const res = response.data
     captchaState.token = res.data.key
     const bgSrc = res.data.image_base64
     const pieceSrc = res.data.tile_base64
@@ -307,17 +309,13 @@ const pointerUp = async (e) => {
 
   setMsg('验证中...')
   try {
-    const response = await fetch(captchaConfig.verifyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        key: captchaState.token,
-        x: offset,
-        y: captchaState.pieceY
-      })
+    const response = await axios.post(captchaConfig.verifyUrl, {
+      key: captchaState.token,
+      x: offset,
+      y: captchaState.pieceY
     })
 
-    const result = await response.json()
+    const result = response.data
     if (result.code === 200) {
       setMsg('验证通过', 'success')
       if (track.value && progress.value) {
@@ -350,19 +348,9 @@ const handleLoginSubmit = async (captchaData) => {
       password: md5(formData.password) // 使用 MD5 加密密码
     }
 
-    const response = await fetch('/api/admin/v1/user/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(loginData)
-    })
+    const response = await axios.post('/api/admin/v1/user/login', loginData)
 
-    if (!response.ok) {
-      throw new Error('登录失败')
-    }
-
-    const data = await response.json()
+    const data = response.data
     console.log('登录成功', data)
 
     // 保存token到sessionStorage
@@ -384,25 +372,17 @@ const handleLoginSubmit = async (captchaData) => {
 // 获取系统设置
 const getSystemSettings = async () => {
   try {
-    const response = await fetch('/api/admin/v1/setting/get_settings', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
+    const response = await axios.get('/api/admin/v1/setting/get_settings')
 
-    if (response.status === 200) {
-      const result = await response.json()
+    const result = response.data
+    // 从配置中获取系统标题
+    if (result.data && result.data.system_name) {
+      systemTitle.value = result.data.system_name
+    }
 
-      // 从配置中获取系统标题
-      if (result.data && result.data.system_name) {
-        systemTitle.value = result.data.system_name
-      }
-
-      // 从配置中获取验证码开启状态
-      if (result.data && typeof result.data.admin === 'number') {
-        needCaptcha.value = result.data.admin === 1
-      }
+    // 从配置中获取验证码开启状态
+    if (result.data && typeof result.data.admin === 'number') {
+      needCaptcha.value = result.data.admin === 1
     }
   } catch (error) {
     console.error('获取系统设置失败:', error)
