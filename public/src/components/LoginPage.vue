@@ -351,7 +351,6 @@ const handleLoginSubmit = async (captchaData) => {
     const response = await axios.post('/api/admin/v1/user/login', loginData)
 
     const data = response.data
-    console.log('登录成功', data)
 
     // 保存token到sessionStorage
     if (data.data && data.data.token) {

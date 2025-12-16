@@ -66,7 +66,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Monitor, User, Lock, Setting, Expand } from '@element-plus/icons-vue'
 
@@ -77,7 +77,7 @@ const isCollapse = ref(false)
 // 模拟数据 - 实际应该从API获取
 const systemSettings = ref({
   systemName: '后台管理系统',
-  logo: '/logo.png',
+  logo: '/assets/images/logo.png',
   theme: {
     primaryColor: '#409EFF',
     navMode: 'light',
@@ -85,8 +85,28 @@ const systemSettings = ref({
   }
 })
 
+// 从 sessionStorage 获取用户信息
 const userInfo = ref({
   username: 'Admin'
+})
+
+// 组件挂载时从 sessionStorage 读取用户信息
+onMounted(() => {
+  const storedUser = sessionStorage.getItem('user')
+  if (storedUser) {
+    try {
+      const userData = JSON.parse(storedUser)
+      userInfo.value = userData
+    } catch (error) {
+      console.error('解析用户信息失败:', error)
+      // 解析失败也跳转到登录页
+      router.push('/login')
+    }
+  } else {
+    // 如果没有用户信息，跳转到登录页
+    console.log('未找到用户信息，跳转到登录页')
+    router.push('/login')
+  }
 })
 
 const activeMenu = computed(() => route.path)
@@ -107,6 +127,8 @@ const toggleCollapse = () => {
 const handleLogout = async () => {
   try {
     // 调用登出API
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
     await router.push('/login')
   } catch (error) {
     console.error('登出失败:', error)
