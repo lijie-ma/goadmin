@@ -352,10 +352,10 @@ const handleLoginSubmit = async (captchaData) => {
 
     const data = response.data
 
-    // 保存token到sessionStorage
+    // 保存token到localStorage
     if (data.data && data.data.token) {
-      sessionStorage.setItem('user', JSON.stringify(data.data))
-      sessionStorage.setItem('token', data.data.token)
+      localStorage.setItem('user', JSON.stringify(data.data))
+      localStorage.setItem('token', data.data.token)
     }
 
     // 跳转到后台首页

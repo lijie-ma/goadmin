@@ -85,14 +85,15 @@ const systemSettings = ref({
   }
 })
 
-// 从 sessionStorage 获取用户信息
+// 从 localStorage 获取用户信息
 const userInfo = ref({
   username: 'Admin'
 })
 
-// 组件挂载时从 sessionStorage 读取用户信息
+// 组件挂载时从 localStorage 读取用户信息
 onMounted(() => {
-  const storedUser = sessionStorage.getItem('user')
+  const storedUser = localStorage.getItem('user')
+
   if (storedUser) {
     try {
       const userData = JSON.parse(storedUser)
@@ -127,8 +128,8 @@ const toggleCollapse = () => {
 const handleLogout = async () => {
   try {
     // 调用登出API
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('user')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
     await router.push('/login')
   } catch (error) {
     console.error('登出失败:', error)
