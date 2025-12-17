@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"goadmin/internal/context"
 	"goadmin/internal/model/server"
 	modeluser "goadmin/internal/model/user"
@@ -87,12 +86,12 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 
 	if u == nil || !util.ValidatePasswordAndHash(req.Password, u.Password) {
 		ctx.Logger.Warnf("%s 用户名或密码错误: %s %v", s.logPrefix(), req.Username, err)
-		return nil, errors.WithMessage(errorsx.ErrNotFound, "用户")
+		return nil, errors.New(ctx.Show("InvalidUsernameOrPassword"))
 	}
 
 	if !u.IsActive() {
 		ctx.Logger.Warnf("%s 账户状态异常: %s %s", s.logPrefix(), req.Username, u.Status.String())
-		return nil, fmt.Errorf("账户状态异常")
+		return nil, errors.New(ctx.Show("AccountStatusAbnormal"))
 	}
 
 	// 生成JWT令牌
@@ -129,7 +128,7 @@ func (s *userService) GenerateUserSession(ctx *context.Context, userID uint64) (
 
 	if !u.IsActive() {
 		ctx.Logger.Warnf("%s 账户状态异常: %s %s", s.logPrefix(), userID, u.Status.String())
-		return nil, fmt.Errorf("账户状态异常")
+		return nil, errors.New(ctx.Show("AccountStatusAbnormal"))
 	}
 	return u, nil
 }
@@ -137,7 +136,7 @@ func (s *userService) GenerateUserSession(ctx *context.Context, userID uint64) (
 func (s *userService) ChangePassword(ctx *context.Context, req *modeluser.ChangePasswordRequest) error {
 	if !util.ValidatePasswordAndHash(req.OldPassword, ctx.Session().(*modeluser.User).Password) {
 		ctx.Logger.Warnf("%s 密码错误: %s", s.logPrefix(), ctx.Session().GetUsername())
-		return fmt.Errorf("密码错误")
+		return errors.New(ctx.Show("IncorrectPassword"))
 	}
 
 	encryptPwd, err := util.Password2Hash(req.NewPassword)

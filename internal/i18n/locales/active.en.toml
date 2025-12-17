@@ -24,6 +24,15 @@ other = "Password changed successfully"
 [SystemError]
 other = "System error"
 
+[InvalidUsernameOrPassword]
+other = "Invalid username or password"
+
+[AccountStatusAbnormal]
+other = "Account status is abnormal"
+
+[IncorrectPassword]
+other = "Incorrect password"
+
 [ActionSuccess]
 other = "Action successful"
 

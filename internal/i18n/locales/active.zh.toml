@@ -22,6 +22,15 @@ other = "密码修改成功"
 [SystemError]
 other = "系统错误"
 
+[InvalidUsernameOrPassword]
+other = "用户名或密码错误"
+
+[AccountStatusAbnormal]
+other = "账户状态异常"
+
+[IncorrectPassword]
+other = "密码错误"
+
 [ActionSuccess]
 other = "操作成功"
 
@@ -45,4 +54,3 @@ other = "用户"
 other = "角色"
 [Permission]
 other = "权限"
-
