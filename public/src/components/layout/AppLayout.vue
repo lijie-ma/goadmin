@@ -15,19 +15,19 @@
       >
         <el-menu-item index="/dashboard">
           <el-icon><Monitor /></el-icon>
-          <span>仪表盘</span>
+          <span>{{ t('dashboard') }}</span>
         </el-menu-item>
         <el-menu-item index="/users">
           <el-icon><User /></el-icon>
-          <span>用户管理</span>
+          <span>{{ t('userManagement') }}</span>
         </el-menu-item>
         <el-menu-item index="/roles">
           <el-icon><Lock /></el-icon>
-          <span>角色管理</span>
+          <span>{{ t('roleManagement') }}</span>
         </el-menu-item>
         <el-menu-item index="/settings">
           <el-icon><Setting /></el-icon>
-          <span>系统设置</span>
+          <span>{{ t('systemSettings') }}</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -38,11 +38,27 @@
             <el-icon :size="20"><Expand /></el-icon>
           </el-button>
           <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item>{{ currentRoute }}</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: '/' }">{{ t('home') }}</el-breadcrumb-item>
+            <el-breadcrumb-item>{{ t(currentRoute) }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
         <div class="header-right">
+          <!-- 语言切换 -->
+          <el-dropdown @command="handleLanguageChange" style="margin-right: 20px;">
+            <span class="language-selector">
+              <el-icon><i class="fas fa-globe"></i></el-icon>
+              {{ locale === 'zh' ? '中文' : 'English' }}
+              <el-icon class="el-icon--right"><arrow-down /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="zh">中文</el-dropdown-item>
+                <el-dropdown-item command="en">English</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+
+          <!-- 用户菜单 -->
           <el-dropdown>
             <span class="user-info">
               <el-avatar :size="32" src="/avatar.png" />
@@ -50,9 +66,9 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item>个人中心</el-dropdown-item>
-                <el-dropdown-item @click="showChangePasswordDialog">修改密码</el-dropdown-item>
-                <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
+                <el-dropdown-item>{{ t('userCenter') }}</el-dropdown-item>
+                <el-dropdown-item @click="showChangePasswordDialog">{{ t('changePassword') }}</el-dropdown-item>
+                <el-dropdown-item divided @click="handleLogout">{{ t('logout') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -67,7 +83,7 @@
   <!-- 修改密码对话框 -->
   <el-dialog
     v-model="changePasswordVisible"
-    title="修改密码"
+    :title="t('changePassword')"
     width="400px"
     :close-on-click-modal="false"
   >
@@ -77,35 +93,35 @@
       :rules="passwordRules"
       label-width="100px"
     >
-      <el-form-item label="原密码" prop="oldPassword">
+      <el-form-item :label="t('oldPassword')" prop="oldPassword">
         <el-input
           v-model="passwordForm.oldPassword"
           type="password"
           show-password
-          placeholder="请输入原密码"
+          :placeholder="t('enterOldPassword')"
         />
       </el-form-item>
-      <el-form-item label="新密码" prop="newPassword">
+      <el-form-item :label="t('newPassword')" prop="newPassword">
         <el-input
           v-model="passwordForm.newPassword"
           type="password"
           show-password
-          placeholder="请输入新密码"
+          :placeholder="t('enterNewPassword')"
         />
       </el-form-item>
-      <el-form-item label="确认新密码" prop="confirmPassword">
+      <el-form-item :label="t('confirmNewPassword')" prop="confirmPassword">
         <el-input
           v-model="passwordForm.confirmPassword"
           type="password"
           show-password
-          placeholder="请再次输入新密码"
+          :placeholder="t('enterNewPasswordAgain')"
         />
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="changePasswordVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleChangePassword">确认</el-button>
+        <el-button @click="changePasswordVisible = false">{{ t('cancel') }}</el-button>
+        <el-button type="primary" @click="handleChangePassword">{{ t('confirm') }}</el-button>
       </span>
     </template>
   </el-dialog>
@@ -114,9 +130,12 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, User, Lock, Setting, Expand } from '@element-plus/icons-vue'
+import { Monitor, User, Lock, Setting, Expand, ArrowDown } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import md5 from 'js-md5'
+
+const { t, locale } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -134,27 +153,27 @@ const passwordForm = reactive({
 // 密码验证规则
 const validateConfirmPassword = (rule, value, callback) => {
   if (value === '') {
-    callback(new Error('请再次输入新密码'))
+    callback(new Error(t('enterNewPasswordAgain')))
   } else if (value !== passwordForm.newPassword) {
-    callback(new Error('两次输入密码不一致!'))
+    callback(new Error(t('passwordNotMatch')))
   } else {
     callback()
   }
 }
 
-const passwordRules = reactive({
+const passwordRules = computed(() => ({
   oldPassword: [
-    { required: true, message: '请输入原密码', trigger: 'blur' }
+    { required: true, message: t('enterOldPassword'), trigger: 'blur' }
   ],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+    { required: true, message: t('enterNewPassword'), trigger: 'blur' },
+    { min: 6, max: 20, message: t('passwordLengthLimit'), trigger: 'blur' }
   ],
   confirmPassword: [
-    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    { required: true, message: t('enterNewPasswordAgain'), trigger: 'blur' },
     { validator: validateConfirmPassword, trigger: 'blur' }
   ]
-})
+}))
 
 // 模拟数据 - 实际应该从API获取
 const systemSettings = ref({
@@ -195,13 +214,31 @@ onMounted(() => {
 const activeMenu = computed(() => route.path)
 const currentRoute = computed(() => {
   const routeMap = {
-    '/dashboard': '仪表盘',
-    '/users': '用户管理',
-    '/roles': '角色管理',
-    '/settings': '系统设置'
+    '/dashboard': 'dashboard',
+    '/users': 'userManagement',
+    '/roles': 'roleManagement',
+    '/settings': 'systemSettings'
   }
-  return routeMap[route.path] || '未知页面'
+  return routeMap[route.path] || 'unknownPage'
 })
+
+// 处理语言切换
+const handleLanguageChange = (lang) => {
+  locale.value = lang
+  localStorage.setItem('language', lang)
+  // 发送语言切换请求到后端
+  if (localStorage.getItem('token')) {
+    fetch('/api/admin/v1/user/changeLang', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Accept-Language': lang
+      },
+      body: JSON.stringify({ language: lang })
+    }).catch(err => console.error('Language change failed:', err))
+  }
+}
 
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value
@@ -342,5 +379,19 @@ const handleChangePassword = async () => {
 .main {
   background-color: #f5f7fa;
   padding: 20px;
+}
+
+.language-selector {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.language-selector:hover {
+  background-color: #f5f7fa;
 }
 </style>

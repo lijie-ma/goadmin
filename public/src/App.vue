@@ -2,7 +2,7 @@
   <div id="app">
     <router-view />
     <!-- 语言切换按钮 -->
-    <div class="language-switch" v-if="$route.path !== '/login'">
+    <div class="language-switch" v-if="$route.path.includes('/login')">
       <el-dropdown @command="handleLanguageChange">
         <span class="el-dropdown-link">
           {{ currentLanguage === 'zh' ? '中文' : 'English' }}
