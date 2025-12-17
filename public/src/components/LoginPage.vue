@@ -1,13 +1,13 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <h2>{{ systemTitle }}</h2>
+      <h2>{{ systemTitle || t('login.title') }}</h2>
       <form @submit.prevent="handleLogin">
         <div class="form-item">
           <input
             type="text"
             v-model="formData.username"
-            placeholder="请输入用户名"
+            :placeholder="t('login.usernamePlaceholder')"
             required
           >
         </div>
@@ -15,7 +15,7 @@
           <input
             type="password"
             v-model="formData.password"
-            placeholder="请输入密码"
+            :placeholder="t('login.passwordPlaceholder')"
             required
           >
         </div>
@@ -24,12 +24,12 @@
             <input
               type="checkbox"
               v-model="formData.remember"
-            > 记住我
+            > {{ t('login.rememberMe') }}
           </label>
         </div>
         <div class="form-item">
           <button type="submit" :disabled="loading">
-            {{ loading ? '登录中...' : '登录' }}
+            {{ loading ? t('common.loading') : t('login.loginButton') }}
           </button>
         </div>
       </form>
@@ -39,14 +39,14 @@
     <div class="captcha-modal" v-if="showCaptcha">
       <div class="captcha-dialog">
         <div class="captcha-header">
-          <span class="captcha-title">请完成安全验证</span>
+          <span class="captcha-title">{{ t('captcha.title') }}</span>
           <button class="close-btn" @click="closeCaptcha">×</button>
         </div>
 
         <div class="canvas-wrap" id="canvasWrap">
           <canvas ref="bgCanvas" id="bg" width="300" height="220"></canvas>
           <canvas ref="pieceCanvas" id="piece" width="300" height="220"></canvas>
-          <div class="mask" v-if="captchaLoading">加载中...</div>
+          <div class="mask" v-if="captchaLoading">{{ t('common.loading') }}</div>
         </div>
 
         <div class="slider-area">
@@ -64,7 +64,7 @@
         </div>
 
         <div class="controls">
-          <button class="refresh-btn" @click="loadCaptcha">刷新</button>
+          <button class="refresh-btn" @click="loadCaptcha">{{ t('captcha.refresh') }}</button>
         </div>
         <div class="msg" :class="msgClass">{{ captchaMsg }}</div>
       </div>
@@ -74,15 +74,18 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import md5 from 'js-md5'
 import axios from 'axios'
 
 // 路由实例
 const router = useRouter()
+const route = useRoute()
+const { t } = useI18n()
 
 // 系统标题
-const systemTitle = ref('管理系统登录')
+const systemTitle = ref('')
 
 // 表单数据
 const formData = reactive({
@@ -241,8 +244,8 @@ const loadCaptcha = async () => {
 
     captchaLoading.value = false
   } catch (err) {
-    console.error('加载验证码失败:', err)
-    setMsg('加载验证码失败', 'fail')
+    console.error(t('captcha.loadError'), err)
+    setMsg(t('captcha.loadError'), 'fail')
     captchaLoading.value = false
   }
 }
@@ -307,7 +310,7 @@ const pointerUp = async (e) => {
   const left = m ? parseFloat(m[1]) : 0
   const offset = thumbToOffset(left)
 
-  setMsg('验证中...')
+  setMsg(t('captcha.verifying'))
   try {
     const response = await axios.post(captchaConfig.verifyUrl, {
       key: captchaState.token,
@@ -317,7 +320,7 @@ const pointerUp = async (e) => {
 
     const result = response.data
     if (result.code === 200) {
-      setMsg('验证通过', 'success')
+      setMsg(t('captcha.success'), 'success')
       if (track.value && progress.value) {
         progress.value.style.width = track.value.getBoundingClientRect().width + 'px'
       }
@@ -326,12 +329,12 @@ const pointerUp = async (e) => {
         handleLoginSubmit(result.data)
       }, 500, result)
     } else {
-      setMsg(result.message || '验证失败', 'fail')
+      setMsg(result.message || t('captcha.failed'), 'fail')
       resetSlider()
     }
   } catch (err) {
-    console.error('验证请求失败:', err)
-    setMsg('验证请求失败', 'fail')
+    console.error(t('captcha.verifyError'), err)
+    setMsg(t('captcha.verifyError'), 'fail')
     resetSlider()
   }
 }
@@ -345,11 +348,10 @@ const handleLoginSubmit = async (captchaData) => {
     // 对密码进行 MD5 加密
     const loginData = {
       ...formData,
-      password: md5(formData.password) // 使用 MD5 加密密码
+      password: md5(formData.password)
     }
 
     const response = await axios.post('/api/admin/v1/user/login', loginData)
-
     const data = response.data
 
     // 保存token到localStorage
@@ -359,10 +361,10 @@ const handleLoginSubmit = async (captchaData) => {
     }
 
     // 跳转到后台首页
-    router.push('/dashboard')
+    router.push(`/${route.params.lang}/dashboard`)
   } catch (error) {
-    console.error('登录失败:', error)
-    alert('登录失败，请重试')
+    console.error(t('login.failed'), error)
+    alert(t('login.failedMessage'))
   } finally {
     loading.value = false
   }
@@ -372,7 +374,6 @@ const handleLoginSubmit = async (captchaData) => {
 const getSystemSettings = async () => {
   try {
     const response = await axios.get('/api/admin/v1/setting/get_settings')
-
     const result = response.data
     // 从配置中获取系统标题
     if (result.data && result.data.system_name) {
@@ -384,8 +385,7 @@ const getSystemSettings = async () => {
       needCaptcha.value = result.data.admin === 1
     }
   } catch (error) {
-    console.error('获取系统设置失败:', error)
-    // 出错时使用默认值
+    console.error(t('settings.loadError'), error)
     needCaptcha.value = true // 默认开启验证码
   }
 }

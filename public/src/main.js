@@ -5,12 +5,18 @@ import 'element-plus/dist/index.css'
 import App from './App.vue'
 import router from './router'
 import axios from 'axios'
+import i18n from './i18n'
 
 // 创建Vue应用
 const app = createApp(App)
 
-// 使用Element Plus
-app.use(ElementPlus)
+// 使用Element Plus并配置语言
+app.use(ElementPlus, {
+  locale: i18n.global.locale.value === 'zh' ? 'zh-cn' : 'en',
+})
+
+// 使用i18n
+app.use(i18n)
 
 // 注册所有Element Plus图标
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -31,6 +37,9 @@ axios.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    // 添加 Accept-Language header
+    const language = localStorage.getItem('language') || 'zh'
+    config.headers['Accept-Language'] = language === 'zh' ? 'zh-CN' : 'en-US'
     return config
   },
   error => {
