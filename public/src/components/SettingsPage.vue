@@ -11,7 +11,7 @@
         <!-- 基本设置 -->
         <el-divider content-position="left">{{ t('settings.basic') }}</el-divider>
         <el-form-item :label="t('settings.systemName')">
-          <el-input v-model="settings.systemName" :placeholder="t('settings.systemNamePlaceholder')" />
+          <el-input v-model="settings.system_name" :placeholder="t('settings.systemNamePlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('settings.systemLogo')">
           <el-upload
@@ -33,33 +33,14 @@
             <el-option :label="t('settings.english')" value="en_US" />
           </el-select>
         </el-form-item>
-
-        <!-- 主题设置 -->
-        <el-divider content-position="left">{{ t('settings.themeSettings') }}</el-divider>
-        <el-form-item :label="t('settings.themeColor')">
-          <el-color-picker v-model="settings.theme.primaryColor" />
-        </el-form-item>
-        <el-form-item :label="t('settings.navMode')">
-          <el-radio-group v-model="settings.theme.navMode">
-            <el-radio label="sidebar">{{ t('settings.sidebarMode') }}</el-radio>
-            <el-radio label="top">{{ t('settings.topNavMode') }}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item :label="t('settings.darkMode')">
-          <el-switch v-model="settings.theme.darkMode" />
-        </el-form-item>
-
         <!-- 安全设置 -->
         <el-divider content-position="left">{{ t('settings.securitySettings') }}</el-divider>
         <el-form-item :label="t('settings.loginCaptcha')">
-          <el-switch v-model="settings.security.captchaEnabled" />
-        </el-form-item>
-        <el-form-item :label="t('settings.passwordStrength')">
-          <el-select v-model="settings.security.passwordStrength" :placeholder="t('settings.selectPasswordStrength')">
-            <el-option :label="t('settings.low')" value="low" />
-            <el-option :label="t('settings.medium')" value="medium" />
-            <el-option :label="t('settings.high')" value="high" />
-          </el-select>
+          <el-switch
+            v-model="settings.admin"
+            :active-value="1"
+            :inactive-value="0"
+          />
         </el-form-item>
 
         <!-- 保存按钮 -->
@@ -84,19 +65,10 @@ const loading = ref(false)
 const saving = ref(false)
 
 const settings = reactive({
-  systemName: t('app.title'),
+  system_name: t('app.title'),
   logo: '',
-  theme: {
-    primaryColor: '#409EFF',
-    navMode: 'sidebar',
-    darkMode: false
-  },
   language: 'zh_CN',
-  timezone: 'Asia/Shanghai',
-  security: {
-    captchaEnabled: true,
-    passwordStrength: 'medium'
-  }
+  admin: 1
 })
 
 const beforeLogoUpload = (file) => {
@@ -140,7 +112,7 @@ const loadSettings = async () => {
 const saveSettings = async () => {
   saving.value = true
   try {
-    const response = await axios.put('/api/admin/v1/setting/set_settings', settings, {
+    const response = await axios.post('/api/admin/v1/setting/set_settings', settings, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
@@ -158,19 +130,10 @@ const saveSettings = async () => {
 }
 
 const defaultSettings = {
-  systemName: t('app.title'),
+  system_name: t('app.title'),
   logo: '',
-  theme: {
-    primaryColor: '#409EFF',
-    navMode: 'sidebar',
-    darkMode: false
-  },
   language: 'zh_CN',
-  timezone: 'Asia/Shanghai',
-  security: {
-    captchaEnabled: true,
-    passwordStrength: 'medium'
-  }
+  admin: 1
 }
 
 const resetSettings = () => {
