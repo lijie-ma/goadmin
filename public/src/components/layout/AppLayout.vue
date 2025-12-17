@@ -13,19 +13,19 @@
         :text-color="systemSettings.theme?.navMode === 'dark' ? '#fff' : '#303133'"
         :active-text-color="systemSettings.theme?.primaryColor || '#409EFF'"
       >
-        <el-menu-item index="/dashboard">
+        <el-menu-item :index="`/${locale}/dashboard`">
           <el-icon><Monitor /></el-icon>
           <span>{{ t('dashboard') }}</span>
         </el-menu-item>
-        <el-menu-item index="/users">
+        <el-menu-item :index="`/${locale}/users`">
           <el-icon><User /></el-icon>
           <span>{{ t('userManagement') }}</span>
         </el-menu-item>
-        <el-menu-item index="/roles">
+        <el-menu-item :index="`/${locale}/roles`">
           <el-icon><Lock /></el-icon>
           <span>{{ t('roleManagement') }}</span>
         </el-menu-item>
-        <el-menu-item index="/settings">
+        <el-menu-item :index="`/${locale}/settings`">
           <el-icon><Setting /></el-icon>
           <span>{{ t('systemSettings') }}</span>
         </el-menu-item>
@@ -211,21 +211,32 @@ onMounted(() => {
   }
 })
 
-const activeMenu = computed(() => route.path)
+const activeMenu = computed(() => {
+  // 返回完整路径，包含语言前缀
+  return route.path
+})
 const currentRoute = computed(() => {
+  // 移除语言前缀以获取实际路径
+  const path = route.path.replace(/^\/(zh|en)/, '')
   const routeMap = {
     '/dashboard': 'dashboard',
     '/users': 'userManagement',
     '/roles': 'roleManagement',
     '/settings': 'systemSettings'
   }
-  return routeMap[route.path] || 'unknownPage'
+  return routeMap[path] || 'unknownPage'
 })
 
 // 处理语言切换
-const handleLanguageChange = (lang) => {
+const handleLanguageChange = async (lang) => {
   locale.value = lang
   localStorage.setItem('language', lang)
+
+  // 更新路由到新的语言路径
+  const currentPath = route.path
+  const newPath = currentPath.replace(/^\/(zh|en)/, `/${lang}`)
+  await router.push(newPath)
+
   // 发送语言切换请求到后端
   if (localStorage.getItem('token')) {
     fetch('/api/admin/v1/user/changeLang', {
