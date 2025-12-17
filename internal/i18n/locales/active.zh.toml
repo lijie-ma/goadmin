@@ -9,3 +9,36 @@ other = "服务器内部错误，请稍后再试。"
 
 [BadParameter]
 other = "无效的请求参数"
+
+[LoginSuccess]
+other = "登录成功"
+
+[LogoutSuccess]
+other = "退出成功"
+
+[PasswordChangeSuccess]
+other = "密码修改成功"
+
+[SystemError]
+other = "系统错误"
+
+[GetSettingsSuccess]
+other = "获取系统设置成功"
+
+[GetSettingsFailed]
+other = "获取系统设置失败: {{.error}}"
+
+[UpdateSettingsSuccess]
+other = "更新系统设置成功"
+
+[UpdateSettingsFailed]
+other = "更新系统设置失败: {{.error}}"
+
+[ConfigNotFound]
+other = "配置不存在"
+
+[GetConfigSuccess]
+other = "获取配置成功"
+
+[SetConfigSuccess]
+other = "设置配置成功"

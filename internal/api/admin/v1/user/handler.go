@@ -46,7 +46,7 @@ func (h *Handler) Login(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "登录成功",
+		Message: ctx.Show("LoginSuccess"),
 		Data:    resp,
 	})
 }
@@ -71,14 +71,14 @@ func (h *Handler) Logout(ctx *context.Context) {
 		ctx.Logger.Errorf("删除token失败: %v", err)
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: "系统错误",
+			Message: ctx.Show("SystemError"),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "退出成功",
+		Message: ctx.Show("LogoutSuccess"),
 	})
 }
 
@@ -104,6 +104,6 @@ func (h *Handler) ChangePassword(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "密码修改成功",
+		Message: ctx.Show("PasswordChangeSuccess"),
 	})
 }

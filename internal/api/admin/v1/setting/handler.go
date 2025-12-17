@@ -2,7 +2,6 @@ package setting
 
 import (
 	"errors"
-	"fmt"
 	"goadmin/internal/context"
 	"goadmin/internal/model/schema"
 	"goadmin/internal/model/server"
@@ -36,14 +35,14 @@ func (h *Handler) GetSettings(c *context.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: fmt.Sprintf("获取系统设置失败: %s", err.Error()),
+			Message: c.ShowWithData("GetSettingsFailed", map[string]interface{}{"error": err.Error()}),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "获取系统设置成功",
+		Message: c.Show("GetSettingsSuccess"),
 		Data:    settings,
 	})
 }
@@ -62,7 +61,7 @@ func (h *Handler) UpdateSettings(c *context.Context) {
 	if err := c.ShouldBindJSON(&settings); err != nil {
 		c.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: c.Show("BadParameter"),
 		})
 		return
 	}
@@ -70,14 +69,14 @@ func (h *Handler) UpdateSettings(c *context.Context) {
 	if err := h.settingSrv.SetSystemSettings(c, &settings); err != nil {
 		c.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: fmt.Sprintf("更新系统设置失败: %s", err.Error()),
+			Message: c.ShowWithData("UpdateSettingsFailed", map[string]interface{}{"error": err.Error()}),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "更新系统设置成功",
+		Message: c.Show("UpdateSettingsSuccess"),
 	})
 }
 
@@ -98,7 +97,7 @@ func (h *Handler) GetByName(ctx *context.Context) {
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -113,7 +112,7 @@ func (h *Handler) GetByName(ctx *context.Context) {
 		if errors.Is(err, errorsx.ErrNotFound) {
 			ctx.JSON(http.StatusNotFound, schema.Response{
 				Code:    http.StatusNotFound,
-				Message: "配置不存在",
+				Message: ctx.Show("ConfigNotFound"),
 			})
 			return
 		}
@@ -126,7 +125,7 @@ func (h *Handler) GetByName(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "获取配置成功",
+		Message: ctx.Show("GetConfigSuccess"),
 		Data:    rs,
 	})
 }
@@ -149,7 +148,7 @@ func (h *Handler) SetByName(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -165,6 +164,6 @@ func (h *Handler) SetByName(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "设置配置成功",
+		Message: ctx.Show("SetConfigSuccess"),
 	})
 }

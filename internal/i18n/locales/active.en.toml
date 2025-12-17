@@ -11,3 +11,36 @@ other = "Internal server error, please try again later."
 
 [BadParameter]
 other = "Invalid request parameters"
+
+[LoginSuccess]
+other = "Login successful"
+
+[LogoutSuccess]
+other = "Logout successful"
+
+[PasswordChangeSuccess]
+other = "Password changed successfully"
+
+[SystemError]
+other = "System error"
+
+[GetSettingsSuccess]
+other = "System settings retrieved successfully"
+
+[GetSettingsFailed]
+other = "Failed to get system settings: {{.error}}"
+
+[UpdateSettingsSuccess]
+other = "System settings updated successfully"
+
+[UpdateSettingsFailed]
+other = "Failed to update system settings: {{.error}}"
+
+[ConfigNotFound]
+other = "Configuration not found"
+
+[GetConfigSuccess]
+other = "Configuration retrieved successfully"
+
+[SetConfigSuccess]
+other = "Configuration set successfully"

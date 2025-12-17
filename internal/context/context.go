@@ -36,6 +36,14 @@ func (c *Context) Show(messageID string) string {
 	return loc.MustLocalize(&i18n.LocalizeConfig{MessageID: messageID})
 }
 
+func (c *Context) ShowWithData(messageID string, data map[string]interface{}) string {
+	loc := c.MustGet("localizer").(*i18n.Localizer)
+	return loc.MustLocalize(&i18n.LocalizeConfig{
+		MessageID:    messageID,
+		TemplateData: data,
+	})
+}
+
 type HandlerFunc = func(ctx *Context)
 
 func Build(h HandlerFunc) gin.HandlerFunc {
