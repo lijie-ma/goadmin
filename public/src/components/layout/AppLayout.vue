@@ -202,12 +202,12 @@ onMounted(() => {
     } catch (error) {
       console.error('解析用户信息失败:', error)
       // 解析失败也跳转到登录页
-      router.push('/login')
+      router.push(`/${locale.value}/login`)
     }
   } else {
     // 如果没有用户信息，跳转到登录页
     console.log('未找到用户信息，跳转到登录页')
-    router.push('/login')
+    router.push(`/${locale.value}/login`)
   }
 })
 
@@ -260,7 +260,7 @@ const handleLogout = async () => {
     // 调用登出API
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    await router.push('/login')
+    await router.push(`/${locale.value}/login`)
   } catch (error) {
     console.error('登出失败:', error)
   }
@@ -290,7 +290,7 @@ const handleChangePassword = async () => {
         const token = localStorage.getItem('token')
         if (!token) {
           ElMessage.error('登录已过期，请重新登录')
-          router.push('/login')
+          router.push(`/${locale.value}/login`)
           return
         }
 
@@ -317,7 +317,7 @@ const handleChangePassword = async () => {
           localStorage.removeItem('token')
           localStorage.removeItem('user')
           // 跳转到登录页面
-          router.push('/login')
+          router.push(`/${locale.value}/login`)
         } else {
           ElMessage.error(data.message || '修改密码失败')
         }
