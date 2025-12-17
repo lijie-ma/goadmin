@@ -54,3 +54,36 @@ other = "用户"
 other = "角色"
 [Permission]
 other = "权限"
+
+[InternalError]
+other = "内部服务器错误"
+
+[GetRoleListSuccess]
+other = "获取角色列表成功"
+
+[RoleNotFound]
+other = "角色不存在"
+
+[GetRoleDetailSuccess]
+other = "获取角色详情成功"
+
+[CreateRoleSuccess]
+other = "创建角色成功"
+
+[RoleIDRequired]
+other = "角色ID不能为空"
+
+[UpdateRoleSuccess]
+other = "更新角色成功"
+
+[DeleteRoleSuccess]
+other = "删除角色成功"
+
+[AssignPermissionsSuccess]
+other = "分配权限成功"
+
+[GetRolePermissionsSuccess]
+other = "获取角色权限成功"
+
+[GetActiveRoleListSuccess]
+other = "获取激活角色列表成功"

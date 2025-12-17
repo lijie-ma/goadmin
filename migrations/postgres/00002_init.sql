@@ -32,7 +32,7 @@ INSERT INTO permissions (code, name, description, path, module, global_flag) VAL
 ('server_get',    '系统设置查询',   '', 'admin/v1/setting/get',   'server', 0),
 ('server_batch_get','系统设置批量查询',   '', 'admin/v1/setting/batch',   'server', 0),
 ('role_active',    '活跃角色',     '', 'admin/v1/role/active',              'role',   0),
-('role_list',      '角色列表',     '', 'admin/v1/role',                     'role',   0),
+('role_list',      '角色列表',     '', 'admin/v1/role/list',                'role',   0),
 ('role_info',      '角色详情',     '', 'admin/v1/role/get',                 'role',   0),
 ('role_create',    '角色创建',     '', 'admin/v1/role/create',              'role',   0),
 ('role_update',    '角色更新',     '', 'admin/v1/role/update',              'role',   0),

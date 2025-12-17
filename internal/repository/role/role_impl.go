@@ -71,28 +71,6 @@ func (r *RoleRepositoryImpl) GetByCodes(ctx context.Context, codes []string) ([]
 	return roles, err
 }
 
-// ListWithPermissions 获取角色列表及其权限
-func (r *RoleRepositoryImpl) ListWithPermissions(ctx context.Context, page, pageSize int) ([]*role.Role, int64, error) {
-	var roles []*role.Role
-	var count int64
-
-	// 计算总数
-	err := r.DB().WithContext(ctx).Model(&role.Role{}).Count(&count).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// 分页查询
-	offset := (page - 1) * pageSize
-	err = r.DB().WithContext(ctx).
-		Preload("Permissions").
-		Offset(offset).
-		Limit(pageSize).
-		Find(&roles).Error
-
-	return roles, count, err
-}
-
 // GetWithPermissions 根据ID获取角色及其权限
 func (r *RoleRepositoryImpl) GetWithPermissions(ctx context.Context, id uint64) (*role.Role, error) {
 	var result role.Role

@@ -20,7 +20,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		group.Use(middleware.Auth())
 		{
 			// 角色管理
-			group.GET("", context.Build(handler.ListRoles))
+			group.GET("/list", context.Build(handler.ListRoles))
 			group.GET("/active", context.Build(handler.ListActiveRoles))
 			group.POST("/get", context.Build(handler.GetRole))
 			group.POST("/create", context.Build(handler.CreateRole))

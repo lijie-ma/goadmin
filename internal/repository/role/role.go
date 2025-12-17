@@ -22,9 +22,6 @@ type RoleRepository interface {
 	// GetByCodes 根据角色代码列表获取角色
 	GetByCodes(ctx context.Context, codes []string) ([]*role.Role, error)
 
-	// ListWithPermissions 获取角色列表及其权限
-	ListWithPermissions(ctx context.Context, page, pageSize int) ([]*role.Role, int64, error)
-
 	// GetWithPermissions 根据ID获取角色及其权限
 	GetWithPermissions(ctx context.Context, id uint64) (*role.Role, error)
 

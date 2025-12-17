@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"goadmin/internal/model/permission"
 	"goadmin/internal/model/role"
 	"goadmin/pkg/db"
 )
@@ -29,5 +30,5 @@ type RolePermissionRepository interface {
 	HasPermission(ctx context.Context, roleCode string, permissionCode string) (bool, error)
 
 	// GetPermissionsByRoleCodes 批量获取多个角色的权限列表
-	GetPermissionsByRoleCodes(ctx context.Context, roleCodes []string) (map[string][]string, error)
+	GetPermissionsByRoleCodes(ctx context.Context, roleCodes []string) (map[string][]permission.Permission, error)
 }

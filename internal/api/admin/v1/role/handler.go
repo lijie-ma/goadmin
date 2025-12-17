@@ -6,7 +6,6 @@ import (
 	"goadmin/internal/model/schema"
 	rolesrv "goadmin/internal/service/role"
 	"net/http"
-	"strconv"
 )
 
 // Handler 角色API处理程序
@@ -23,21 +22,27 @@ func NewHandler(roleSrv rolesrv.RoleService) *Handler {
 
 // ListRoles 获取角色列表
 func (h *Handler) ListRoles(ctx *context.Context) {
-	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("pageSize", "10"))
+	var pq schema.PageRequest
+	if err := ctx.ShouldBindQuery(&pq); err != nil {
+		ctx.JSON(http.StatusBadRequest, schema.Response{
+			Code:    http.StatusBadRequest,
+			Message: ctx.Show("BadParameter"),
+		})
+		return
+	}
 
-	roles, total, err := h.roleSrv.ListRoles(ctx, page, pageSize)
+	roles, total, err := h.roleSrv.ListRoles(ctx, &pq)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
+			Message: ctx.Show("InternalError"),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "获取角色列表成功",
+		Message: ctx.Show("GetRoleListSuccess"),
 		Data: map[string]interface{}{
 			"list":  roles,
 			"total": total,
@@ -54,7 +59,7 @@ func (h *Handler) GetRole(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -63,7 +68,7 @@ func (h *Handler) GetRole(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
+			Message: ctx.Show("InternalError"),
 		})
 		return
 	}
@@ -71,14 +76,14 @@ func (h *Handler) GetRole(ctx *context.Context) {
 	if role == nil {
 		ctx.JSON(http.StatusNotFound, schema.Response{
 			Code:    http.StatusNotFound,
-			Message: "角色不存在",
+			Message: ctx.Show("RoleNotFound"),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "获取角色详情成功",
+		Message: ctx.Show("GetRoleDetailSuccess"),
 		Data:    role,
 	})
 }
@@ -89,7 +94,7 @@ func (h *Handler) CreateRole(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -98,14 +103,14 @@ func (h *Handler) CreateRole(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
+			Message: ctx.Show("InternalError"),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "创建角色成功",
+		Message: ctx.Show("CreateRoleSuccess"),
 	})
 }
 
@@ -115,7 +120,7 @@ func (h *Handler) UpdateRole(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -123,7 +128,7 @@ func (h *Handler) UpdateRole(ctx *context.Context) {
 	if req.ID == 0 {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "角色ID不能为空",
+			Message: ctx.Show("RoleIDRequired"),
 		})
 		return
 	}
@@ -132,14 +137,14 @@ func (h *Handler) UpdateRole(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
+			Message: ctx.Show("InternalError"),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "更新角色成功",
+		Message: ctx.Show("UpdateRoleSuccess"),
 	})
 }
 
@@ -152,7 +157,7 @@ func (h *Handler) DeleteRole(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -161,14 +166,14 @@ func (h *Handler) DeleteRole(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
+			Message: ctx.Show("InternalError"),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "删除角色成功",
+		Message: ctx.Show("DeleteRoleSuccess"),
 	})
 }
 
@@ -182,7 +187,7 @@ func (h *Handler) AssignPermissions(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -191,14 +196,14 @@ func (h *Handler) AssignPermissions(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
+			Message: ctx.Show("InternalError"),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "分配权限成功",
+		Message: ctx.Show("AssignPermissionsSuccess"),
 	})
 }
 
@@ -211,7 +216,7 @@ func (h *Handler) GetRolePermissions(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -220,14 +225,14 @@ func (h *Handler) GetRolePermissions(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
+			Message: ctx.Show("InternalError"),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "获取角色权限成功",
+		Message: ctx.Show("GetRolePermissionsSuccess"),
 		Data:    permissions,
 	})
 }
@@ -238,14 +243,14 @@ func (h *Handler) ListActiveRoles(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: err.Error(),
+			Message: ctx.Show("InternalError"),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: "获取激活角色列表成功",
+		Message: ctx.Show("GetActiveRoleListSuccess"),
 		Data:    roles,
 	})
 }

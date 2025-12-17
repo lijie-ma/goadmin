@@ -87,23 +87,28 @@ func (r *RolePermissionRepositoryImpl) HasPermission(ctx context.Context, roleCo
 }
 
 // GetPermissionsByRoleCodes 批量获取多个角色的权限列表
-func (r *RolePermissionRepositoryImpl) GetPermissionsByRoleCodes(ctx context.Context, roleCodes []string) (map[string][]string, error) {
+func (r *RolePermissionRepositoryImpl) GetPermissionsByRoleCodes(
+	ctx context.Context, roleCodes []string) (map[string][]permission.Permission, error) {
 	if len(roleCodes) == 0 {
-		return make(map[string][]string), nil
+		return make(map[string][]permission.Permission), nil
 	}
 
-	var rolePermissions []*role.RolePermission
+	cols := []string{"rp.role_code", "p.code", "p.name", "p.path", "p.global_flag", "p.description"}
+	var rolePermissions []*role.RoleFullPermission
 	err := r.DB().WithContext(ctx).
+		Table(role.TableNameRolePermission+" rp").
+		Joins("LEFT JOIN "+permission.TableNamePermission+" p ON rp.permission_code = p.code").
 		Where("role_code IN ?", roleCodes).
+		Select(cols).
 		Find(&rolePermissions).Error
 	if err != nil {
 		return nil, err
 	}
 
 	// 按角色代码分组权限
-	result := make(map[string][]string)
+	result := make(map[string][]permission.Permission)
 	for _, rp := range rolePermissions {
-		result[rp.RoleCode] = append(result[rp.RoleCode], rp.PermissionCode)
+		result[rp.RoleCode] = append(result[rp.RoleCode], rp.Permission)
 	}
 
 	return result, nil

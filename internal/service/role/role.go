@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"goadmin/internal/context"
 	"goadmin/internal/model/role"
+	"goadmin/internal/model/schema"
 	rolerepo "goadmin/internal/repository/role"
+	"goadmin/pkg/db"
 
 	"goadmin/config"
 )
@@ -18,7 +20,7 @@ type RoleService interface {
 	GetRoleByCode(ctx *context.Context, code string) (*role.Role, error)
 
 	// ListRoles 获取角色列表
-	ListRoles(ctx *context.Context, page, pageSize int) ([]*role.Role, int64, error)
+	ListRoles(ctx *context.Context, req *schema.PageRequest) ([]*role.Role, int64, error)
 
 	// ListActiveRoles 获取所有激活的角色
 	ListActiveRoles(ctx *context.Context) ([]*role.Role, error)
@@ -76,8 +78,30 @@ func (s *roleService) GetRoleByCode(ctx *context.Context, code string) (*role.Ro
 }
 
 // ListRoles 获取角色列表
-func (s *roleService) ListRoles(ctx *context.Context, page, pageSize int) ([]*role.Role, int64, error) {
-	return s.roleRepo.List(ctx, page, pageSize)
+func (s *roleService) ListRoles(ctx *context.Context, req *schema.PageRequest) ([]*role.Role, int64, error) {
+	list, total, err := s.roleRepo.List(ctx, req.Page, req.PageSize, db.Order[role.Role](req.OrderBy))
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取角色列表失败: %v", s.logPrefix(), err)
+		return nil, 0, err
+	}
+	if total == 0 {
+		return []*role.Role{}, 0, nil
+	}
+	var (
+		roleCodes []string
+	)
+	for _, r := range list {
+		roleCodes = append(roleCodes, r.Code)
+	}
+	permissions, err := s.rolePermissionRepo.GetPermissionsByRoleCodes(ctx, roleCodes)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取角色权限失败: %v", s.logPrefix(), err)
+		return nil, 0, err
+	}
+	for _, r := range list {
+		r.Permissions = permissions[r.Code]
+	}
+	return list, total, nil
 }
 
 // ListActiveRoles 获取所有激活的角色

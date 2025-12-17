@@ -14,7 +14,7 @@ type Role struct {
 	Status      int        `gorm:"default:1;comment:1:active,0:inactive" json:"status"`
 	SystemFlag  SystemFlag `gorm:"type:tinyint;default:1;not null" json:"system_flag"` //
 
-	Permissions []permission.Permission `gorm:"many2many:role_permissions;joinForeignKey:RoleCode;joinReferences:PermissionCode"`
+	Permissions []permission.Permission `gorm:"-" json:"permissions"`
 }
 
 // TableName 指定表名

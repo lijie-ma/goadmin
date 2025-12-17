@@ -2,6 +2,10 @@ package permission
 
 import "goadmin/internal/model/schema"
 
+const (
+	TableNamePermission = "permissions"
+)
+
 // Permission 权限表
 type Permission struct {
 	schema.BaseModel
@@ -15,7 +19,7 @@ type Permission struct {
 
 // TableName 指定表名
 func (Permission) TableName() string {
-	return "permissions"
+	return TableNamePermission
 }
 
 // 是否全局权限

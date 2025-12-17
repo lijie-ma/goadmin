@@ -56,3 +56,36 @@ other = "User"
 other = "Role"
 [Permission]
 other = "Permission"
+
+[InternalError]
+other = "Internal server error"
+
+[GetRoleListSuccess]
+other = "Role list retrieved successfully"
+
+[RoleNotFound]
+other = "Role not found"
+
+[GetRoleDetailSuccess]
+other = "Role details retrieved successfully"
+
+[CreateRoleSuccess]
+other = "Role created successfully"
+
+[RoleIDRequired]
+other = "Role ID is required"
+
+[UpdateRoleSuccess]
+other = "Role updated successfully"
+
+[DeleteRoleSuccess]
+other = "Role deleted successfully"
+
+[AssignPermissionsSuccess]
+other = "Permissions assigned successfully"
+
+[GetRolePermissionsSuccess]
+other = "Role permissions retrieved successfully"
+
+[GetActiveRoleListSuccess]
+other = "Active role list retrieved successfully"
