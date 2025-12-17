@@ -8,3 +8,6 @@ other = "Welcome, {{.name}}!"
 
 [ServerError]
 other = "Internal server error, please try again later."
+
+[BadParameter]
+other = "Invalid request parameters"

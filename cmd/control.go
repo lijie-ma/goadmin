@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"goadmin/cmd/server"
+	"goadmin/internal/i18n"
 	"goadmin/pkg/db"
 	"goadmin/pkg/logger"
 	"goadmin/pkg/redisx"
@@ -35,6 +36,7 @@ func runServer() error {
 	if err != nil {
 		return err
 	}
+	i18n.Init()
 
 	services := task.NewServiceManager()
 	services.AddService(

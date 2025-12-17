@@ -6,6 +6,7 @@ import (
 	"goadmin/internal/api/admin/v1/setting"
 	"goadmin/internal/api/admin/v1/user"
 	"goadmin/internal/context"
+	"goadmin/internal/i18n"
 	"goadmin/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,7 @@ import (
 
 func RegisterRouter(r *gin.Engine) {
 	r.Use(
+		i18n.Middleware(),
 		middleware.Trace(),
 		middleware.Logger(),
 		middleware.Header(),

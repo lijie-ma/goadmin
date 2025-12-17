@@ -6,3 +6,6 @@ other = "欢迎你，{{.name}}！"
 
 [ServerError]
 other = "服务器内部错误，请稍后再试。"
+
+[BadParameter]
+other = "无效的请求参数"
