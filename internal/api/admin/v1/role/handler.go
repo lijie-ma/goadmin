@@ -150,10 +150,7 @@ func (h *Handler) UpdateRole(ctx *context.Context) {
 
 // DeleteRole 删除角色
 func (h *Handler) DeleteRole(ctx *context.Context) {
-	var req struct {
-		ID uint64 `json:"id" binding:"required"`
-	}
-
+	var req schema.IDRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,

@@ -111,7 +111,7 @@
     "name": "角色名称",
     "description": "描述",
     "permissions": "权限",
-    "permissionCount": "权限数",
+    "permissionList": "权限列表",
     "userCount": "用户数",
     "count": "个",
     "person": "人",
@@ -127,7 +127,10 @@
     "deleteConfirm": "确定要删除该角色吗？",
     "deleteSuccess": "删除成功",
     "addSuccess": "添加成功",
-    "editSuccess": "修改成功"
+    "editSuccess": "修改成功",
+    "noPermissions": "暂无权限",
+    "systemRole": "系统内置角色",
+    "cannotDelete": "系统内置角色不可删除"
   },
   "settings": {
     "title": "系统设置",

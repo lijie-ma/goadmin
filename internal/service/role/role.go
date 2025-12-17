@@ -197,9 +197,8 @@ func (s *roleService) DeleteRole(ctx *context.Context, id uint64) error {
 		return fmt.Errorf("角色不存在")
 	}
 
-	// 检查是否为超级管理员
-	if existingRole.Code == role.CodeSuperAdmin {
-		return fmt.Errorf("不能删除超级管理员角色")
+	if existingRole.IsSystem() {
+		return fmt.Errorf("不能删除系统内置角色")
 	}
 
 	// 删除角色权限关联

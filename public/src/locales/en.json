@@ -111,7 +111,7 @@
     "name": "Role Name",
     "description": "Description",
     "permissions": "Permissions",
-    "permissionCount": "Permissions",
+    "permissionList": "Permission List",
     "userCount": "Users",
     "count": "",
     "person": " users",
@@ -127,7 +127,10 @@
     "deleteConfirm": "Are you sure you want to delete this role?",
     "deleteSuccess": "Deleted successfully",
     "addSuccess": "Added successfully",
-    "editSuccess": "Updated successfully"
+    "editSuccess": "Updated successfully",
+    "noPermissions": "No permissions",
+    "systemRole": "System Built-in Role",
+    "cannotDelete": "System built-in roles cannot be deleted"
   },
   "settings": {
     "title": "System Settings",

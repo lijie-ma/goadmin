@@ -12,20 +12,29 @@
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" :label="t('role.name')" />
         <el-table-column prop="description" :label="t('role.description')" />
-        <el-table-column prop="permissionCount" :label="t('role.permissionCount')" width="120">
+        <el-table-column prop="permissionList" :label="t('role.permissionList')" min-width="200">
           <template #default="scope">
-            {{ scope.row.permissionCount }}{{ t('role.count') }}
+            <el-tooltip
+              v-if="scope.row.permissionList && scope.row.permissionList.length > 0"
+              :content="scope.row.permissionList.map(p => p.name).join(', ')"
+              placement="top"
+              :disabled="scope.row.permissionList.length <= 3"
+            >
+              <span class="permission-list">
+                {{ scope.row.permissionList.slice(0, 3).map(p => p.name).join(', ') }}
+                <span v-if="scope.row.permissionList.length > 3">...</span>
+              </span>
+            </el-tooltip>
+            <span v-else class="no-permissions">{{ t('role.noPermissions') }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="userCount" :label="t('role.userCount')" width="100">
+        <el-table-column prop="status" :label="t('role.status')" width="180">
           <template #default="scope">
-            {{ scope.row.userCount }}{{ t('role.person') }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" :label="t('role.status')" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === 1 ? 'success' : 'info'">
+            <el-tag :type="scope.row.status === 1 ? 'success' : 'info'" class="status-tag">
               {{ scope.row.status === 1 ? t('role.enabled') : t('role.disabled') }}
+            </el-tag>
+            <el-tag v-if="scope.row.system_flag === 1" type="warning" class="system-tag">
+              {{ t('role.systemRole') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -33,7 +42,15 @@
           <template #default="scope">
             <el-button link type="primary" size="small" @click="handleSetPermissions(scope.row)">{{ t('role.setPermissions') }}</el-button>
             <el-button link type="primary" size="small" @click="handleEditRole(scope.row)">{{ t('role.edit') }}</el-button>
-            <el-button link type="danger" size="small" @click="handleDeleteRole(scope.row)">{{ t('role.delete') }}</el-button>
+            <el-button
+              v-if="scope.row.system_flag !== 1"
+              link
+              type="danger"
+              size="small"
+              @click="handleDeleteRole(scope.row)"
+            >
+              {{ t('role.delete') }}
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -75,7 +92,7 @@ const fetchRoles = async () => {
       return
     }
 
-    const response = await fetch(`/api/admin/v1/role/list?page=${currentPage.value}&size=${pageSize.value}`, {
+    const response = await fetch(`/api/admin/v1/role/list?page=${currentPage.value}&page_size=${pageSize.value}&order_by=id desc`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -92,8 +109,7 @@ const fetchRoles = async () => {
       // 添加计算字段
       roles.value = roles.value.map(role => ({
         ...role,
-        permissionCount: role.permissions ? role.permissions.length : 0,
-        userCount: 0 // 暂时设为0，实际应该从后端获取
+        permissionList: role.permissions ?? [],
       }))
     } else {
       ElMessage.error(data.message || t('settings.loadFailed'))
@@ -172,7 +188,12 @@ const handleDeleteRole = async (role) => {
 
     if (response.ok && data.code === 200) {
       ElMessage.success(t('role.deleteSuccess'))
-      fetchRoles() // 重新获取列表
+
+      // 删除最后一页的最后一条数据时，跳转到上一页
+      if (roles.value.length === 1 && currentPage.value > 1) {
+        currentPage.value--
+      }
+      fetchRoles()
     } else {
       ElMessage.error(data.message || t('common.failed'))
     }
@@ -201,5 +222,26 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.permission-list {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.no-permissions {
+  color: #909399;
+  font-style: italic;
+}
+
+.status-tag {
+  margin-right: 8px;
+}
+
+.system-tag {
+  font-size: 12px;
 }
 </style>

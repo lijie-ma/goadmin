@@ -6,13 +6,15 @@ import App from './App.vue'
 import router from './router'
 import axios from 'axios'
 import i18n from './i18n'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import en from 'element-plus/es/locale/lang/en'
 
 // 创建Vue应用
 const app = createApp(App)
 
 // 使用Element Plus并配置语言
 app.use(ElementPlus, {
-  locale: i18n.global.locale.value === 'zh' ? 'zh-cn' : 'en',
+  locale: i18n.global.locale.value === 'zh' ? zhCn : en,
 })
 
 // 使用i18n
