@@ -1,39 +1,39 @@
 <template>
   <div class="role-management">
-    <h1>角色管理</h1>
+    <h1>{{ t('role.management') }}</h1>
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>角色列表</span>
-          <el-button type="primary">新增角色</el-button>
+          <span>{{ t('role.list') }}</span>
+          <el-button type="primary">{{ t('role.addRole') }}</el-button>
         </div>
       </template>
       <el-table :data="roles" style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="角色名称" />
-        <el-table-column prop="description" label="描述" />
-        <el-table-column prop="permissions" label="权限数" width="100">
+        <el-table-column prop="name" :label="t('role.name')" />
+        <el-table-column prop="description" :label="t('role.description')" />
+        <el-table-column prop="permissions" :label="t('role.permissionCount')" width="100">
           <template #default="scope">
-            {{ scope.row.permissions }}个
+            {{ scope.row.permissions }}{{ t('role.count') }}
           </template>
         </el-table-column>
-        <el-table-column prop="userCount" label="用户数" width="100">
+        <el-table-column prop="userCount" :label="t('role.userCount')" width="100">
           <template #default="scope">
-            {{ scope.row.userCount }}人
+            {{ scope.row.userCount }}{{ t('role.person') }}
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" :label="t('role.status')" width="100">
           <template #default="scope">
             <el-tag :type="scope.row.status === 'active' ? 'success' : 'info'">
-              {{ scope.row.status === 'active' ? '启用' : '禁用' }}
+              {{ scope.row.status === 'active' ? t('role.enabled') : t('role.disabled') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column :label="t('role.actions')" width="200">
           <template #default>
-            <el-button link type="primary" size="small">权限设置</el-button>
-            <el-button link type="primary" size="small">编辑</el-button>
-            <el-button link type="danger" size="small">删除</el-button>
+            <el-button link type="primary" size="small">{{ t('role.setPermissions') }}</el-button>
+            <el-button link type="primary" size="small">{{ t('role.edit') }}</el-button>
+            <el-button link type="danger" size="small">{{ t('role.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -43,6 +43,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const roles = ref([
   {
