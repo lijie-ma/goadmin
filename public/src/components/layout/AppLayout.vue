@@ -262,7 +262,7 @@ const handleChangePassword = async () => {
 
         const data = await response.json()
 
-        if (response.ok && data.code === 0) {
+        if (response.ok && data.code === 200) {
           ElMessage.success('密码修改成功，请重新登录')
           changePasswordVisible.value = false
           // 清除登录信息
