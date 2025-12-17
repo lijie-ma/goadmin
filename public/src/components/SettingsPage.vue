@@ -3,17 +3,17 @@
     <el-card class="settings-card" v-loading="loading">
       <template #header>
         <div class="card-header">
-          <h2 class="title">系统设置</h2>
+          <h2 class="title">{{ t('settings.title') }}</h2>
         </div>
       </template>
 
       <el-form :model="settings" label-width="120px">
         <!-- 基本设置 -->
-        <el-divider content-position="left">基本设置</el-divider>
-        <el-form-item label="系统名称">
-          <el-input v-model="settings.systemName" placeholder="请输入系统名称" />
+        <el-divider content-position="left">{{ t('settings.basic') }}</el-divider>
+        <el-form-item :label="t('settings.systemName')">
+          <el-input v-model="settings.systemName" :placeholder="t('settings.systemNamePlaceholder')" />
         </el-form-item>
-        <el-form-item label="系统Logo">
+        <el-form-item :label="t('settings.systemLogo')">
           <el-upload
             class="avatar-uploader"
             action="#"
@@ -26,46 +26,46 @@
         </el-form-item>
 
         <!-- 系统配置 -->
-        <el-divider content-position="left">系统配置</el-divider>
-        <el-form-item label="系统语言">
-          <el-select v-model="settings.language" placeholder="请选择系统语言">
-            <el-option label="简体中文" value="zh_CN" />
-            <el-option label="English" value="en_US" />
+        <el-divider content-position="left">{{ t('settings.systemConfig') }}</el-divider>
+        <el-form-item :label="t('settings.systemLanguage')">
+          <el-select v-model="settings.language" :placeholder="t('settings.selectLanguage')">
+            <el-option :label="t('settings.simplifiedChinese')" value="zh_CN" />
+            <el-option :label="t('settings.english')" value="en_US" />
           </el-select>
         </el-form-item>
 
         <!-- 主题设置 -->
-        <el-divider content-position="left">主题设置</el-divider>
-        <el-form-item label="主题色">
+        <el-divider content-position="left">{{ t('settings.themeSettings') }}</el-divider>
+        <el-form-item :label="t('settings.themeColor')">
           <el-color-picker v-model="settings.theme.primaryColor" />
         </el-form-item>
-        <el-form-item label="导航模式">
+        <el-form-item :label="t('settings.navMode')">
           <el-radio-group v-model="settings.theme.navMode">
-            <el-radio label="sidebar">侧边栏</el-radio>
-            <el-radio label="top">顶部导航</el-radio>
+            <el-radio label="sidebar">{{ t('settings.sidebarMode') }}</el-radio>
+            <el-radio label="top">{{ t('settings.topNavMode') }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="暗黑模式">
+        <el-form-item :label="t('settings.darkMode')">
           <el-switch v-model="settings.theme.darkMode" />
         </el-form-item>
 
         <!-- 安全设置 -->
-        <el-divider content-position="left">安全设置</el-divider>
-        <el-form-item label="登录验证码">
+        <el-divider content-position="left">{{ t('settings.securitySettings') }}</el-divider>
+        <el-form-item :label="t('settings.loginCaptcha')">
           <el-switch v-model="settings.security.captchaEnabled" />
         </el-form-item>
-        <el-form-item label="密码强度">
-          <el-select v-model="settings.security.passwordStrength" placeholder="请选择密码强度要求">
-            <el-option label="低" value="low" />
-            <el-option label="中" value="medium" />
-            <el-option label="高" value="high" />
+        <el-form-item :label="t('settings.passwordStrength')">
+          <el-select v-model="settings.security.passwordStrength" :placeholder="t('settings.selectPasswordStrength')">
+            <el-option :label="t('settings.low')" value="low" />
+            <el-option :label="t('settings.medium')" value="medium" />
+            <el-option :label="t('settings.high')" value="high" />
           </el-select>
         </el-form-item>
 
         <!-- 保存按钮 -->
         <el-form-item>
-          <el-button type="primary" @click="saveSettings" :loading="saving">保存设置</el-button>
-          <el-button @click="resetSettings">重置</el-button>
+          <el-button type="primary" @click="saveSettings" :loading="saving">{{ t('settings.saveSettings') }}</el-button>
+          <el-button @click="resetSettings">{{ t('settings.reset') }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -76,13 +76,15 @@
 import { ref, reactive, onMounted } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 
+const { t } = useI18n()
 const loading = ref(false)
 const saving = ref(false)
 
 const settings = reactive({
-  systemName: '后台管理系统',
+  systemName: t('app.title'),
   logo: '',
   theme: {
     primaryColor: '#409EFF',
@@ -102,11 +104,11 @@ const beforeLogoUpload = (file) => {
   const isLt2M = file.size / 1024 / 1024 < 2
 
   if (!isImage) {
-    ElMessage.error('上传文件只能是图片格式!')
+    ElMessage.error(t('settings.uploadImageOnly'))
     return false
   }
   if (!isLt2M) {
-    ElMessage.error('上传图片大小不能超过 2MB!')
+    ElMessage.error(t('settings.uploadSizeLimit'))
     return false
   }
   // 这里应该调用实际的上传API，这里只是演示
@@ -117,19 +119,19 @@ const beforeLogoUpload = (file) => {
 const loadSettings = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/admin/v1/setting/get_settings', {
+    const response = await axios.get('/api/admin/v1/setting/get_settings', {
       headers: {
         'Authorization': `Bearer ${sessionStorage.getItem('token')}`
       }
     })
     if (response.data.code === 200) {
       Object.assign(settings, response.data.data)
-      ElMessage.success('设置加载成功')
+      ElMessage.success(t('settings.loadSuccess'))
     } else {
       throw new Error(response.data.message)
     }
   } catch (error) {
-    ElMessage.error(`加载设置失败: ${error.message}`)
+    ElMessage.error(t('settings.loadFailed') + ': ' + error.message)
   } finally {
     loading.value = false
   }
@@ -144,19 +146,19 @@ const saveSettings = async () => {
       }
     })
     if (response.data.code === 200) {
-      ElMessage.success('设置保存成功')
+      ElMessage.success(t('settings.saveSuccess'))
     } else {
       throw new Error(response.data.message)
     }
   } catch (error) {
-    ElMessage.error(`保存设置失败: ${error.message}`)
+    ElMessage.error(t('settings.saveFailed') + ': ' + error.message)
   } finally {
     saving.value = false
   }
 }
 
 const defaultSettings = {
-  systemName: '后台管理系统',
+  systemName: t('app.title'),
   logo: '',
   theme: {
     primaryColor: '#409EFF',
@@ -173,7 +175,7 @@ const defaultSettings = {
 
 const resetSettings = () => {
   Object.assign(settings, defaultSettings)
-  ElMessage.info('已重置为默认设置')
+  ElMessage.info(t('settings.resetSuccess'))
 }
 
 onMounted(() => {
