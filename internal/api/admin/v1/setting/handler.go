@@ -35,14 +35,14 @@ func (h *Handler) GetSettings(c *context.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: c.ShowWithData("GetSettingsFailed", map[string]interface{}{"error": err.Error()}),
+			Message: c.Show("ActionFailed"),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: c.Show("GetSettingsSuccess"),
+		Message: c.Show("ActionSuccess"),
 		Data:    settings,
 	})
 }
@@ -111,8 +111,10 @@ func (h *Handler) GetByName(ctx *context.Context) {
 	if err != nil {
 		if errors.Is(err, errorsx.ErrNotFound) {
 			ctx.JSON(http.StatusNotFound, schema.Response{
-				Code:    http.StatusNotFound,
-				Message: ctx.Show("ConfigNotFound"),
+				Code: http.StatusNotFound,
+				Message: ctx.ShowWithData("NotFound", map[string]any{
+					"name": ctx.Show("Config"),
+				}),
 			})
 			return
 		}
@@ -125,7 +127,7 @@ func (h *Handler) GetByName(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("GetConfigSuccess"),
+		Message: ctx.Show("ActionSuccess"),
 		Data:    rs,
 	})
 }
@@ -164,6 +166,6 @@ func (h *Handler) SetByName(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("SetConfigSuccess"),
+		Message: ctx.Show("ActionSuccess"),
 	})
 }

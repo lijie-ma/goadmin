@@ -36,7 +36,7 @@ func (c *Context) Show(messageID string) string {
 	return loc.MustLocalize(&i18n.LocalizeConfig{MessageID: messageID})
 }
 
-func (c *Context) ShowWithData(messageID string, data map[string]interface{}) string {
+func (c *Context) ShowWithData(messageID string, data map[string]any) string {
 	loc := c.MustGet("localizer").(*i18n.Localizer)
 	return loc.MustLocalize(&i18n.LocalizeConfig{
 		MessageID:    messageID,

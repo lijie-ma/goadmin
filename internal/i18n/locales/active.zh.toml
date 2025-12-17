@@ -22,11 +22,11 @@ other = "密码修改成功"
 [SystemError]
 other = "系统错误"
 
-[GetSettingsSuccess]
-other = "获取系统设置成功"
+[ActionSuccess]
+other = "操作成功"
 
-[GetSettingsFailed]
-other = "获取系统设置失败: {{.error}}"
+[ActionFailed]
+other = "操作失败"
 
 [UpdateSettingsSuccess]
 other = "更新系统设置成功"
@@ -34,11 +34,15 @@ other = "更新系统设置成功"
 [UpdateSettingsFailed]
 other = "更新系统设置失败: {{.error}}"
 
-[ConfigNotFound]
-other = "配置不存在"
+[NotFound]
+other = "不存在: {{.name}}"
 
-[GetConfigSuccess]
-other = "获取配置成功"
+[Config]
+other = "配置"
+[User]
+other = "用户"
+[Role]
+other = "角色"
+[Permission]
+other = "权限"
 
-[SetConfigSuccess]
-other = "设置配置成功"

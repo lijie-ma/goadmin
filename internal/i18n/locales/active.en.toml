@@ -24,11 +24,11 @@ other = "Password changed successfully"
 [SystemError]
 other = "System error"
 
-[GetSettingsSuccess]
-other = "System settings retrieved successfully"
+[ActionSuccess]
+other = "Action successful"
 
-[GetSettingsFailed]
-other = "Failed to get system settings: {{.error}}"
+[ActionFailed]
+other = "Action failed"
 
 [UpdateSettingsSuccess]
 other = "System settings updated successfully"
@@ -36,11 +36,14 @@ other = "System settings updated successfully"
 [UpdateSettingsFailed]
 other = "Failed to update system settings: {{.error}}"
 
-[ConfigNotFound]
-other = "Configuration not found"
+[NotFound]
+other = "Not found: {{.name}}"
 
-[GetConfigSuccess]
-other = "Configuration retrieved successfully"
-
-[SetConfigSuccess]
-other = "Configuration set successfully"
+[Config]
+other = "Config"
+[User]
+other = "User"
+[Role]
+other = "Role"
+[Permission]
+other = "Permission"
