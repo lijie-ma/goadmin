@@ -25,7 +25,7 @@ INSERT INTO role_permissions (role_code, permission_code) VALUES
 
 INSERT INTO permissions (code, name, description, path, module, global_flag) VALUES
 ('user_logout',    '退出',         '', 'admin/v1/user/logout',              'user',   1),
-('user_changePwd', '修改密码',     '', 'admin/v1/user/changePwd',           'user',   1),
+('user_changePwd', '修改密码',     '', 'admin/v1/user/change_pwd',           'user',   1),
 ('captcha_get',    '查询验证码',   '', 'admin/v1/setting/get_captcha_switch',   'server', 0),
 ('captcha_set',    '设置验证码',   '', 'admin/v1/setting/set_captcha_switch',   'server', 0),
 ('server_set',    '系统设置',   '', 'admin/v1/setting/set',   'server', 0),

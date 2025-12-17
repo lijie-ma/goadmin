@@ -295,7 +295,7 @@ const handleChangePassword = async () => {
         }
 
         // 调用修改密码API
-        const response = await fetch('/api/admin/v1/user/changePwd', {
+        const response = await fetch('/api/admin/v1/user/change_pwd', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
