@@ -30,7 +30,7 @@ func (h *Handler) Login(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -57,7 +57,7 @@ func (h *Handler) Logout(ctx *context.Context) {
 	if token == "" {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "未提供token",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
@@ -88,7 +88,7 @@ func (h *Handler) ChangePassword(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: "无效的请求参数",
+			Message: ctx.Show("BadParameter"),
 		})
 		return
 	}
