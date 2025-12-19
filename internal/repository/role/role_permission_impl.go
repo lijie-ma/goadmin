@@ -113,3 +113,10 @@ func (r *RolePermissionRepositoryImpl) GetPermissionsByRoleCodes(
 
 	return result, nil
 }
+
+// GetAllPermissions 获取所有权限列表
+func (r *RolePermissionRepositoryImpl) GetAllPermissions(ctx context.Context) ([]permission.Permission, error) {
+	var permissions []permission.Permission
+	err := r.DB().WithContext(ctx).Find(&permissions).Error
+	return permissions, err
+}

@@ -90,7 +90,7 @@ func (h *Handler) GetRole(ctx *context.Context) {
 
 // CreateRole 创建角色
 func (h *Handler) CreateRole(ctx *context.Context) {
-	var req modelrole.Role
+	var req modelrole.CreateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
@@ -116,7 +116,7 @@ func (h *Handler) CreateRole(ctx *context.Context) {
 
 // UpdateRole 更新角色
 func (h *Handler) UpdateRole(ctx *context.Context) {
-	var req modelrole.Role
+	var req modelrole.UpdateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
@@ -249,5 +249,23 @@ func (h *Handler) ListActiveRoles(ctx *context.Context) {
 		Code:    http.StatusOK,
 		Message: ctx.Show("GetActiveRoleListSuccess"),
 		Data:    roles,
+	})
+}
+
+// ListAllPermissions 获取所有权限列表
+func (h *Handler) ListAllPermissions(ctx *context.Context) {
+	permissions, err := h.roleSrv.ListAllPermissions(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: ctx.Show("InternalError"),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: ctx.Show("GetPermissionListSuccess"),
+		Data:    permissions,
 	})
 }

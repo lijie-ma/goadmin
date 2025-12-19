@@ -6,9 +6,13 @@ import (
 	"goadmin/internal/model/role"
 	"goadmin/internal/model/schema"
 	rolerepo "goadmin/internal/repository/role"
+	"goadmin/internal/service/errorsx"
 	"goadmin/pkg/db"
+	"goadmin/pkg/util"
 
 	"goadmin/config"
+
+	"github.com/pkg/errors"
 )
 
 // RoleService 角色服务接口
@@ -26,10 +30,10 @@ type RoleService interface {
 	ListActiveRoles(ctx *context.Context) ([]*role.Role, error)
 
 	// CreateRole 创建角色
-	CreateRole(ctx *context.Context, roleModel *role.Role) error
+	CreateRole(ctx *context.Context, roleModel *role.CreateRequest) error
 
 	// UpdateRole 更新角色
-	UpdateRole(ctx *context.Context, roleModel *role.Role) error
+	UpdateRole(ctx *context.Context, roleModel *role.UpdateRequest) error
 
 	// DeleteRole 删除角色
 	DeleteRole(ctx *context.Context, id uint64) error
@@ -45,6 +49,9 @@ type RoleService interface {
 
 	// HasPermission 检查角色是否有特定权限
 	HasPermission(ctx *context.Context, roleCode string, permissionCode string) (bool, error)
+
+	// ListAllPermissions 获取所有权限列表
+	ListAllPermissions(ctx *context.Context) ([]map[string]interface{}, error)
 }
 
 // roleService 角色服务实现
@@ -69,12 +76,28 @@ func (*roleService) logPrefix() string {
 
 // GetRoleByID 根据ID获取角色
 func (s *roleService) GetRoleByID(ctx *context.Context, id uint64) (*role.Role, error) {
-	return s.roleRepo.GetByID(ctx, id)
+	rs, err := s.roleRepo.GetByID(ctx, id)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取角色失败: %d %v", s.logPrefix(), id, err)
+		return nil, err
+	}
+	if rs == nil {
+		return nil, errors.WithMessage(errorsx.ErrNotFound, "角色")
+	}
+	return rs, nil
 }
 
 // GetRoleByCode 根据Code获取角色
 func (s *roleService) GetRoleByCode(ctx *context.Context, code string) (*role.Role, error) {
-	return s.roleRepo.GetByCode(ctx, code)
+	rs, err := s.roleRepo.GetByCode(ctx, code)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取角色失败: %s %v", s.logPrefix(), code, err)
+		return nil, err
+	}
+	if rs == nil {
+		return nil, errors.WithMessage(errorsx.ErrNotFound, "角色")
+	}
+	return rs, nil
 }
 
 // ListRoles 获取角色列表
@@ -110,9 +133,28 @@ func (s *roleService) ListActiveRoles(ctx *context.Context) ([]*role.Role, error
 }
 
 // CreateRole 创建角色
-func (s *roleService) CreateRole(ctx *context.Context, roleModel *role.Role) error {
-	// 检查角色代码是否已存在
-	existingRole, err := s.roleRepo.GetByCode(ctx, roleModel.Code)
+func (s *roleService) CreateRole(ctx *context.Context, roleModel *role.CreateRequest) error {
+	var (
+		code         string
+		err          error
+		existingRole *role.Role
+	)
+	for i := range 3 {
+		code, err = util.GenerateRandomString(8)
+		if err != nil {
+			ctx.Logger.Errorf("%s 生成角色代码失败: times=%d %v", s.logPrefix(), i, err)
+			continue
+		}
+		// 检查角色代码是否已存在
+		existingRole, err = s.roleRepo.GetByCode(ctx, roleModel.Code)
+		if err != nil {
+			ctx.Logger.Errorf("%s 检查角色代码是否存在失败: %s %v", s.logPrefix(), roleModel.Code, err)
+			continue
+		}
+		if existingRole == nil {
+			break
+		}
+	}
 	if err != nil {
 		ctx.Logger.Errorf("%s 检查角色代码是否存在失败: %s %v", s.logPrefix(), roleModel.Code, err)
 		return err
@@ -134,11 +176,21 @@ func (s *roleService) CreateRole(ctx *context.Context, roleModel *role.Role) err
 	}
 
 	// 创建角色
-	return s.roleRepo.Create(ctx, roleModel)
+	err = s.roleRepo.Create(ctx, &role.Role{
+		Code:        code,
+		Name:        roleModel.Name,
+		Description: roleModel.Description,
+		Status:      roleModel.Status,
+	})
+	if err != nil {
+		ctx.Logger.Errorf("%s 创建角色失败: %v", s.logPrefix(), err)
+		return err
+	}
+	return nil
 }
 
 // UpdateRole 更新角色
-func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.Role) error {
+func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.UpdateRequest) error {
 	// 检查角色是否存在
 	existingRole, err := s.roleRepo.GetByID(ctx, roleModel.ID)
 	if err != nil {
@@ -147,7 +199,7 @@ func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.Role) err
 	}
 
 	if existingRole == nil {
-		return fmt.Errorf("角色不存在")
+		return errors.WithMessage(errorsx.ErrNotFound, "角色")
 	}
 
 	if existingRole.IsSystem() {
@@ -179,9 +231,19 @@ func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.Role) err
 			return fmt.Errorf("角色名称 %s 已存在", roleModel.Name)
 		}
 	}
+	existingRole.Name = roleModel.Name
+	existingRole.Code = roleModel.Code
+	existingRole.Description = roleModel.Description
+	existingRole.Status = roleModel.Status
+	existingRole.MTime = util.Now()
 
 	// 更新角色
-	return s.roleRepo.Update(ctx, roleModel)
+	err = s.roleRepo.Update(ctx, existingRole)
+	if err != nil {
+		ctx.Logger.Errorf("%s 更新角色失败: %v", s.logPrefix(), err)
+		return err
+	}
+	return nil
 }
 
 // DeleteRole 删除角色
@@ -194,7 +256,7 @@ func (s *roleService) DeleteRole(ctx *context.Context, id uint64) error {
 	}
 
 	if existingRole == nil {
-		return fmt.Errorf("角色不存在")
+		return errors.WithMessage(errorsx.ErrNotFound, "角色")
 	}
 
 	if existingRole.IsSystem() {
@@ -209,7 +271,12 @@ func (s *roleService) DeleteRole(ctx *context.Context, id uint64) error {
 	}
 
 	// 删除角色
-	return s.roleRepo.Delete(ctx, id)
+	err = s.roleRepo.Delete(ctx, id)
+	if err != nil {
+		ctx.Logger.Errorf("%s 删除角色权限关联失败: %s %v", s.logPrefix(), existingRole.Code, err)
+		return err
+	}
+	return nil
 }
 
 // GetRoleWithPermissions 获取角色及其权限
@@ -263,4 +330,36 @@ func (s *roleService) AssignPermissions(ctx *context.Context, roleCode string, p
 // HasPermission 检查角色是否有特定权限
 func (s *roleService) HasPermission(ctx *context.Context, roleCode string, permissionCode string) (bool, error) {
 	return s.rolePermissionRepo.HasPermission(ctx, roleCode, permissionCode)
+}
+
+// ListAllPermissions 获取所有权限列表
+func (s *roleService) ListAllPermissions(ctx *context.Context) ([]map[string]interface{}, error) {
+	permissions, err := s.rolePermissionRepo.GetAllPermissions(ctx)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取所有权限列表失败: %v", s.logPrefix(), err)
+		return nil, err
+	}
+
+	// 将权限按模块分组
+	moduleMap := make(map[string][]map[string]interface{})
+	for _, perm := range permissions {
+		permMap := map[string]interface{}{
+			"code":        perm.Code,
+			"name":        perm.Name,
+			"description": perm.Description,
+			"module":      perm.Module,
+		}
+		moduleMap[perm.Module] = append(moduleMap[perm.Module], permMap)
+	}
+
+	// 构建返回结果
+	var result []map[string]interface{}
+	for module, perms := range moduleMap {
+		result = append(result, map[string]interface{}{
+			"module":      module,
+			"permissions": perms,
+		})
+	}
+
+	return result, nil
 }

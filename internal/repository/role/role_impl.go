@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"errors"
 	"goadmin/internal/model/role"
 	"goadmin/pkg/db"
 
@@ -33,7 +34,7 @@ func (r *RoleRepositoryImpl) GetByCode(ctx context.Context, code string) (*role.
 	var result role.Role
 	err := r.DB().WithContext(ctx).Where("code = ?", code).First(&result).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -46,7 +47,7 @@ func (r *RoleRepositoryImpl) GetByName(ctx context.Context, name string) (*role.
 	var result role.Role
 	err := r.DB().WithContext(ctx).Where("name = ?", name).First(&result).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err

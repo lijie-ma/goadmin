@@ -31,4 +31,7 @@ type RolePermissionRepository interface {
 
 	// GetPermissionsByRoleCodes 批量获取多个角色的权限列表
 	GetPermissionsByRoleCodes(ctx context.Context, roleCodes []string) (map[string][]permission.Permission, error)
+
+	// GetAllPermissions 获取所有权限列表
+	GetAllPermissions(ctx context.Context) ([]permission.Permission, error)
 }
