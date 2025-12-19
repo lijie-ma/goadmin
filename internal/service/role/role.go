@@ -181,6 +181,7 @@ func (s *roleService) CreateRole(ctx *context.Context, roleModel *role.CreateReq
 		Name:        roleModel.Name,
 		Description: roleModel.Description,
 		Status:      roleModel.Status,
+		SystemFlag:  role.SystemFlagNo,
 	})
 	if err != nil {
 		ctx.Logger.Errorf("%s 创建角色失败: %v", s.logPrefix(), err)
