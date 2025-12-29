@@ -2,6 +2,7 @@ package user
 
 import (
 	"goadmin/internal/context"
+	"goadmin/internal/i18n"
 	"goadmin/internal/model/schema"
 	modeluser "goadmin/internal/model/user"
 	"goadmin/internal/repository/user"
@@ -30,7 +31,7 @@ func (h *Handler) Login(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -46,7 +47,7 @@ func (h *Handler) Login(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("LoginSuccess"),
+		Message: i18n.T(ctx.Context, "user.LoginSuccess", nil),
 		Data:    resp,
 	})
 }
@@ -57,7 +58,7 @@ func (h *Handler) Logout(ctx *context.Context) {
 	if token == "" {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -71,14 +72,14 @@ func (h *Handler) Logout(ctx *context.Context) {
 		ctx.Logger.Errorf("删除token失败: %v", err)
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("SystemError"),
+			Message: i18n.T(ctx.Context, "common.SystemError", nil),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("LogoutSuccess"),
+		Message: i18n.T(ctx.Context, "user.LoginSuccess", nil),
 	})
 }
 
@@ -88,7 +89,7 @@ func (h *Handler) ChangePassword(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -104,6 +105,6 @@ func (h *Handler) ChangePassword(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("PasswordChangeSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 	})
 }

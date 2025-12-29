@@ -66,6 +66,120 @@
         style="margin-top: 20px; justify-content: flex-end;"
       />
     </el-card>
+
+    <!-- 新增角色弹框 -->
+    <el-drawer
+      v-model="addDialogVisible"
+      :title="t('role.addRole')"
+      direction="rtl"
+      size="500px"
+    >
+      <el-form
+        ref="addRoleFormRef"
+        :model="addRoleForm"
+        :rules="addRoleRules"
+        label-width="100px"
+      >
+        <el-form-item label="角色标识" prop="code">
+          <el-input
+            v-model="addRoleForm.code"
+            placeholder="请输入角色标识（英文）"
+            maxlength="32"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item :label="t('role.name')" prop="name">
+          <el-input
+            v-model="addRoleForm.name"
+            :placeholder="`请输入${t('role.name')}`"
+            maxlength="50"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item :label="t('role.description')" prop="description">
+          <el-input
+            v-model="addRoleForm.description"
+            type="textarea"
+            :placeholder="`请输入${t('role.description')}`"
+            :rows="4"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item :label="t('role.status')" prop="status">
+          <el-radio-group v-model="addRoleForm.status">
+            <el-radio :label="1">{{ t('role.enabled') }}</el-radio>
+            <el-radio :label="0">{{ t('role.disabled') }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div style="flex: auto">
+          <el-button @click="handleCancelAdd">{{ t('common.cancel') }}</el-button>
+          <el-button type="primary" :loading="submitLoading" @click="handleSubmitAdd">
+            {{ t('common.confirm') }}
+          </el-button>
+        </div>
+      </template>
+    </el-drawer>
+
+    <!-- 权限设置弹框 -->
+    <el-drawer
+      v-model="permissionDialogVisible"
+      :title="`设置权限 - ${currentRole?.name}`"
+      direction="rtl"
+      size="600px"
+    >
+      <div v-loading="permissionLoading">
+        <el-alert
+          v-if="currentRole?.system_flag === 1"
+          title="系统角色的权限不能修改"
+          type="warning"
+          :closable="false"
+          style="margin-bottom: 20px"
+        />
+
+        <div v-for="module in allPermissions" :key="module.module" class="permission-module">
+          <h4 class="module-title">{{ module.module }}</h4>
+          <el-checkbox-group
+            v-model="selectedPermissions"
+            :disabled="currentRole?.system_flag === 1"
+          >
+            <el-checkbox
+              v-for="perm in module.permissions"
+              :key="perm.code"
+              :label="perm.code"
+              class="permission-checkbox"
+            >
+              <span>{{ perm.name }}</span>
+              <el-tooltip
+                v-if="perm.description"
+                :content="perm.description"
+                placement="top"
+              >
+                <el-icon style="margin-left: 4px; color: #909399;">
+                  <InfoFilled />
+                </el-icon>
+              </el-tooltip>
+            </el-checkbox>
+          </el-checkbox-group>
+        </div>
+      </div>
+
+      <template #footer>
+        <div style="flex: auto">
+          <el-button @click="permissionDialogVisible = false">{{ t('common.cancel') }}</el-button>
+          <el-button
+            type="primary"
+            :loading="submitLoading"
+            :disabled="currentRole?.system_flag === 1"
+            @click="handleSubmitPermissions"
+          >
+            {{ t('common.confirm') }}
+          </el-button>
+        </div>
+      </template>
+    </el-drawer>
   </div>
 </template>
 
@@ -73,14 +187,113 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { InfoFilled } from '@element-plus/icons-vue'
 
 const { t, locale } = useI18n()
+
+// 获取所有权限列表
+const fetchAllPermissions = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      ElMessage.error(t('login.loginFailed'))
+      return
+    }
+
+    const response = await fetch('/api/admin/v1/role/permissions/all', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept-Language': locale.value
+      }
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.code === 200) {
+      allPermissions.value = data.data || []
+    } else {
+      ElMessage.error(data.message || t('common.failed'))
+    }
+  } catch (error) {
+    console.error('获取权限列表失败:', error)
+    ElMessage.error(t('common.failed'))
+  }
+}
+
+// 获取角色的权限列表
+const fetchRolePermissions = async (roleCode) => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      ElMessage.error(t('login.loginFailed'))
+      return
+    }
+
+    const response = await fetch('/api/admin/v1/role/permissions/get', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Accept-Language': locale.value
+      },
+      body: JSON.stringify({
+        code: roleCode
+      })
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.code === 200) {
+      selectedPermissions.value = data.data || []
+    } else {
+      ElMessage.error(data.message || t('common.failed'))
+    }
+  } catch (error) {
+    console.error('获取角色权限失败:', error)
+    ElMessage.error(t('common.failed'))
+  }
+}
 
 const roles = ref([])
 const loading = ref(false)
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
+
+// 添加角色对话框
+const addDialogVisible = ref(false)
+const submitLoading = ref(false)
+const addRoleForm = ref({
+  code: '',
+  name: '',
+  description: '',
+  status: 1
+})
+const addRoleFormRef = ref(null)
+
+// 权限设置弹框
+const permissionDialogVisible = ref(false)
+const permissionLoading = ref(false)
+const currentRole = ref(null)
+const allPermissions = ref([])
+const selectedPermissions = ref([])
+
+// 表单验证规则
+const addRoleRules = {
+  code: [
+    { required: true, message: '请输入角色标识', trigger: 'blur' },
+    { min: 2, max: 32, message: '长度在 2 到 32 个字符', trigger: 'blur' },
+    { pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, message: '角色标识必须以字母开头，只能包含字母、数字和下划线', trigger: 'blur' }
+  ],
+  name: [
+    { required: true, message: '请输入角色名称', trigger: 'blur' },
+    { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
+  ],
+  description: [
+    { max: 200, message: '描述不能超过 200 个字符', trigger: 'blur' }
+  ]
+}
 
 // 获取角色列表
 const fetchRoles = async () => {
@@ -140,12 +353,132 @@ const handleCurrentChange = (val) => {
 
 // 处理添加角色
 const handleAddRole = () => {
-  // TODO: 实现添加角色功能
+  // 重置表单
+  addRoleForm.value = {
+    code: '',
+    name: '',
+    description: '',
+    status: 1
+  }
+  // 清除表单验证状态
+  if (addRoleFormRef.value) {
+    addRoleFormRef.value.clearValidate()
+  }
+  // 打开弹框
+  addDialogVisible.value = true
+}
+
+// 处理取消添加
+const handleCancelAdd = () => {
+  addDialogVisible.value = false
+  // 清除表单验证状态
+  if (addRoleFormRef.value) {
+    addRoleFormRef.value.clearValidate()
+  }
+}
+
+// 处理提交添加
+const handleSubmitAdd = async () => {
+  if (!addRoleFormRef.value) return
+
+  await addRoleFormRef.value.validate(async (valid) => {
+    if (valid) {
+      submitLoading.value = true
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) {
+          ElMessage.error(t('login.loginFailed'))
+          return
+        }
+
+        const response = await fetch('/api/admin/v1/role/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Accept-Language': locale.value
+          },
+          body: JSON.stringify(addRoleForm.value)
+        })
+
+        const data = await response.json()
+
+        if (response.ok && data.code === 200) {
+          ElMessage.success(t('role.addSuccess'))
+          addDialogVisible.value = false
+          // 刷新列表
+          fetchRoles()
+        } else {
+          ElMessage.error(data.message || t('common.failed'))
+        }
+      } catch (error) {
+        console.error('添加角色失败:', error)
+        ElMessage.error(t('common.failed'))
+      } finally {
+        submitLoading.value = false
+      }
+    }
+  })
 }
 
 // 处理设置权限
-const handleSetPermissions = (role) => {
-  // TODO: 实现权限设置功能
+const handleSetPermissions = async (role) => {
+  currentRole.value = role
+  permissionLoading.value = true
+  permissionDialogVisible.value = true
+
+  try {
+    // 获取所有权限列表
+    await fetchAllPermissions()
+
+    // 获取角色当前的权限
+    await fetchRolePermissions(role.code)
+  } catch (error) {
+    console.error('加载权限数据失败:', error)
+  } finally {
+    permissionLoading.value = false
+  }
+}
+
+// 处理提交权限设置
+const handleSubmitPermissions = async () => {
+  submitLoading.value = true
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      ElMessage.error(t('login.loginFailed'))
+      return
+    }
+
+    const response = await fetch('/api/admin/v1/role/permissions/assign', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Accept-Language': locale.value
+      },
+      body: JSON.stringify({
+        code: currentRole.value.code,
+        permissions: selectedPermissions.value
+      })
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.code === 200) {
+      ElMessage.success('权限设置成功')
+      permissionDialogVisible.value = false
+      // 刷新角色列表以更新权限显示
+      fetchRoles()
+    } else {
+      ElMessage.error(data.message || t('common.failed'))
+    }
+  } catch (error) {
+    console.error('设置权限失败:', error)
+    ElMessage.error(t('common.failed'))
+  } finally {
+    submitLoading.value = false
+  }
 }
 
 // 处理编辑角色
@@ -243,5 +576,40 @@ h1 {
 
 .system-tag {
   font-size: 12px;
+}
+
+.permission-module {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.permission-module:last-child {
+  margin-bottom: 0;
+}
+
+.module-title {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.permission-checkbox {
+  margin: 8px 24px 8px 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.permission-checkbox :deep(.el-checkbox__input) {
+  align-self: flex-start;
+  margin-top: 3px;
+}
+
+.permission-checkbox :deep(.el-checkbox__label) {
+  display: inline-flex;
+  align-items: center;
 }
 </style>

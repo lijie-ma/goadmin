@@ -1,0 +1,17 @@
+[user.LoginSuccess]
+other = "Login successful"
+
+[user.LogoutSuccess]
+other = "Logout successful"
+
+[user.token.generate.failed]
+other = "Failed to generate token"
+
+[user.InvalidUsernameOrPassword]
+other = "Invalid Username Or Password"
+
+[user.AccountStatusAbnormal]
+other = "Account status abnormal"
+
+[user.InvalidPassword]
+other = "Invalid password"

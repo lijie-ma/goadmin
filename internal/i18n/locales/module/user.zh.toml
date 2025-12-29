@@ -1,0 +1,17 @@
+[user.LoginSuccess]
+other = "登录成功"
+
+[user.LogoutSuccess]
+other = "退出成功"
+
+[user.token.generate.failed]
+other = "生成令牌失败"
+
+[user.InvalidUsernameOrPassword]
+other = "无效用户名或密码"
+
+[user.AccountStatusAbnormal]
+other = "账户状态异常"
+
+[user.InvalidPassword]
+other = "无效密码"

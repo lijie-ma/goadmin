@@ -1,0 +1,36 @@
+[common.InternalError]
+other = "Internal server error"
+
+[common.BadParameter]
+other = "Invalid request parameter"
+
+[common.InvalidParameter]
+other = "{{.item}} Invalid"
+
+[common.NotFound]
+other = "{{.item}} not found"
+
+[common.HadExist]
+other = "{{.item}} already exists"
+
+[common.ActionSuccess]
+other = "Action successful"
+
+[common.ActionFailed]
+other = "Action failed"
+
+[common.PermissionDeny]
+other = "Permission denied"
+
+[common.RepositoryErr]
+other = "repository error"
+
+[common.EncryptErr]
+other = "encryption error"
+
+[common.item.user]
+other = "User"
+[common.item.role]
+other = "Role"
+[common.item.token]
+other = "token"

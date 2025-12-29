@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-//go:embed locales/*.toml
+//go:embed locales/**/*.toml
 var LocaleFS embed.FS
 
 var Bundle *i18n.Bundle
@@ -19,14 +19,12 @@ func Init() {
 	Bundle = i18n.NewBundle(language.English)
 	Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
-	files := []string{
-		"locales/active.en.toml",
-		"locales/active.zh.toml",
-	}
-
-	for _, f := range files {
-		if _, err := Bundle.LoadMessageFileFS(LocaleFS, f); err != nil {
-			log.Fatalf("[i18n] failed to load locale file %s: %v", f, err)
+	dirs := []string{"locales/common", "locales/module"}
+	for _, dir := range dirs {
+		files, _ := LocaleFS.ReadDir(dir)
+		for _, f := range files {
+			data, _ := LocaleFS.ReadFile(dir + "/" + f.Name())
+			_, _ = Bundle.ParseMessageFileBytes(data, f.Name())
 		}
 	}
 

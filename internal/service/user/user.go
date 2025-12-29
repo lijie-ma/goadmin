@@ -2,18 +2,16 @@ package user
 
 import (
 	"goadmin/internal/context"
+	"goadmin/internal/i18n"
 	"goadmin/internal/model/server"
 	modeluser "goadmin/internal/model/user"
 	"goadmin/internal/repository/role"
 	userrepo "goadmin/internal/repository/user"
-	"goadmin/internal/service/errorsx"
 	"goadmin/internal/service/setting"
 	"goadmin/internal/service/token"
 	"goadmin/pkg/util"
 
 	"goadmin/config"
-
-	"github.com/pkg/errors"
 )
 
 // UserService 用户服务接口
@@ -55,7 +53,7 @@ func (s *userService) GenerateUserCredential(ctx *context.Context, userID uint64
 		ctx, token.NewAdminClaims(userID, s.cfg.JWT.AccessExpire))
 	if err != nil {
 		ctx.Logger.Errorf("%s 生成用户凭证失败: %d %v", s.logPrefix(), userID, err)
-		return nil, err
+		return nil, i18n.E(ctx.Context, "user.token.generate.failed", nil)
 	}
 
 	return tokenPairs, nil
@@ -66,15 +64,19 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 	err := setting.NewServerSettingService().GetValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
 	if err != nil {
 		ctx.Logger.Errorf("%s Generate GetValue %+v", s.logPrefix(), err)
-		return nil, err
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	if captchaCfg.IsAdminOn() {
 		if req.Token == "" {
-			return nil, errors.WithMessage(errorsx.ErrReqired, "token")
+			ctx.Logger.Warnf("%s Login captcha require token", s.logPrefix())
+			return nil, i18n.E(ctx.Context, "common.BadParameter", nil)
 		}
 		if !token.NewTokenService().ValidateToken(ctx, req.Token) {
 			ctx.Logger.Errorf("%s ValidateToken faild %s %s", s.logPrefix(), req.Username, req.Token)
-			return nil, errors.WithMessage(errorsx.ErrInvalid, "token")
+			return nil, i18n.E(
+				ctx.Context,
+				"common.InvalidParameter",
+				map[string]any{"item": i18n.T(ctx.Context, "common.item.user", nil)})
 		}
 	}
 	// 获取用户信息
@@ -86,12 +88,12 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 
 	if u == nil || !util.ValidatePasswordAndHash(req.Password, u.Password) {
 		ctx.Logger.Warnf("%s 用户名或密码错误: %s %v", s.logPrefix(), req.Username, err)
-		return nil, errors.New(ctx.Show("InvalidUsernameOrPassword"))
+		return nil, i18n.E(ctx.Context, "user.IncorrectUsernameOrPassword", nil)
 	}
 
 	if !u.IsActive() {
 		ctx.Logger.Warnf("%s 账户状态异常: %s %s", s.logPrefix(), req.Username, u.Status.String())
-		return nil, errors.New(ctx.Show("AccountStatusAbnormal"))
+		return nil, i18n.E(ctx.Context, "user.AccountStatusAbnormal", nil)
 	}
 
 	// 生成JWT令牌
@@ -103,7 +105,7 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionsByRoleCode(ctx, u.RoleCode)
 	if err != nil {
 		ctx.Logger.Errorf("%s get Permissions: %s %d %v", s.logPrefix(), req.Username, u.RoleCode, err)
-		return nil, err
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	return &modeluser.LoginResponse{
@@ -123,12 +125,17 @@ func (s *userService) GenerateUserSession(ctx *context.Context, userID uint64) (
 	u, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取用户信息失败: %d %v", s.logPrefix(), userID, err)
-		return nil, err
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+
+	if u == nil {
+		ctx.Logger.Warnf("%s 用户不存在: %d", s.logPrefix(), userID)
+		return nil, i18n.E(ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.user", nil)})
 	}
 
 	if !u.IsActive() {
 		ctx.Logger.Warnf("%s 账户状态异常: %s %s", s.logPrefix(), userID, u.Status.String())
-		return nil, errors.New(ctx.Show("AccountStatusAbnormal"))
+		return nil, i18n.E(ctx.Context, "user.AccountStatusAbnormal", nil)
 	}
 	return u, nil
 }
@@ -136,20 +143,20 @@ func (s *userService) GenerateUserSession(ctx *context.Context, userID uint64) (
 func (s *userService) ChangePassword(ctx *context.Context, req *modeluser.ChangePasswordRequest) error {
 	if !util.ValidatePasswordAndHash(req.OldPassword, ctx.Session().(*modeluser.User).Password) {
 		ctx.Logger.Warnf("%s 密码错误: %s", s.logPrefix(), ctx.Session().GetUsername())
-		return errors.New(ctx.Show("IncorrectPassword"))
+		return i18n.E(ctx.Context, "user.InvalidPassword", nil)
 	}
 
 	encryptPwd, err := util.Password2Hash(req.NewPassword)
 	if err != nil {
 		ctx.Logger.Warnf("%s Password2Hash: %s %+v", s.logPrefix(), ctx.Session().GetUsername(), err)
-		return err
+		return i18n.E(ctx.Context, "common.EncryptErr", nil)
 	}
 
 	// 更新密码
 	err = s.userRepo.UpdatePassword(ctx, ctx.Session().GetID(), encryptPwd)
 	if err != nil {
 		ctx.Logger.Warnf("%s UpdatePassword: %s %+v", s.logPrefix(), ctx.Session().GetUsername(), err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	return nil
 }

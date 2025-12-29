@@ -5,7 +5,6 @@ import (
 	"goadmin/pkg/trace"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 type Context struct {
@@ -29,19 +28,6 @@ func (c *Context) ToCli() *CliContext {
 		},
 		Logger: c.Logger,
 	}
-}
-
-func (c *Context) Show(messageID string) string {
-	loc := c.MustGet("localizer").(*i18n.Localizer)
-	return loc.MustLocalize(&i18n.LocalizeConfig{MessageID: messageID})
-}
-
-func (c *Context) ShowWithData(messageID string, data map[string]any) string {
-	loc := c.MustGet("localizer").(*i18n.Localizer)
-	return loc.MustLocalize(&i18n.LocalizeConfig{
-		MessageID:    messageID,
-		TemplateData: data,
-	})
 }
 
 type HandlerFunc = func(ctx *Context)

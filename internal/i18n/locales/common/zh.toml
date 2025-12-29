@@ -1,0 +1,36 @@
+[common.InternalError]
+other = "内部服务器错误"
+
+[common.BadParameter]
+other = "无效的请求参数"
+
+[common.InvalidParameter]
+other = "{{.item}}非法"
+
+[common.NotFound]
+other = "{{.item}}不存在"
+
+[common.HadExist]
+other = "{{.item}}已存在"
+
+[common.ActionSuccess]
+other = "操作成功"
+
+[common.ActionFailed]
+other = "操作失败"
+
+[common.PermissionDeny]
+other = "权限不足"
+
+[common.RepositoryErr]
+other = "访问数据库错误"
+
+[common.EncryptErr]
+other = "加密失败"
+
+[common.item.user]
+other = "用户"
+[common.item.role]
+other = "角色"
+[common.item.token]
+other = "令牌"
