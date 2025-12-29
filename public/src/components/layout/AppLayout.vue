@@ -38,7 +38,7 @@
             <el-icon :size="20"><Expand /></el-icon>
           </el-button>
           <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/' }">{{ t('home') }}</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: `/${locale}` }">{{ t('home') }}</el-breadcrumb-item>
             <el-breadcrumb-item>{{ t(currentRoute) }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>

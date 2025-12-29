@@ -119,6 +119,7 @@ const saveSettings = async () => {
     })
     if (response.data.code === 200) {
       ElMessage.success(t('settings.saveSuccess'))
+      localStorage.setItem('language', settings.language)
     } else {
       throw new Error(response.data.message)
     }

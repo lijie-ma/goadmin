@@ -130,7 +130,20 @@
     "editSuccess": "Updated successfully",
     "noPermissions": "No permissions",
     "systemRole": "System Built-in Role",
-    "cannotDelete": "System built-in roles cannot be deleted"
+    "cannotDelete": "System built-in roles cannot be deleted",
+    "code": "Role Code",
+    "codePlaceholder": "Please enter role code (English)",
+    "codeRequired": "Please enter role code",
+    "codeFormat": "Role code must start with a letter and can only contain letters, numbers and underscores",
+    "codeLength": "Must be between 2 and 32 characters",
+    "nameRequired": "Please enter role name",
+    "nameLength": "Must be between 2 and 50 characters",
+    "descLength": "Description cannot exceed 200 characters",
+    "namePlaceholder": "Please enter role name",
+    "descPlaceholder": "Please enter role description",
+    "setPermissionsTitle": "Set Permissions - {name}",
+    "systemRolePermissionTip": "System role permissions cannot be modified",
+    "setPermissionsSuccess": "Permissions set successfully"
   },
   "settings": {
     "title": "System Settings",

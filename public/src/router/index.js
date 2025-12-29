@@ -71,6 +71,13 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const lang = to.params.lang || localStorage.getItem('language') || 'zh'
 
+  // 如果没有语言参数，重定向到带语言参数的路径
+  if (!to.params.lang && !to.path.startsWith(`/${lang}`)) {
+    // 获取不带语言前缀的路径
+    const pathWithoutLang = to.fullPath.replace(/^\/[a-z]{2}/, '')
+    return next(`/${lang}${pathWithoutLang || '/dashboard'}`)
+  }
+
   // 处理登录页面
   if (to.path.includes('/login')) {
     next()

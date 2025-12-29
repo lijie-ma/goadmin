@@ -130,7 +130,20 @@
     "editSuccess": "修改成功",
     "noPermissions": "暂无权限",
     "systemRole": "系统内置角色",
-    "cannotDelete": "系统内置角色不可删除"
+    "cannotDelete": "系统内置角色不可删除",
+    "code": "角色标识",
+    "codePlaceholder": "请输入角色标识（英文）",
+    "codeRequired": "请输入角色标识",
+    "codeFormat": "角色标识必须以字母开头，只能包含字母、数字和下划线",
+    "codeLength": "长度在 2 到 32 个字符",
+    "nameRequired": "请输入角色名称",
+    "nameLength": "长度在 2 到 50 个字符",
+    "descLength": "描述不能超过 200 个字符",
+    "namePlaceholder": "请输入角色名称",
+    "descPlaceholder": "请输入角色描述",
+    "setPermissionsTitle": "设置权限 - {name}",
+    "systemRolePermissionTip": "系统角色的权限不能修改",
+    "setPermissionsSuccess": "权限设置成功"
   },
   "settings": {
     "title": "系统设置",

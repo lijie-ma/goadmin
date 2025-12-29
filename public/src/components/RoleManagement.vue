@@ -80,10 +80,10 @@
         :rules="addRoleRules"
         label-width="100px"
       >
-        <el-form-item label="角色标识" prop="code">
+        <el-form-item :label="t('role.code')" prop="code">
           <el-input
             v-model="addRoleForm.code"
-            placeholder="请输入角色标识（英文）"
+            :placeholder="t('role.codePlaceholder')"
             maxlength="32"
             show-word-limit
           />
@@ -91,7 +91,7 @@
         <el-form-item :label="t('role.name')" prop="name">
           <el-input
             v-model="addRoleForm.name"
-            :placeholder="`请输入${t('role.name')}`"
+            :placeholder="t('role.namePlaceholder')"
             maxlength="50"
             show-word-limit
           />
@@ -100,7 +100,7 @@
           <el-input
             v-model="addRoleForm.description"
             type="textarea"
-            :placeholder="`请输入${t('role.description')}`"
+            :placeholder="t('role.descPlaceholder')"
             :rows="4"
             maxlength="200"
             show-word-limit
@@ -126,14 +126,14 @@
     <!-- 权限设置弹框 -->
     <el-drawer
       v-model="permissionDialogVisible"
-      :title="`设置权限 - ${currentRole?.name}`"
+      :title="t('role.setPermissionsTitle', { name: currentRole?.name })"
       direction="rtl"
       size="600px"
     >
       <div v-loading="permissionLoading">
         <el-alert
           v-if="currentRole?.system_flag === 1"
-          title="系统角色的权限不能修改"
+          :title="t('role.systemRolePermissionTip')"
           type="warning"
           :closable="false"
           style="margin-bottom: 20px"
@@ -184,7 +184,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { InfoFilled } from '@element-plus/icons-vue'
@@ -280,20 +280,20 @@ const allPermissions = ref([])
 const selectedPermissions = ref([])
 
 // 表单验证规则
-const addRoleRules = {
+const addRoleRules = computed(() => ({
   code: [
-    { required: true, message: '请输入角色标识', trigger: 'blur' },
-    { min: 2, max: 32, message: '长度在 2 到 32 个字符', trigger: 'blur' },
-    { pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, message: '角色标识必须以字母开头，只能包含字母、数字和下划线', trigger: 'blur' }
+    { required: true, message: t('role.codeRequired'), trigger: 'blur' },
+    { min: 2, max: 32, message: t('role.codeLength'), trigger: 'blur' },
+    { pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, message: t('role.codeFormat'), trigger: 'blur' }
   ],
   name: [
-    { required: true, message: '请输入角色名称', trigger: 'blur' },
-    { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
+    { required: true, message: t('role.nameRequired'), trigger: 'blur' },
+    { min: 2, max: 50, message: t('role.nameLength'), trigger: 'blur' }
   ],
   description: [
-    { max: 200, message: '描述不能超过 200 个字符', trigger: 'blur' }
+    { max: 200, message: t('role.descLength'), trigger: 'blur' }
   ]
-}
+}))
 
 // 获取角色列表
 const fetchRoles = async () => {
@@ -466,7 +466,7 @@ const handleSubmitPermissions = async () => {
     const data = await response.json()
 
     if (response.ok && data.code === 200) {
-      ElMessage.success('权限设置成功')
+      ElMessage.success(t('role.setPermissionsSuccess'))
       permissionDialogVisible.value = false
       // 刷新角色列表以更新权限显示
       fetchRoles()
