@@ -58,7 +58,8 @@ axios.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // 未授权，清除token并跳转到登录页
       localStorage.removeItem('token')
-      router.push('/login')
+      const lang = localStorage.getItem('language') || 'zh'
+      router.push(`/${lang}/login`)
     }
     return Promise.reject(error)
   }

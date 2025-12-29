@@ -11,7 +11,9 @@ const routes = [
       const lang = to.params.lang
       if (!lang) {
         const defaultLang = localStorage.getItem('language') || 'zh'
-        return next(`/${defaultLang}${to.path}`)
+        // 避免路径重复，只在根路径时添加语言前缀
+        const pathWithoutLang = to.fullPath
+        return next(`/${defaultLang}${pathWithoutLang}`)
       }
       if (!['zh', 'en'].includes(lang)) {
         return next('/zh')
@@ -28,7 +30,10 @@ const routes = [
       {
         path: '',
         component: AppLayout,
-        redirect: to => `/${to.params.lang}/dashboard`,
+        redirect: to => {
+          const lang = to.params.lang || localStorage.getItem('language') || 'zh'
+          return `/${lang}/dashboard`
+        },
         children: [
           {
             path: 'dashboard',
