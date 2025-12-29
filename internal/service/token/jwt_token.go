@@ -2,7 +2,6 @@ package token
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"goadmin/config"
 	"goadmin/internal/context"
@@ -89,23 +88,23 @@ func (s *JwtTokenService) RefreshJWTToken(
 
 // ValidateJWTToken 验证JWT令牌并返回claims
 func (s *JwtTokenService) ValidateJWTToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
 		// 验证签名算法
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("意外的签名方法: %v", token.Header["alg"])
+			return nil, fmt.Errorf("invalid signing method: %v", token.Header["alg"])
 		}
 		return []byte(s.config.Secret), nil
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("解析令牌失败: %w", err)
+		return nil, err
 	}
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return claims, nil
 	}
 
-	return nil, errors.New("无效的令牌")
+	return nil, fmt.Errorf("invalid token")
 }
 
 // InvalidateRefreshToken 使刷新令牌失效

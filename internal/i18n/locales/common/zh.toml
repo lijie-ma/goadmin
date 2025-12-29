@@ -28,6 +28,9 @@ other = "访问数据库错误"
 [common.EncryptErr]
 other = "加密失败"
 
+[common.DecryptErr]
+other = "解密失败"
+
 [common.item.user]
 other = "用户"
 [common.item.role]

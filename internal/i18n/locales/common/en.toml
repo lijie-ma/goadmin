@@ -28,6 +28,9 @@ other = "repository error"
 [common.EncryptErr]
 other = "encryption error"
 
+[common.DecryptErr]
+other = "decryption error"
+
 [common.item.user]
 other = "User"
 [common.item.role]

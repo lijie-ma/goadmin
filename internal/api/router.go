@@ -14,8 +14,8 @@ import (
 
 func RegisterRouter(r *gin.Engine) {
 	r.Use(
-		i18n.Middleware(),
 		middleware.Trace(),
+		i18n.Middleware(),
 		middleware.Logger(),
 		middleware.Header(),
 		middleware.Recovery(),
