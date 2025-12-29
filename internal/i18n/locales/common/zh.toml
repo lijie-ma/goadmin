@@ -34,3 +34,5 @@ other = "用户"
 other = "角色"
 [common.item.token]
 other = "令牌"
+[common.item.setting]
+other = "设置"

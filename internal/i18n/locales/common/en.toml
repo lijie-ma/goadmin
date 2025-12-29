@@ -34,3 +34,5 @@ other = "User"
 other = "Role"
 [common.item.token]
 other = "token"
+[common.item.setting]
+other = "Setting"

@@ -1,11 +1,10 @@
 package setting
 
 import (
-	"fmt"
 	"goadmin/internal/context"
+	"goadmin/internal/i18n"
 	"goadmin/internal/model/server"
 	serverRepo "goadmin/internal/repository/server"
-	"goadmin/internal/service/errorsx"
 	"goadmin/pkg/db"
 )
 
@@ -49,10 +48,12 @@ func (s *serverSettingServiceImpl) logPrefix() string {
 func (s *serverSettingServiceImpl) getByName(ctx *context.Context, name string) (*server.ServerSetting, error) {
 	data, err := s.repo.GetByName(ctx, name)
 	if err != nil {
-		return nil, err
+		ctx.Logger.Errorf("%s getByName failed, err: %v", s.logPrefix(), err)
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	if data == nil {
-		return nil, errorsx.ErrNotFound
+		return nil, i18n.E(
+			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.setting", nil)})
 	}
 	return data, nil
 }
@@ -60,7 +61,7 @@ func (s *serverSettingServiceImpl) getByName(ctx *context.Context, name string) 
 // SetByName 设置服务端配置
 func (s *serverSettingServiceImpl) SetByName(ctx *context.Context, name string, value any) error {
 	setting, err := s.getByName(ctx, name)
-	if err != nil && err != errorsx.ErrNotFound {
+	if err != nil {
 		return err
 	}
 	str, err := encoding(value)
@@ -74,12 +75,16 @@ func (s *serverSettingServiceImpl) SetByName(ctx *context.Context, name string, 
 			Value: string(str),
 		}
 		err = s.repo.Create(ctx, setting)
-		return err
+	} else {
+		setting.Value = string(str)
+		err = s.repo.Update(ctx, setting)
+	}
+	if err != nil {
+		ctx.Logger.Errorf("%s SetByName failed, err: %v", s.logPrefix(), err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
-	// 更新配置
-	setting.Value = string(str)
-	return s.repo.Update(ctx, setting)
+	return nil
 }
 
 // GetValue 根据名称获取服务端配置值
@@ -106,7 +111,7 @@ func (s *serverSettingServiceImpl) GetSystemSettings(ctx *context.Context) (*ser
 	cfgs, err := s.repo.BatchGet(ctx, []string{server.SettingCaptchaSwitch, server.SettingSystemConfig})
 	if err != nil {
 		ctx.Logger.Errorf("%s GetSystemSettings failed, err: %v", s.logPrefix(), err)
-		return nil, err
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	var (
 		rs            server.SystemSettingsResponse
@@ -140,12 +145,12 @@ func (s *serverSettingServiceImpl) SetSystemSettings(ctx *context.Context, setti
 	err := s.SetByName(ctx, server.SettingCaptchaSwitch, settings.CaptchaSwitchConfig)
 	if err != nil {
 		ctx.Logger.Errorf("%s SetSystemSettings SetCaptchaSwitch failed, err: %v", s.logPrefix(), err)
-		return fmt.Errorf("设置验证码开关失败: %w", err)
+		return err
 	}
 	err = s.SetByName(ctx, server.SettingSystemConfig, settings.SystemConfig)
 	if err != nil {
 		ctx.Logger.Errorf("%s SetSystemSettings SettingSystemConfig failed, err: %v", s.logPrefix(), err)
-		return fmt.Errorf("系统配置: %w", err)
+		return err
 	}
 	return nil
 }

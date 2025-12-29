@@ -2,6 +2,7 @@ package role
 
 import (
 	"goadmin/internal/context"
+	"goadmin/internal/i18n"
 	modelrole "goadmin/internal/model/role"
 	"goadmin/internal/model/schema"
 	rolesrv "goadmin/internal/service/role"
@@ -26,7 +27,7 @@ func (h *Handler) ListRoles(ctx *context.Context) {
 	if err := ctx.ShouldBindQuery(&pq); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -35,14 +36,14 @@ func (h *Handler) ListRoles(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("InternalError"),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("GetRoleListSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 		Data: map[string]interface{}{
 			"list":  roles,
 			"total": total,
@@ -59,7 +60,7 @@ func (h *Handler) GetRole(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -68,7 +69,7 @@ func (h *Handler) GetRole(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("InternalError"),
+			Message: err.Error(),
 		})
 		return
 	}
@@ -76,14 +77,14 @@ func (h *Handler) GetRole(ctx *context.Context) {
 	if role == nil {
 		ctx.JSON(http.StatusNotFound, schema.Response{
 			Code:    http.StatusNotFound,
-			Message: ctx.Show("RoleNotFound"),
+			Message: i18n.T(ctx.Context, "common.NotFound", nil),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("GetRoleDetailSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 		Data:    role,
 	})
 }
@@ -94,7 +95,7 @@ func (h *Handler) CreateRole(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -103,14 +104,14 @@ func (h *Handler) CreateRole(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("InternalError"),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("CreateRoleSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 	})
 }
 
@@ -120,15 +121,7 @@ func (h *Handler) UpdateRole(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
-		})
-		return
-	}
-
-	if req.ID == 0 {
-		ctx.JSON(http.StatusBadRequest, schema.Response{
-			Code:    http.StatusBadRequest,
-			Message: ctx.Show("RoleIDRequired"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -137,14 +130,14 @@ func (h *Handler) UpdateRole(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("InternalError"),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("UpdateRoleSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 	})
 }
 
@@ -154,7 +147,7 @@ func (h *Handler) DeleteRole(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -163,14 +156,14 @@ func (h *Handler) DeleteRole(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("InternalError"),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("DeleteRoleSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 	})
 }
 
@@ -184,7 +177,7 @@ func (h *Handler) AssignPermissions(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -193,14 +186,14 @@ func (h *Handler) AssignPermissions(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("InternalError"),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("AssignPermissionsSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 	})
 }
 
@@ -213,7 +206,7 @@ func (h *Handler) GetRolePermissions(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -222,14 +215,14 @@ func (h *Handler) GetRolePermissions(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("InternalError"),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("GetRolePermissionsSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 		Data:    permissions,
 	})
 }
@@ -240,14 +233,14 @@ func (h *Handler) ListActiveRoles(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("InternalError"),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("GetActiveRoleListSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 		Data:    roles,
 	})
 }
@@ -258,14 +251,14 @@ func (h *Handler) ListAllPermissions(ctx *context.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: ctx.Show("InternalError"),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("GetPermissionListSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 		Data:    permissions,
 	})
 }

@@ -1,11 +1,10 @@
 package setting
 
 import (
-	"errors"
 	"goadmin/internal/context"
+	"goadmin/internal/i18n"
 	"goadmin/internal/model/schema"
 	"goadmin/internal/model/server"
-	"goadmin/internal/service/errorsx"
 	"goadmin/internal/service/setting"
 	"net/http"
 )
@@ -35,14 +34,14 @@ func (h *Handler) GetSettings(c *context.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: c.Show("ActionFailed"),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: c.Show("ActionSuccess"),
+		Message: i18n.T(c.Context, "common.ActionSuccess", nil),
 		Data:    settings,
 	})
 }
@@ -61,7 +60,7 @@ func (h *Handler) UpdateSettings(c *context.Context) {
 	if err := c.ShouldBindJSON(&settings); err != nil {
 		c.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: c.Show("BadParameter"),
+			Message: i18n.T(c.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -69,14 +68,14 @@ func (h *Handler) UpdateSettings(c *context.Context) {
 	if err := h.settingSrv.SetSystemSettings(c, &settings); err != nil {
 		c.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
-			Message: c.ShowWithData("UpdateSettingsFailed", map[string]interface{}{"error": err.Error()}),
+			Message: err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: c.Show("UpdateSettingsSuccess"),
+		Message: i18n.T(c.Context, "common.ActionSuccess", nil),
 	})
 }
 
@@ -97,7 +96,7 @@ func (h *Handler) GetByName(ctx *context.Context) {
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -109,15 +108,6 @@ func (h *Handler) GetByName(ctx *context.Context) {
 
 	err = h.settingSrv.GetValue(ctx, req.Name, &rs)
 	if err != nil {
-		if errors.Is(err, errorsx.ErrNotFound) {
-			ctx.JSON(http.StatusNotFound, schema.Response{
-				Code: http.StatusNotFound,
-				Message: ctx.ShowWithData("NotFound", map[string]any{
-					"name": ctx.Show("Config"),
-				}),
-			})
-			return
-		}
 		ctx.JSON(http.StatusInternalServerError, schema.Response{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
@@ -127,7 +117,7 @@ func (h *Handler) GetByName(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("ActionSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 		Data:    rs,
 	})
 }
@@ -150,7 +140,7 @@ func (h *Handler) SetByName(ctx *context.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
-			Message: ctx.Show("BadParameter"),
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
 		})
 		return
 	}
@@ -166,6 +156,6 @@ func (h *Handler) SetByName(ctx *context.Context) {
 
 	ctx.JSON(http.StatusOK, schema.Response{
 		Code:    http.StatusOK,
-		Message: ctx.Show("ActionSuccess"),
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 	})
 }
