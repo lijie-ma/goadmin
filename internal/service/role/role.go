@@ -1,18 +1,15 @@
 package role
 
 import (
-	"fmt"
 	"goadmin/internal/context"
+	"goadmin/internal/i18n"
 	"goadmin/internal/model/role"
 	"goadmin/internal/model/schema"
 	rolerepo "goadmin/internal/repository/role"
-	"goadmin/internal/service/errorsx"
 	"goadmin/pkg/db"
 	"goadmin/pkg/util"
 
 	"goadmin/config"
-
-	"github.com/pkg/errors"
 )
 
 // RoleService 角色服务接口
@@ -79,10 +76,11 @@ func (s *roleService) GetRoleByID(ctx *context.Context, id uint64) (*role.Role, 
 	rs, err := s.roleRepo.GetByID(ctx, id)
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取角色失败: %d %v", s.logPrefix(), id, err)
-		return nil, err
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	if rs == nil {
-		return nil, errors.WithMessage(errorsx.ErrNotFound, "角色")
+		return nil, i18n.E(
+			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
 	}
 	return rs, nil
 }
@@ -92,10 +90,11 @@ func (s *roleService) GetRoleByCode(ctx *context.Context, code string) (*role.Ro
 	rs, err := s.roleRepo.GetByCode(ctx, code)
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取角色失败: %s %v", s.logPrefix(), code, err)
-		return nil, err
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	if rs == nil {
-		return nil, errors.WithMessage(errorsx.ErrNotFound, "角色")
+		return nil, i18n.E(
+			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
 	}
 	return rs, nil
 }
@@ -105,7 +104,7 @@ func (s *roleService) ListRoles(ctx *context.Context, req *schema.PageRequest) (
 	list, total, err := s.roleRepo.List(ctx, req.Page, req.PageSize, db.Order[role.Role](req.OrderBy))
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取角色列表失败: %v", s.logPrefix(), err)
-		return nil, 0, err
+		return nil, 0, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	if total == 0 {
 		return []*role.Role{}, 0, nil
@@ -119,7 +118,7 @@ func (s *roleService) ListRoles(ctx *context.Context, req *schema.PageRequest) (
 	permissions, err := s.rolePermissionRepo.GetPermissionsByRoleCodes(ctx, roleCodes)
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取角色权限失败: %v", s.logPrefix(), err)
-		return nil, 0, err
+		return nil, 0, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	for _, r := range list {
 		r.Permissions = permissions[r.Code]
@@ -157,22 +156,24 @@ func (s *roleService) CreateRole(ctx *context.Context, roleModel *role.CreateReq
 	}
 	if err != nil {
 		ctx.Logger.Errorf("%s 检查角色代码是否存在失败: %s %v", s.logPrefix(), roleModel.Code, err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	if existingRole != nil {
-		return fmt.Errorf("角色代码 %s 已存在", roleModel.Code)
+		return i18n.E(
+			ctx.Context, "common.HadExist", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
 	}
 
 	// 检查角色名称是否已存在
 	existingRole, err = s.roleRepo.GetByName(ctx, roleModel.Name)
 	if err != nil {
 		ctx.Logger.Errorf("%s 检查角色名称是否存在失败: %s %v", s.logPrefix(), roleModel.Name, err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	if existingRole != nil {
-		return fmt.Errorf("角色名称 %s 已存在", roleModel.Name)
+		return i18n.E(
+			ctx.Context, "common.HadExist", map[string]any{"item": roleModel.Name})
 	}
 
 	// 创建角色
@@ -185,7 +186,7 @@ func (s *roleService) CreateRole(ctx *context.Context, roleModel *role.CreateReq
 	})
 	if err != nil {
 		ctx.Logger.Errorf("%s 创建角色失败: %v", s.logPrefix(), err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	return nil
 }
@@ -196,15 +197,16 @@ func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.UpdateReq
 	existingRole, err := s.roleRepo.GetByID(ctx, roleModel.ID)
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取角色失败: %d %v", s.logPrefix(), roleModel.ID, err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	if existingRole == nil {
-		return errors.WithMessage(errorsx.ErrNotFound, "角色")
+		return i18n.E(
+			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
 	}
 
 	if existingRole.IsSystem() {
-		return fmt.Errorf("系统角色不能被修改")
+		return i18n.E(ctx.Context, "common.PermissionDeny", nil)
 	}
 
 	// 如果更改了代码，检查新代码是否已存在
@@ -212,11 +214,12 @@ func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.UpdateReq
 		codeExists, err := s.roleRepo.GetByCode(ctx, roleModel.Code)
 		if err != nil {
 			ctx.Logger.Errorf("%s 检查角色代码是否存在失败: %s %v", s.logPrefix(), roleModel.Code, err)
-			return err
+			return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 		}
 
 		if codeExists != nil {
-			return fmt.Errorf("角色代码 %s 已存在", roleModel.Code)
+			return i18n.E(
+				ctx.Context, "common.HadExist", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
 		}
 	}
 
@@ -225,11 +228,11 @@ func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.UpdateReq
 		nameExists, err := s.roleRepo.GetByName(ctx, roleModel.Name)
 		if err != nil {
 			ctx.Logger.Errorf("%s 检查角色名称是否存在失败: %s %v", s.logPrefix(), roleModel.Name, err)
-			return err
+			return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 		}
 
 		if nameExists != nil {
-			return fmt.Errorf("角色名称 %s 已存在", roleModel.Name)
+			return i18n.E(ctx.Context, "common.HadExist", map[string]any{"item": roleModel.Name})
 		}
 	}
 	existingRole.Name = roleModel.Name
@@ -242,7 +245,7 @@ func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.UpdateReq
 	err = s.roleRepo.Update(ctx, existingRole)
 	if err != nil {
 		ctx.Logger.Errorf("%s 更新角色失败: %v", s.logPrefix(), err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	return nil
 }
@@ -253,29 +256,30 @@ func (s *roleService) DeleteRole(ctx *context.Context, id uint64) error {
 	existingRole, err := s.roleRepo.GetByID(ctx, id)
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取角色失败: %d %v", s.logPrefix(), id, err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	if existingRole == nil {
-		return errors.WithMessage(errorsx.ErrNotFound, "角色")
+		return i18n.E(
+			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
 	}
 
 	if existingRole.IsSystem() {
-		return fmt.Errorf("不能删除系统内置角色")
+		return i18n.E(ctx.Context, "common.PermissionDeny", nil)
 	}
 
 	// 删除角色权限关联
 	err = s.rolePermissionRepo.DeleteByRoleCode(ctx, existingRole.Code)
 	if err != nil {
 		ctx.Logger.Errorf("%s 删除角色权限关联失败: %s %v", s.logPrefix(), existingRole.Code, err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	// 删除角色
 	err = s.roleRepo.Delete(ctx, id)
 	if err != nil {
 		ctx.Logger.Errorf("%s 删除角色权限关联失败: %s %v", s.logPrefix(), existingRole.Code, err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	return nil
 }
@@ -296,18 +300,19 @@ func (s *roleService) AssignPermissions(ctx *context.Context, roleCode string, p
 	existingRole, err := s.roleRepo.GetByCode(ctx, roleCode)
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取角色失败: %s %v", s.logPrefix(), roleCode, err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	if existingRole == nil {
-		return fmt.Errorf("角色不存在")
+		return i18n.E(
+			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
 	}
 
 	// 删除当前角色的所有权限
 	err = s.rolePermissionRepo.DeleteByRoleCode(ctx, roleCode)
 	if err != nil {
 		ctx.Logger.Errorf("%s 删除角色权限关联失败: %s %v", s.logPrefix(), roleCode, err)
-		return err
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	// 如果没有新权限，直接返回
@@ -325,7 +330,12 @@ func (s *roleService) AssignPermissions(ctx *context.Context, roleCode string, p
 	}
 
 	// 批量创建角色权限关联
-	return s.rolePermissionRepo.BatchCreate(ctx, rolePermissions)
+	err = s.rolePermissionRepo.BatchCreate(ctx, rolePermissions)
+	if err != nil {
+		ctx.Logger.Errorf("%s 批量创建角色权限关联失败: %s %v", s.logPrefix(), roleCode, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	return nil
 }
 
 // HasPermission 检查角色是否有特定权限
@@ -338,7 +348,7 @@ func (s *roleService) ListAllPermissions(ctx *context.Context) ([]map[string]int
 	permissions, err := s.rolePermissionRepo.GetAllPermissions(ctx)
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取所有权限列表失败: %v", s.logPrefix(), err)
-		return nil, err
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	// 将权限按模块分组
