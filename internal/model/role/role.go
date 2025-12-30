@@ -8,11 +8,11 @@ import (
 // Role 角色表
 type Role struct {
 	schema.BaseModel
-	Code        string     `gorm:"size:32;not null;unique;default:''" json:"code"`
-	Name        string     `gorm:"size:50;not null;unique;default:''" json:"name"`
-	Description string     `gorm:"size:200;default:''" json:"description"`
-	Status      int        `gorm:"default:1;comment:1:active,0:inactive" json:"status"`
-	SystemFlag  SystemFlag `gorm:"type:tinyint;default:1;not null" json:"system_flag"` //
+	Code        string     `gorm:"column:code;size:32;not null;unique;default:''" json:"code"`
+	Name        string     `gorm:"column:name;size:50;not null;unique;default:''" json:"name"`
+	Description string     `gorm:"column:description;size:200;default:''" json:"description"`
+	Status      RoleStatus `gorm:"column:status;default:1;comment:1:active,2:inactive" json:"status"`
+	SystemFlag  SystemFlag `gorm:"column:system_flag;default:2;comment:2:非系统,1:系统" json:"system_flag"` //
 
 	Permissions []permission.Permission `gorm:"-" json:"permissions"`
 }
@@ -34,8 +34,17 @@ const (
 type SystemFlag int8
 
 const (
-	// SystemFlagNo 非系统
-	SystemFlagNo SystemFlag = iota
 	// SystemFlagYes 系统
-	SystemFlagYes
+	SystemFlagYes SystemFlag = iota + 1
+	// SystemFlagNo 非系统
+	SystemFlagNo
+)
+
+type RoleStatus int8
+
+const (
+	// RoleStatusActive 激活
+	RoleStatusActive RoleStatus = iota + 1
+	// RoleStatusInactive 停用
+	RoleStatusInactive
 )

@@ -11,7 +11,7 @@ CREATE TABLE `permissions` (
   `description` varchar(200)  DEFAULT '',
   `path` varchar(200)  NOT NULL DEFAULT '',
   `module` varchar(50)  NOT NULL DEFAULT '',
-  `global_flag` TINYINT DEFAULT 0 COMMENT '1:全局权限,0:局部权限',
+  `global_flag` TINYINT DEFAULT 2 COMMENT '1:全局权限,2:局部权限',
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`),
   UNIQUE KEY `name` (`name`)
@@ -25,8 +25,8 @@ CREATE TABLE `roles` (
   `code` varchar(32) NOT NULL DEFAULT '',
   `name` varchar(50) NOT NULL DEFAULT '',
   `description` varchar(200) DEFAULT '',
-  `status` int DEFAULT '1' COMMENT '1:active,0:inactive',
-  `system_flag` TINYINT DEFAULT 0 COMMENT '1:系统内置,0:用户自定义',
+  `status` int DEFAULT '1' COMMENT '1:active,2:inactive',
+  `system_flag` TINYINT DEFAULT 2 COMMENT '1:系统内置,2:用户自定义',
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`),
   UNIQUE KEY `name` (`name`)

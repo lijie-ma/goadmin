@@ -11,7 +11,7 @@ CREATE TABLE permissions (
   description VARCHAR(200),
   path VARCHAR(200) NOT NULL DEFAULT '',
   module VARCHAR(50) NOT NULL DEFAULT '',
-  global_flag SMALLINT DEFAULT 0, -- 1:全局权限,0:局部权限
+  global_flag SMALLINT DEFAULT 2, -- 1:全局权限,2:局部权限
   UNIQUE (code),
   UNIQUE (name)
 );
@@ -24,8 +24,8 @@ CREATE TABLE roles (
   code VARCHAR(32) NOT NULL DEFAULT '',
   name VARCHAR(50) NOT NULL DEFAULT '',
   description VARCHAR(200),
-  status INT DEFAULT 1, -- 1:active,0:inactive
-  system_flag SMALLINT DEFAULT 0, -- 1:系统内置,0:用户自定义
+  status INT DEFAULT 1, -- 1:active,2:inactive
+  system_flag SMALLINT DEFAULT 2, -- 1:系统内置,2:用户自定义
   UNIQUE (code),
   UNIQUE (name)
 );

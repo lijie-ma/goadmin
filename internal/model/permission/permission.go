@@ -13,7 +13,7 @@ type Permission struct {
 	Name        string     `gorm:"size:50;not null;unique;default:''" json:"name"`
 	Description string     `gorm:"size:200;default:''" json:"description"`
 	Path        string     `gorm:"size:200;not null;default:''" json:"path"`           // API路径
-	GlobalFlag  GlobalFlag `gorm:"type:tinyint;default:1;not null" json:"global_flag"` //
+	GlobalFlag  GlobalFlag `gorm:"type:tinyint;default:2;not null" json:"global_flag"` //
 	Module      string     `gorm:"size:50;not null;default:''" json:"module"`          // 所属模块
 }
 
@@ -30,8 +30,8 @@ func (p Permission) IsGlobal() bool {
 type GlobalFlag int8
 
 const (
-	// GlobalFlagNo 非全局
-	GlobalFlagNo GlobalFlag = iota
 	// GlobalFlagYes 全局
-	GlobalFlagYes
+	GlobalFlagYes GlobalFlag = iota + 1
+	// GlobalFlagNo 非全局
+	GlobalFlagNo
 )
