@@ -80,14 +80,6 @@
         :rules="addRoleRules"
         label-width="100px"
       >
-        <el-form-item :label="t('role.code')" prop="code">
-          <el-input
-            v-model="addRoleForm.code"
-            :placeholder="t('role.codePlaceholder')"
-            maxlength="32"
-            show-word-limit
-          />
-        </el-form-item>
         <el-form-item :label="t('role.name')" prop="name">
           <el-input
             v-model="addRoleForm.name"
@@ -222,7 +214,7 @@ const fetchAllPermissions = async () => {
 }
 
 // 获取角色的权限列表
-const fetchRolePermissions = async (roleCode) => {
+const fetchRolePermissions = async (roleId) => {
   try {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -238,7 +230,7 @@ const fetchRolePermissions = async (roleCode) => {
         'Accept-Language': locale.value
       },
       body: JSON.stringify({
-        code: roleCode
+        id: roleId
       })
     })
 
@@ -265,7 +257,6 @@ const pageSize = ref(10)
 const addDialogVisible = ref(false)
 const submitLoading = ref(false)
 const addRoleForm = ref({
-  code: '',
   name: '',
   description: '',
   status: 1
@@ -281,11 +272,6 @@ const selectedPermissions = ref([])
 
 // 表单验证规则
 const addRoleRules = computed(() => ({
-  code: [
-    { required: true, message: t('role.codeRequired'), trigger: 'blur' },
-    { min: 2, max: 32, message: t('role.codeLength'), trigger: 'blur' },
-    { pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, message: t('role.codeFormat'), trigger: 'blur' }
-  ],
   name: [
     { required: true, message: t('role.nameRequired'), trigger: 'blur' },
     { min: 2, max: 50, message: t('role.nameLength'), trigger: 'blur' }
@@ -355,7 +341,6 @@ const handleCurrentChange = (val) => {
 const handleAddRole = () => {
   // 重置表单
   addRoleForm.value = {
-    code: '',
     name: '',
     description: '',
     status: 1
@@ -432,7 +417,7 @@ const handleSetPermissions = async (role) => {
     await fetchAllPermissions()
 
     // 获取角色当前的权限
-    await fetchRolePermissions(role.code)
+    await fetchRolePermissions(role.id)
   } catch (error) {
     console.error('加载权限数据失败:', error)
   } finally {
@@ -458,7 +443,7 @@ const handleSubmitPermissions = async () => {
         'Accept-Language': locale.value
       },
       body: JSON.stringify({
-        code: currentRole.value.code,
+        id: currentRole.value.id,
         permissions: selectedPermissions.value
       })
     })
