@@ -109,7 +109,7 @@
         <el-form-item :label="t('role.status')" prop="status">
           <el-radio-group v-model="addRoleForm.status">
             <el-radio :label="1">{{ t('role.enabled') }}</el-radio>
-            <el-radio :label="0">{{ t('role.disabled') }}</el-radio>
+            <el-radio :label="2">{{ t('role.disabled') }}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
