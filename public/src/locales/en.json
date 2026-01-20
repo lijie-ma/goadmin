@@ -107,6 +107,7 @@
     "add": "Add Role",
     "addRole": "Add Role",
     "edit": "Edit",
+    "editRole": "Edit Role",
     "delete": "Delete",
     "name": "Role Name",
     "description": "Description",

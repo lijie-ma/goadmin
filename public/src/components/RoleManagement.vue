@@ -115,6 +115,54 @@
       </template>
     </el-drawer>
 
+    <!-- 编辑角色弹框 -->
+    <el-drawer
+      v-model="editDialogVisible"
+      :title="t('role.editRole')"
+      direction="rtl"
+      size="500px"
+    >
+      <el-form
+        ref="editRoleFormRef"
+        :model="editRoleForm"
+        :rules="editRoleRules"
+        label-width="100px"
+      >
+        <el-form-item :label="t('role.name')" prop="name">
+          <el-input
+            v-model="editRoleForm.name"
+            :placeholder="t('role.namePlaceholder')"
+            maxlength="50"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item :label="t('role.description')" prop="description">
+          <el-input
+            v-model="editRoleForm.description"
+            type="textarea"
+            :placeholder="t('role.descPlaceholder')"
+            :rows="4"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item :label="t('role.status')" prop="status">
+          <el-radio-group v-model="editRoleForm.status">
+            <el-radio :label="1">{{ t('role.enabled') }}</el-radio>
+            <el-radio :label="2">{{ t('role.disabled') }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div style="flex: auto">
+          <el-button @click="handleCancelEdit">{{ t('common.cancel') }}</el-button>
+          <el-button type="primary" :loading="submitLoading" @click="handleSubmitEdit">
+            {{ t('common.confirm') }}
+          </el-button>
+        </div>
+      </template>
+    </el-drawer>
+
     <!-- 权限设置弹框 -->
     <el-drawer
       v-model="permissionDialogVisible"
@@ -263,6 +311,16 @@ const addRoleForm = ref({
 })
 const addRoleFormRef = ref(null)
 
+// 编辑角色对话框
+const editDialogVisible = ref(false)
+const editRoleForm = ref({
+  id: 0,
+  name: '',
+  description: '',
+  status: 1
+})
+const editRoleFormRef = ref(null)
+
 // 权限设置弹框
 const permissionDialogVisible = ref(false)
 const permissionLoading = ref(false)
@@ -272,6 +330,16 @@ const selectedPermissions = ref([])
 
 // 表单验证规则
 const addRoleRules = computed(() => ({
+  name: [
+    { required: true, message: t('role.nameRequired'), trigger: 'blur' },
+    { min: 2, max: 50, message: t('role.nameLength'), trigger: 'blur' }
+  ],
+  description: [
+    { max: 200, message: t('role.descLength'), trigger: 'blur' }
+  ]
+}))
+
+const editRoleRules = computed(() => ({
   name: [
     { required: true, message: t('role.nameRequired'), trigger: 'blur' },
     { min: 2, max: 50, message: t('role.nameLength'), trigger: 'blur' }
@@ -468,7 +536,72 @@ const handleSubmitPermissions = async () => {
 
 // 处理编辑角色
 const handleEditRole = (role) => {
-  // TODO: 实现编辑角色功能
+  // 填充表单数据
+  editRoleForm.value = {
+    id: role.id,
+    name: role.name,
+    description: role.description || '',
+    status: role.status
+  }
+  // 清除表单验证状态
+  if (editRoleFormRef.value) {
+    editRoleFormRef.value.clearValidate()
+  }
+  // 打开弹框
+  editDialogVisible.value = true
+}
+
+// 处理取消编辑
+const handleCancelEdit = () => {
+  editDialogVisible.value = false
+  // 清除表单验证状态
+  if (editRoleFormRef.value) {
+    editRoleFormRef.value.clearValidate()
+  }
+}
+
+// 处理提交编辑
+const handleSubmitEdit = async () => {
+  if (!editRoleFormRef.value) return
+
+  await editRoleFormRef.value.validate(async (valid) => {
+    if (valid) {
+      submitLoading.value = true
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) {
+          ElMessage.error(t('login.loginFailed'))
+          return
+        }
+
+        const response = await fetch('/api/admin/v1/role/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Accept-Language': locale.value
+          },
+          body: JSON.stringify(editRoleForm.value)
+        })
+
+        const data = await response.json()
+
+        if (response.ok && data.code === 200) {
+          ElMessage.success(t('role.editSuccess'))
+          editDialogVisible.value = false
+          // 刷新列表
+          fetchRoles()
+        } else {
+          ElMessage.error(data.message || t('common.failed'))
+        }
+      } catch (error) {
+        console.error('编辑角色失败:', error)
+        ElMessage.error(t('common.failed'))
+      } finally {
+        submitLoading.value = false
+      }
+    }
+  })
 }
 
 // 处理删除角色
