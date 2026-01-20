@@ -262,7 +262,7 @@ const fetchAllPermissions = async () => {
 }
 
 // 获取角色的权限列表
-const fetchRolePermissions = async (roleId) => {
+const fetchRolePermissions = async (roleCode) => {
   try {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -270,16 +270,12 @@ const fetchRolePermissions = async (roleId) => {
       return
     }
 
-    const response = await fetch('/api/admin/v1/role/permissions/get', {
-      method: 'POST',
+    const response = await fetch(`/api/admin/v1/role/permissions/get?code=${roleCode}`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
         'Accept-Language': locale.value
-      },
-      body: JSON.stringify({
-        id: roleId
-      })
+      }
     })
 
     const data = await response.json()
@@ -485,7 +481,7 @@ const handleSetPermissions = async (role) => {
     await fetchAllPermissions()
 
     // 获取角色当前的权限
-    await fetchRolePermissions(role.id)
+    await fetchRolePermissions(role.code)
   } catch (error) {
     console.error('加载权限数据失败:', error)
   } finally {

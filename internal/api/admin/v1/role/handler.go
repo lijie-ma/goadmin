@@ -200,10 +200,10 @@ func (h *Handler) AssignPermissions(ctx *context.Context) {
 // GetRolePermissions 获取角色的权限列表
 func (h *Handler) GetRolePermissions(ctx *context.Context) {
 	var req struct {
-		Code string `json:"code" binding:"required"`
+		Code string `form:"code" binding:"required"`
 	}
 
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, schema.Response{
 			Code:    http.StatusBadRequest,
 			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
