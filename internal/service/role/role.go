@@ -209,20 +209,6 @@ func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.UpdateReq
 		return i18n.E(ctx.Context, "common.PermissionDeny", nil)
 	}
 
-	// 如果更改了代码，检查新代码是否已存在
-	if existingRole.Code != roleModel.Code {
-		codeExists, err := s.roleRepo.GetByCode(ctx, roleModel.Code)
-		if err != nil {
-			ctx.Logger.Errorf("%s 检查角色代码是否存在失败: %s %v", s.logPrefix(), roleModel.Code, err)
-			return i18n.E(ctx.Context, "common.RepositoryErr", nil)
-		}
-
-		if codeExists != nil {
-			return i18n.E(
-				ctx.Context, "common.HadExist", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
-		}
-	}
-
 	// 如果更改了名称，检查新名称是否已存在
 	if existingRole.Name != roleModel.Name {
 		nameExists, err := s.roleRepo.GetByName(ctx, roleModel.Name)
@@ -236,7 +222,7 @@ func (s *roleService) UpdateRole(ctx *context.Context, roleModel *role.UpdateReq
 		}
 	}
 	existingRole.Name = roleModel.Name
-	existingRole.Code = roleModel.Code
+	// existingRole.Code = roleModel.Code  // code 禁止修改
 	existingRole.Description = roleModel.Description
 	existingRole.Status = roleModel.Status
 	existingRole.MTime = util.Now()

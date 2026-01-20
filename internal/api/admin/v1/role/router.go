@@ -28,7 +28,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			group.POST("/delete", context.Build(handler.DeleteRole))
 
 			// 角色权限管理
-			group.POST("/permissions/get", context.Build(handler.GetRolePermissions))
+			group.GET("/permissions/get", context.Build(handler.GetRolePermissions))
 			group.POST("/permissions/assign", context.Build(handler.AssignPermissions))
 			group.GET("/permissions/all", context.Build(handler.ListAllPermissions))
 		}
