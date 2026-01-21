@@ -507,8 +507,8 @@ const handleSubmitPermissions = async () => {
         'Accept-Language': locale.value
       },
       body: JSON.stringify({
-        id: currentRole.value.id,
-        permissions: selectedPermissions.value
+        role_code: currentRole.value.code,
+        permission_codes: selectedPermissions.value
       })
     })
 
