@@ -26,6 +26,9 @@ type RoleService interface {
 	// ListActiveRoles 获取所有激活的角色
 	ListActiveRoles(ctx *context.Context) ([]*role.Role, error)
 
+	// ListAllRoles 获取所有角色（不分页）
+	ListAllRoles(ctx *context.Context) ([]*role.Role, error)
+
 	// CreateRole 创建角色
 	CreateRole(ctx *context.Context, roleModel *role.CreateRequest) error
 
@@ -129,6 +132,16 @@ func (s *roleService) ListRoles(ctx *context.Context, req *schema.PageRequest) (
 // ListActiveRoles 获取所有激活的角色
 func (s *roleService) ListActiveRoles(ctx *context.Context) ([]*role.Role, error) {
 	return s.roleRepo.ListActive(ctx)
+}
+
+// ListAllRoles 获取所有角色（不分页）
+func (s *roleService) ListAllRoles(ctx *context.Context) ([]*role.Role, error) {
+	list, err := s.roleRepo.Find(ctx)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取所有角色失败: %v", s.logPrefix(), err)
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	return list, nil
 }
 
 // CreateRole 创建角色

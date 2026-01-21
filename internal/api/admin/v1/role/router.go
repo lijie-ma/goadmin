@@ -21,6 +21,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		{
 			// 角色管理
 			group.GET("/list", context.Build(handler.ListRoles))
+			group.GET("/all", context.Build(handler.ListAllRoles))
 			group.GET("/active", context.Build(handler.ListActiveRoles))
 			group.POST("/get", context.Build(handler.GetRole))
 			group.POST("/create", context.Build(handler.CreateRole))

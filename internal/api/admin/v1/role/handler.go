@@ -245,6 +245,24 @@ func (h *Handler) ListActiveRoles(ctx *context.Context) {
 	})
 }
 
+// ListAllRoles 获取所有角色（不分页）
+func (h *Handler) ListAllRoles(ctx *context.Context) {
+	roles, err := h.roleSrv.ListAllRoles(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
+		Data:    roles,
+	})
+}
+
 // ListAllPermissions 获取所有权限列表
 func (h *Handler) ListAllPermissions(ctx *context.Context) {
 	permissions, err := h.roleSrv.ListAllPermissions(ctx)
