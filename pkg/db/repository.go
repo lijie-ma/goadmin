@@ -19,7 +19,7 @@ type Model interface {
 type QueryOption[T Model] func(*gorm.DB) *gorm.DB
 
 // Where 条件查询选项
-func Where[T Model](query interface{}, args ...interface{}) QueryOption[T] {
+func Where[T Model](query any, args ...any) QueryOption[T] {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where(query, args...)
 	}
@@ -33,21 +33,21 @@ func Order[T Model](value string) QueryOption[T] {
 }
 
 // Preload 预加载关联查询选项
-func Preload[T Model](query string, args ...interface{}) QueryOption[T] {
+func Preload[T Model](query string, args ...any) QueryOption[T] {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Preload(query, args...)
 	}
 }
 
 // Joins 关联查询选项
-func Joins[T Model](query string, args ...interface{}) QueryOption[T] {
+func Joins[T Model](query string, args ...any) QueryOption[T] {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Joins(query, args...)
 	}
 }
 
 // Select 字段选择查询选项
-func Select[T Model](query interface{}, args ...interface{}) QueryOption[T] {
+func Select[T Model](query any, args ...any) QueryOption[T] {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Select(query, args...)
 	}
