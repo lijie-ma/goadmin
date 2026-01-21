@@ -129,3 +129,19 @@ func (r *UserRepositoryImpl) GetUsersByRoleCode(ctx context.Context, roleCode st
 		Find(&users).Error
 	return users, err
 }
+
+// List 获取用户列表（重写以排除已删除用户）
+func (r *UserRepositoryImpl) PageList(ctx context.Context, req *user.ListRequest) ([]*user.User, int64, error) {
+	opts := []db.QueryOption[user.User]{
+		db.Order[user.User](req.OrderBy),
+		db.Preload[user.User]("Role"),
+		db.Where[user.User]("status != ?", user.UserStatusDeleted), // 添加排除已删除用户的条件
+	}
+
+	// 如果有搜索关键词，添加搜索条件
+	if req.Keyword != "" {
+		opts = append(opts, db.Where[user.User]("username LIKE ? OR email LIKE ?", "%"+req.Keyword+"%", "%"+req.Keyword+"%"))
+	}
+	return r.List(ctx, req.Page, req.PageSize, opts...)
+
+}

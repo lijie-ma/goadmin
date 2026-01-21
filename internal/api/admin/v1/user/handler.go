@@ -108,3 +108,33 @@ func (h *Handler) ChangePassword(ctx *context.Context) {
 		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 	})
 }
+
+// ListUsers 获取用户列表
+func (h *Handler) ListUsers(ctx *context.Context) {
+	var req modeluser.ListRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, schema.Response{
+			Code:    http.StatusBadRequest,
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
+		})
+		return
+	}
+
+	users, total, err := h.userSrv.ListUsers(ctx, &req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
+		Data: map[string]interface{}{
+			"list":  users,
+			"total": total,
+		},
+	})
+}

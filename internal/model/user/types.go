@@ -1,6 +1,9 @@
 package user
 
-import "goadmin/internal/model/role"
+import (
+	"goadmin/internal/model/role"
+	"goadmin/internal/model/schema"
+)
 
 // LoginRequest 登录请求参数
 type LoginRequest struct {
@@ -26,4 +29,10 @@ type ChangePasswordRequest struct {
 	OldPassword     string `json:"old_password" binding:"required"`
 	NewPassword     string `json:"new_password" binding:"required"`
 	ConfirmPassword string `json:"confirm_password" binding:"required,eqfield=NewPassword"`
+}
+
+// ListRequest 用户列表请求参数
+type ListRequest struct {
+	schema.PageRequest
+	Keyword  string `form:"keyword"`                              // 搜索关键词（用户名或邮箱）
 }

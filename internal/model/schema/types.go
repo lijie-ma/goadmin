@@ -2,9 +2,9 @@ package schema
 
 // Response 通用响应结构
 type Response struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 // PageRequest 分页请求
@@ -16,8 +16,8 @@ type PageRequest struct {
 
 // PageResponse 分页响应
 type PageResponse struct {
-	Total int64       `json:"total"` // 总数
-	List  interface{} `json:"list"`  // 列表
+	Total int64 `json:"total"` // 总数
+	List  any   `json:"list"`  // 列表
 }
 
 // IDRequest ID请求

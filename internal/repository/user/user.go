@@ -30,4 +30,7 @@ type UserRepository interface {
 
 	// GetUsersByRoleCode 获取指定角色的所有用户
 	GetUsersByRoleCode(ctx context.Context, roleCode string) ([]*user.User, error)
+
+	// List 获取用户列表（重写以排除已删除用户）
+	PageList(ctx context.Context, req *user.ListRequest) ([]*user.User, int64, error)
 }

@@ -25,6 +25,9 @@ type UserService interface {
 	// GenerateUserSession 当前Session
 	GenerateUserSession(ctx *context.Context, userID uint64) (*modeluser.User, error)
 
+	// ListUsers 获取用户列表
+	ListUsers(ctx *context.Context, req *modeluser.ListRequest) ([]*modeluser.User, int64, error)
+
 	ChangePassword(ctx *context.Context, req *modeluser.ChangePasswordRequest) error
 }
 
@@ -138,6 +141,19 @@ func (s *userService) GenerateUserSession(ctx *context.Context, userID uint64) (
 		return nil, i18n.E(ctx.Context, "user.AccountStatusAbnormal", nil)
 	}
 	return u, nil
+}
+
+// ListUsers 获取用户列表
+func (s *userService) ListUsers(ctx *context.Context, req *modeluser.ListRequest) ([]*modeluser.User, int64, error) {
+	list, total, err := s.userRepo.PageList(ctx, req)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取用户列表失败: %v", s.logPrefix(), err)
+		return nil, 0, i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	if total == 0 {
+		return []*modeluser.User{}, 0, nil
+	}
+	return list, total, nil
 }
 
 func (s *userService) ChangePassword(ctx *context.Context, req *modeluser.ChangePasswordRequest) error {

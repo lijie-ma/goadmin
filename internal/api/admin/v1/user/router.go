@@ -31,6 +31,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		{
 			authGroup.GET("/logout", context.Build(handler.Logout))
 			authGroup.POST("/change_pwd", context.Build(handler.ChangePassword))
+			authGroup.GET("/list", context.Build(handler.ListUsers))
 		}
 	}
 }
