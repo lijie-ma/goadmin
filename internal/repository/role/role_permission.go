@@ -12,7 +12,9 @@ type RolePermissionRepository interface {
 	db.Repository[role.RolePermission]
 
 	// GetPermissionsByRoleCode 根据角色代码获取权限列表
-	GetPermissionsByRoleCode(ctx context.Context, roleCode string) ([]string, error)
+	//
+	// Param: containPublic 是否包含公共权限 默认包含
+	GetPermissionsByRoleCode(ctx context.Context, roleCode string, containPublic ...bool) ([]string, error)
 
 	// GetPermissionURLsByRoleCode 根据角色代码获取权限列表
 	GetPermissionURLsByRoleCode(ctx context.Context, roleCode string) ([]string, error)
@@ -33,5 +35,7 @@ type RolePermissionRepository interface {
 	GetPermissionsByRoleCodes(ctx context.Context, roleCodes []string) (map[string][]permission.Permission, error)
 
 	// GetAllPermissions 获取所有权限列表
-	GetAllPermissions(ctx context.Context) ([]permission.Permission, error)
+	//
+	// Param: containPublic 是否包含公共权限 默认包含
+	GetAllPermissions(ctx context.Context, containPublic ...bool) ([]permission.Permission, error)
 }

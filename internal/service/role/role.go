@@ -277,7 +277,7 @@ func (s *roleService) GetRoleWithPermissions(ctx *context.Context, id uint64) (*
 
 // GetRolePermissions 获取角色的权限列表
 func (s *roleService) GetRolePermissions(ctx *context.Context, roleCode string) ([]string, error) {
-	return s.rolePermissionRepo.GetPermissionsByRoleCode(ctx, roleCode)
+	return s.rolePermissionRepo.GetPermissionsByRoleCode(ctx, roleCode, false)
 }
 
 // AssignPermissions 分配权限给角色
@@ -330,17 +330,17 @@ func (s *roleService) HasPermission(ctx *context.Context, roleCode string, permi
 }
 
 // ListAllPermissions 获取所有权限列表
-func (s *roleService) ListAllPermissions(ctx *context.Context) ([]map[string]interface{}, error) {
-	permissions, err := s.rolePermissionRepo.GetAllPermissions(ctx)
+func (s *roleService) ListAllPermissions(ctx *context.Context) ([]map[string]any, error) {
+	permissions, err := s.rolePermissionRepo.GetAllPermissions(ctx, false)
 	if err != nil {
 		ctx.Logger.Errorf("%s 获取所有权限列表失败: %v", s.logPrefix(), err)
 		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	// 将权限按模块分组
-	moduleMap := make(map[string][]map[string]interface{})
+	moduleMap := make(map[string][]map[string]any)
 	for _, perm := range permissions {
-		permMap := map[string]interface{}{
+		permMap := map[string]any{
 			"code":        perm.Code,
 			"name":        perm.Name,
 			"description": perm.Description,
@@ -350,9 +350,9 @@ func (s *roleService) ListAllPermissions(ctx *context.Context) ([]map[string]int
 	}
 
 	// 构建返回结果
-	var result []map[string]interface{}
+	var result []map[string]any
 	for module, perms := range moduleMap {
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"module":      module,
 			"permissions": perms,
 		})

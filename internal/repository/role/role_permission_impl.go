@@ -31,13 +31,23 @@ func NewRolePermissionRepositoryWithDB() RolePermissionRepository {
 }
 
 // GetPermissionsByRoleCode 根据角色代码获取权限列表
-func (r *RolePermissionRepositoryImpl) GetPermissionsByRoleCode(ctx context.Context, roleCode string) ([]string, error) {
-	var permissions []string
-	err := r.DB().WithContext(ctx).
-		Raw("? UNION ?",
+func (r *RolePermissionRepositoryImpl) GetPermissionsByRoleCode(
+	ctx context.Context, roleCode string, containPublic ...bool) ([]string, error) {
+	var (
+		permissions []string
+		err         error
+		db          *gorm.DB
+	)
+	db = r.DB().WithContext(ctx)
+	if len(containPublic) == 0 || containPublic[0] {
+		db = db.Raw("? UNION ?",
 			r.DB().Model(&role.RolePermission{}).Select("permission_code").Where("role_code = ?", roleCode),
 			r.DB().Model(&permission.Permission{}).Select("code").Where("global_flag = ?", permission.GlobalFlagYes),
-		).Pluck("permission_code", &permissions).Error
+		)
+	} else {
+		db = db.Model(&role.RolePermission{}).Select("permission_code").Where("role_code = ?", roleCode)
+	}
+	err = db.Pluck("permission_code", &permissions).Error
 	return permissions, err
 }
 
@@ -115,8 +125,16 @@ func (r *RolePermissionRepositoryImpl) GetPermissionsByRoleCodes(
 }
 
 // GetAllPermissions 获取所有权限列表
-func (r *RolePermissionRepositoryImpl) GetAllPermissions(ctx context.Context) ([]permission.Permission, error) {
-	var permissions []permission.Permission
-	err := r.DB().WithContext(ctx).Find(&permissions).Error
+func (r *RolePermissionRepositoryImpl) GetAllPermissions(ctx context.Context, containPublic ...bool) ([]permission.Permission, error) {
+	var (
+		permissions []permission.Permission
+		err         error
+		db          *gorm.DB
+	)
+	db = r.DB().WithContext(ctx).Model(&permission.Permission{})
+	if len(containPublic) > 0 && !containPublic[0] {
+		db = db.Where("global_flag != ?", permission.GlobalFlagYes)
+	}
+	err = db.Find(&permissions).Error
 	return permissions, err
 }
