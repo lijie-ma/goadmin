@@ -82,6 +82,7 @@
     "phone": "手机号",
     "status": "状态",
     "role": "角色",
+    "roleCode": "角色代码",
     "createTime": "创建时间",
     "updateTime": "更新时间",
     "operations": "操作",
@@ -98,7 +99,13 @@
     "deleteConfirm": "确定要删除该用户吗？",
     "deleteSuccess": "删除成功",
     "addSuccess": "添加成功",
-    "editSuccess": "修改成功"
+    "editSuccess": "修改成功",
+    "usernameAlreadyExists": "用户名已存在",
+    "emailAlreadyExists": "邮箱已存在",
+    "superAdminCannotModify": "超级管理员不能修改",
+    "superAdminCannotDelete": "超级管理员不能删除",
+    "cannotDeleteSelf": "不能删除当前登录用户",
+    "roleNotFound": "角色不存在"
   },
   "role": {
     "management": "角色管理",

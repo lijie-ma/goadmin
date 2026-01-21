@@ -82,6 +82,7 @@
     "phone": "Phone",
     "status": "Status",
     "role": "Role",
+    "roleCode": "Role Code",
     "createTime": "Create Time",
     "updateTime": "Update Time",
     "operations": "Operations",
@@ -98,7 +99,13 @@
     "deleteConfirm": "Are you sure you want to delete this user?",
     "deleteSuccess": "Deleted successfully",
     "addSuccess": "Added successfully",
-    "editSuccess": "Updated successfully"
+    "editSuccess": "Updated successfully",
+    "usernameAlreadyExists": "Username already exists",
+    "emailAlreadyExists": "Email already exists",
+    "superAdminCannotModify": "Super admin cannot be modified",
+    "superAdminCannotDelete": "Super admin cannot be deleted",
+    "cannotDeleteSelf": "Cannot delete current logged-in user",
+    "roleNotFound": "Role not found"
   },
   "role": {
     "management": "Role Management",
