@@ -3,6 +3,7 @@ package user
 import (
 	"goadmin/internal/context"
 	"goadmin/internal/i18n"
+	"goadmin/internal/model/schema"
 	"goadmin/internal/model/server"
 	modeluser "goadmin/internal/model/user"
 	"goadmin/internal/repository/role"
@@ -28,12 +29,22 @@ type UserService interface {
 	// ListUsers 获取用户列表
 	ListUsers(ctx *context.Context, req *modeluser.ListRequest) ([]*modeluser.User, int64, error)
 
+	// CreateUser 创建用户
+	CreateUser(ctx *context.Context, req *modeluser.CreateUserRequest) error
+
+	// UpdateUser 更新用户
+	UpdateUser(ctx *context.Context, req *modeluser.UpdateUserRequest) error
+
+	// DeleteUser 删除用户
+	DeleteUser(ctx *context.Context, req *schema.IDRequest) error
+
 	ChangePassword(ctx *context.Context, req *modeluser.ChangePasswordRequest) error
 }
 
 // userService 用户服务实现
 type userService struct {
 	userRepo userrepo.UserRepository
+	roleRepo role.RoleRepository
 	cfg      *config.Config
 }
 
@@ -42,6 +53,7 @@ func NewUserService() UserService {
 	return &userService{
 		cfg:      config.Get(),
 		userRepo: userrepo.NewUserRepository(),
+		roleRepo: role.NewRoleRepositoryWithDB(),
 	}
 }
 
@@ -154,6 +166,185 @@ func (s *userService) ListUsers(ctx *context.Context, req *modeluser.ListRequest
 		return []*modeluser.User{}, 0, nil
 	}
 	return list, total, nil
+}
+
+// CreateUser 创建用户
+func (s *userService) CreateUser(ctx *context.Context, req *modeluser.CreateUserRequest) error {
+	// 检查用户名是否已存在
+	exists, err := s.userRepo.IsUsernameExists(ctx, req.Username)
+	if err != nil {
+		ctx.Logger.Errorf("%s 检查用户名是否存在失败: %s %v", s.logPrefix(), req.Username, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	if exists {
+		ctx.Logger.Warnf("%s 用户名已存在: %s", s.logPrefix(), req.Username)
+		return i18n.E(ctx.Context, "user.UsernameAlreadyExists", nil)
+	}
+
+	// 检查邮箱是否已存在
+	if req.Email != "" {
+		exists, err = s.userRepo.IsEmailExists(ctx, req.Email)
+		if err != nil {
+			ctx.Logger.Errorf("%s 检查邮箱是否存在失败: %s %v", s.logPrefix(), req.Email, err)
+			return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+		}
+		if exists {
+			ctx.Logger.Warnf("%s 邮箱已存在: %s", s.logPrefix(), req.Email)
+			return i18n.E(ctx.Context, "user.EmailAlreadyExists", nil)
+		}
+	}
+
+	// 检查角色是否存在
+	role, err := s.roleRepo.GetByCode(ctx, req.RoleCode)
+	if err != nil {
+		ctx.Logger.Errorf("%s 检查角色是否存在失败: %s %v", s.logPrefix(), req.RoleCode, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	if role == nil {
+		ctx.Logger.Warnf("%s 角色不存在: %s", s.logPrefix(), req.RoleCode)
+		return i18n.E(ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
+	}
+
+	// 加密密码
+	encryptPwd, err := util.Password2Hash(req.Password)
+	if err != nil {
+		ctx.Logger.Errorf("%s 密码加密失败: %s %v", s.logPrefix(), req.Username, err)
+		return i18n.E(ctx.Context, "common.EncryptErr", nil)
+	}
+
+	// 创建用户
+	user := &modeluser.User{
+		Username: req.Username,
+		Password: encryptPwd,
+		Email:    req.Email,
+		RoleCode: req.RoleCode,
+		Status:   modeluser.UserStatus(req.Status),
+	}
+
+	err = s.userRepo.Create(ctx, user)
+	if err != nil {
+		ctx.Logger.Errorf("%s 创建用户失败: %s %v", s.logPrefix(), req.Username, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+
+	ctx.Logger.Infof("%s 创建用户成功: %s", s.logPrefix(), req.Username)
+	return nil
+}
+
+// UpdateUser 更新用户
+func (s *userService) UpdateUser(ctx *context.Context, req *modeluser.UpdateUserRequest) error {
+	// 获取用户信息
+	user, err := s.userRepo.GetByID(ctx, req.ID)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取用户信息失败: %d %v", s.logPrefix(), req.ID, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	if user == nil {
+		ctx.Logger.Warnf("%s 用户不存在: %d", s.logPrefix(), req.ID)
+		return i18n.E(ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.user", nil)})
+	}
+
+	// 检查是否为超级管理员
+	if user.IsSuperAdmin() {
+		ctx.Logger.Warnf("%s 超级管理员不能修改: %d", s.logPrefix(), req.ID)
+		return i18n.E(ctx.Context, "user.SuperAdminCannotModify", nil)
+	}
+
+	// 检查用户名是否已被其他用户使用
+	if req.Username != "" && req.Username != user.Username {
+		exists, err := s.userRepo.IsUsernameExists(ctx, req.Username, req.ID)
+		if err != nil {
+			ctx.Logger.Errorf("%s 检查用户名是否存在失败: %s %v", s.logPrefix(), req.Username, err)
+			return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+		}
+		if exists {
+			ctx.Logger.Warnf("%s 用户名已存在: %s", s.logPrefix(), req.Username)
+			return i18n.E(ctx.Context, "user.UsernameAlreadyExists", nil)
+		}
+		user.Username = req.Username
+	}
+
+	// 检查邮箱是否已被其他用户使用
+	if req.Email != "" && req.Email != user.Email {
+		exists, err := s.userRepo.IsEmailExists(ctx, req.Email, req.ID)
+		if err != nil {
+			ctx.Logger.Errorf("%s 检查邮箱是否存在失败: %s %v", s.logPrefix(), req.Email, err)
+			return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+		}
+		if exists {
+			ctx.Logger.Warnf("%s 邮箱已存在: %s", s.logPrefix(), req.Email)
+			return i18n.E(ctx.Context, "user.EmailAlreadyExists", nil)
+		}
+		user.Email = req.Email
+	}
+
+	// 更新角色代码
+	if req.RoleCode != "" && req.RoleCode != user.RoleCode {
+		// 检查角色是否存在
+		role, err := s.roleRepo.GetByCode(ctx, req.RoleCode)
+		if err != nil {
+			ctx.Logger.Errorf("%s 检查角色是否存在失败: %s %v", s.logPrefix(), req.RoleCode, err)
+			return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+		}
+		if role == nil {
+			ctx.Logger.Warnf("%s 角色不存在: %s", s.logPrefix(), req.RoleCode)
+			return i18n.E(ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.role", nil)})
+		}
+		user.RoleCode = req.RoleCode
+	}
+
+	// 更新状态
+	if req.Status >= 0 {
+		user.Status = modeluser.UserStatus(req.Status)
+	}
+
+	// 更新用户
+	err = s.userRepo.Update(ctx, user)
+	if err != nil {
+		ctx.Logger.Errorf("%s 更新用户失败: %d %v", s.logPrefix(), req.ID, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+
+	ctx.Logger.Infof("%s 更新用户成功: %d", s.logPrefix(), req.ID)
+	return nil
+}
+
+// DeleteUser 删除用户
+func (s *userService) DeleteUser(ctx *context.Context, req *schema.IDRequest) error {
+	// 获取用户信息
+	user, err := s.userRepo.GetByID(ctx, req.ID)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取用户信息失败: %d %v", s.logPrefix(), req.ID, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	if user == nil {
+		ctx.Logger.Warnf("%s 用户不存在: %d", s.logPrefix(), req.ID)
+		return i18n.E(
+			ctx.Context, "common.NotFound",
+			map[string]any{"item": i18n.T(ctx.Context, "common.item.user", nil)})
+	}
+
+	// 检查是否为超级管理员
+	if user.IsSuperAdmin() {
+		ctx.Logger.Warnf("%s 超级管理员不能删除: %d", s.logPrefix(), req.ID)
+		return i18n.E(ctx.Context, "user.SuperAdminCannotDelete", nil)
+	}
+
+	// 检查是否为当前登录用户
+	if req.ID == ctx.Session().GetID() {
+		ctx.Logger.Warnf("%s 不能删除当前登录用户: %d", s.logPrefix(), req.ID)
+		return i18n.E(ctx.Context, "user.CannotDeleteSelf", nil)
+	}
+
+	// 软删除用户（将状态设置为已删除）
+	err = s.userRepo.UpdateStatus(ctx, req.ID, modeluser.UserStatusDeleted)
+	if err != nil {
+		ctx.Logger.Errorf("%s 删除用户失败: %d %v", s.logPrefix(), req.ID, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+
+	ctx.Logger.Infof("%s 删除用户成功: %d", s.logPrefix(), req.ID)
+	return nil
 }
 
 func (s *userService) ChangePassword(ctx *context.Context, req *modeluser.ChangePasswordRequest) error {

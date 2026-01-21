@@ -15,3 +15,18 @@ other = "账户状态异常"
 
 [user.InvalidPassword]
 other = "无效密码"
+
+[user.UsernameAlreadyExists]
+other = "用户名已存在"
+
+[user.EmailAlreadyExists]
+other = "邮箱已存在"
+
+[user.SuperAdminCannotModify]
+other = "超级管理员不能修改"
+
+[user.SuperAdminCannotDelete]
+other = "超级管理员不能删除"
+
+[user.CannotDeleteSelf]
+other = "不能删除当前登录用户"

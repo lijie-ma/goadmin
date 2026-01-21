@@ -32,6 +32,9 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			authGroup.GET("/logout", context.Build(handler.Logout))
 			authGroup.POST("/change_pwd", context.Build(handler.ChangePassword))
 			authGroup.GET("/list", context.Build(handler.ListUsers))
+			authGroup.POST("/create", context.Build(handler.CreateUser))
+			authGroup.POST("/update", context.Build(handler.UpdateUser))
+			authGroup.POST("/delete", context.Build(handler.DeleteUser))
 		}
 	}
 }

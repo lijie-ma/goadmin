@@ -15,3 +15,18 @@ other = "Account status abnormal"
 
 [user.InvalidPassword]
 other = "Invalid password"
+
+[user.UsernameAlreadyExists]
+other = "Username already exists"
+
+[user.EmailAlreadyExists]
+other = "Email already exists"
+
+[user.SuperAdminCannotModify]
+other = "Super admin cannot be modified"
+
+[user.SuperAdminCannotDelete]
+other = "Super admin cannot be deleted"
+
+[user.CannotDeleteSelf]
+other = "Cannot delete current logged-in user"

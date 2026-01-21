@@ -14,7 +14,7 @@ type User struct {
 	Status   UserStatus `gorm:"type:int;default:1;comment:0:inactive,1:active,2:locked,3:deleted" json:"status"`
 	RoleCode string     `gorm:"size:32;not null;index:idx_user_role;default:''" json:"role_code"`
 	// 用户角色关联表
-	Role role.Role `gorm:"foreignKey:RoleCode;references:Code"`
+	Role role.Role `gorm:"foreignKey:RoleCode;references:Code" json:"role"`
 }
 
 // TableName 指定表名

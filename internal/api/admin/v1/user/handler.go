@@ -109,6 +109,84 @@ func (h *Handler) ChangePassword(ctx *context.Context) {
 	})
 }
 
+// CreateUser 创建用户
+func (h *Handler) CreateUser(ctx *context.Context) {
+	var req modeluser.CreateUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, schema.Response{
+			Code:    http.StatusBadRequest,
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
+		})
+		return
+	}
+
+	err := h.userSrv.CreateUser(ctx, &req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
+	})
+}
+
+// UpdateUser 更新用户
+func (h *Handler) UpdateUser(ctx *context.Context) {
+	var req modeluser.UpdateUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, schema.Response{
+			Code:    http.StatusBadRequest,
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
+		})
+		return
+	}
+
+	err := h.userSrv.UpdateUser(ctx, &req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
+	})
+}
+
+// DeleteUser 删除用户
+func (h *Handler) DeleteUser(ctx *context.Context) {
+	var req schema.IDRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, schema.Response{
+			Code:    http.StatusBadRequest,
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
+		})
+		return
+	}
+
+	err := h.userSrv.DeleteUser(ctx, &req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
+	})
+}
+
 // ListUsers 获取用户列表
 func (h *Handler) ListUsers(ctx *context.Context) {
 	var req modeluser.ListRequest
