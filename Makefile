@@ -10,7 +10,7 @@ COMPOSE_FILE := deploy/docker/docker-compose.yml
 PROJECT_NAME := goadmin
 
 # Docker 命令
-DOCKER_COMPOSE := docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE)
+DOCKER_COMPOSE := docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) --progress plain
 
 # -------------------------------
 # 1️⃣ 启动服务
