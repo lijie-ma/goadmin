@@ -106,7 +106,7 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 
 	if u == nil || !util.ValidatePasswordAndHash(req.Password, u.Password) {
 		ctx.Logger.Warnf("%s 用户名或密码错误: %s %v", s.logPrefix(), req.Username, err)
-		return nil, i18n.E(ctx.Context, "user.IncorrectUsernameOrPassword", nil)
+		return nil, i18n.E(ctx.Context, "user.InvalidUsernameOrPassword", nil)
 	}
 
 	if !u.IsActive() {
