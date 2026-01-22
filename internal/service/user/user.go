@@ -23,8 +23,11 @@ type UserService interface {
 	// GenerateUserCredential 根据用户ID生成用户身份凭证
 	GenerateUserCredential(ctx *context.Context, userID uint64) (*token.TokenPair, error)
 
-	// GenerateUserSession 当前Session
-	GenerateUserSession(ctx *context.Context, userID uint64) (*modeluser.User, error)
+	// GetUserByID
+	GetUserByID(ctx *context.Context, userID uint64) (*modeluser.User, error)
+
+	// GetUserByIDWithPerm
+	GetUserByIDWithPerm(ctx *context.Context, userID uint64) (*modeluser.User, error)
 
 	// ListUsers 获取用户列表
 	ListUsers(ctx *context.Context, req *modeluser.ListRequest) ([]*modeluser.User, int64, error)
@@ -120,41 +123,46 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 		ctx.Logger.Errorf("%s jwt token: %s %v", s.logPrefix(), req.Username, err)
 		return nil, err
 	}
-	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionsByRoleCode(ctx, u.RoleCode)
-	if err != nil {
-		ctx.Logger.Errorf("%s get Permissions: %s %d %v", s.logPrefix(), req.Username, u.RoleCode, err)
-		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
-	}
 
 	return &modeluser.LoginResponse{
-		Token:           tokenPairs.AccessToken,
-		RefreshToken:    tokenPairs.RefreshToken,
-		ExpiresAt:       tokenPairs.ExpiresAt,
-		Role:            u.Role,
-		Username:        u.Username,
-		RoleCode:        u.RoleCode,
-		Email:           u.Email,
-		PermissionCodes: perms,
+		Token:        tokenPairs.AccessToken,
+		RefreshToken: tokenPairs.RefreshToken,
+		ExpiresAt:    tokenPairs.ExpiresAt,
 	}, nil
 }
 
-// GenerateUserSession 当前Session
-func (s *userService) GenerateUserSession(ctx *context.Context, userID uint64) (*modeluser.User, error) {
+// GetUserByID 当前Session
+func (s *userService) GetUserByID(ctx *context.Context, userID uint64) (*modeluser.User, error) {
 	u, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		ctx.Logger.Errorf("%s 获取用户信息失败: %d %v", s.logPrefix(), userID, err)
+		ctx.Logger.Errorf("%s 获取用户信息失败 GetByID %d %v", s.logPrefix(), userID, err)
 		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
 	if u == nil {
 		ctx.Logger.Warnf("%s 用户不存在: %d", s.logPrefix(), userID)
-		return nil, i18n.E(ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.user", nil)})
+		return nil, i18n.E(
+			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.user", nil)})
 	}
 
 	if !u.IsActive() {
 		ctx.Logger.Warnf("%s 账户状态异常: %s %s", s.logPrefix(), userID, u.Status.String())
 		return nil, i18n.E(ctx.Context, "user.AccountStatusAbnormal", nil)
 	}
+	return u, nil
+}
+
+func (s *userService) GetUserByIDWithPerm(ctx *context.Context, userID uint64) (*modeluser.User, error) {
+	u, err := s.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionURLsByRoleCode(ctx, u.RoleCode)
+	if err != nil {
+		ctx.Logger.Errorf("%s GetUserByIDWithPerm GetPermissionURLsByRoleCode %d %v", s.logPrefix(), userID, err)
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	u.PermissionCodes = perms
 	return u, nil
 }
 

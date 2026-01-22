@@ -1,7 +1,6 @@
 package user
 
 import (
-	"goadmin/internal/model/role"
 	"goadmin/internal/model/schema"
 )
 
@@ -14,14 +13,9 @@ type LoginRequest struct {
 
 // LoginResponse 登录响应
 type LoginResponse struct {
-	Token           string    `json:"token"`         // JWT token
-	RefreshToken    string    `json:"refresh_token"` // 刷新token
-	ExpiresAt       int64     `json:"expires_at"`
-	Username        string    `json:"username"`         // 用户名
-	RoleCode        string    `json:"role_code"`        // 角色代码
-	Email           string    `json:"email,omitempty"`  // 邮箱
-	Role            role.Role `json:"role"`             // 角色
-	PermissionCodes []string  `json:"permission_codes"` // 权限
+	Token        string `json:"token"`         // JWT token
+	RefreshToken string `json:"refresh_token"` // 刷新token
+	ExpiresAt    int64  `json:"expires_at"`
 }
 
 // ChangePasswordRequest 修改密码请求参数

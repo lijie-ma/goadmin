@@ -30,6 +30,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		authGroup.Use(middleware.Auth())
 		{
 			authGroup.GET("/logout", context.Build(handler.Logout))
+			authGroup.GET("/info", context.Build(handler.GetCurrentUser))
 			authGroup.POST("/change_pwd", context.Build(handler.ChangePassword))
 			authGroup.POST("/reset_pwd", context.Build(handler.ResetPassword))
 			authGroup.GET("/list", context.Build(handler.ListUsers))

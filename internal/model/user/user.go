@@ -15,6 +15,8 @@ type User struct {
 	RoleCode string     `gorm:"size:32;not null;index:idx_user_role;default:''" json:"role_code"`
 	// 用户角色关联表
 	Role role.Role `gorm:"foreignKey:RoleCode;references:Code" json:"role"`
+
+	PermissionCodes []string `gorm:"-" json:"permission_codes"` // 权限
 }
 
 // TableName 指定表名

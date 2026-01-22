@@ -242,3 +242,21 @@ func (h *Handler) ResetPassword(ctx *context.Context) {
 		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 	})
 }
+
+// GetCurrentUser 获取当前用户信息
+func (h *Handler) GetCurrentUser(ctx *context.Context) {
+	user, err := h.userSrv.GetUserByIDWithPerm(ctx, ctx.Session().GetID())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
+		Data:    user,
+	})
+}
