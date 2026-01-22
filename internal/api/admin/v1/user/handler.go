@@ -216,3 +216,29 @@ func (h *Handler) ListUsers(ctx *context.Context) {
 		},
 	})
 }
+
+// ResetPassword 重置密码
+func (h *Handler) ResetPassword(ctx *context.Context) {
+	var req schema.IDRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, schema.Response{
+			Code:    http.StatusBadRequest,
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
+		})
+		return
+	}
+
+	err := h.userSrv.ResetPassword(ctx, &req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
+	})
+}

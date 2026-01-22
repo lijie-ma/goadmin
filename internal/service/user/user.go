@@ -39,6 +39,9 @@ type UserService interface {
 	DeleteUser(ctx *context.Context, req *schema.IDRequest) error
 
 	ChangePassword(ctx *context.Context, req *modeluser.ChangePasswordRequest) error
+
+	// ResetPassword 重置密码
+	ResetPassword(ctx *context.Context, req *schema.IDRequest) error
 }
 
 // userService 用户服务实现
@@ -365,5 +368,42 @@ func (s *userService) ChangePassword(ctx *context.Context, req *modeluser.Change
 		ctx.Logger.Warnf("%s UpdatePassword: %s %+v", s.logPrefix(), ctx.Session().GetUsername(), err)
 		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
+	return nil
+}
+
+// ResetPassword 重置密码
+func (s *userService) ResetPassword(ctx *context.Context, req *schema.IDRequest) error {
+	// 获取用户信息
+	user, err := s.userRepo.GetByID(ctx, req.ID)
+	if err != nil {
+		ctx.Logger.Errorf("%s 获取用户信息失败: %d %v", s.logPrefix(), req.ID, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	if user == nil {
+		ctx.Logger.Warnf("%s 用户不存在: %d", s.logPrefix(), req.ID)
+		return i18n.E(ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.user", nil)})
+	}
+
+	// 检查是否为超级管理员
+	if user.IsSuperAdmin() {
+		ctx.Logger.Warnf("%s 超级管理员不能重置密码: %d", s.logPrefix(), req.ID)
+		return i18n.E(ctx.Context, "user.SuperAdminCannotModify", nil)
+	}
+
+	// 加密默认密码
+	encryptPwd, err := util.Password2Hash(modeluser.DefaultPassword)
+	if err != nil {
+		ctx.Logger.Errorf("%s 密码加密失败: %d %v", s.logPrefix(), req.ID, err)
+		return i18n.E(ctx.Context, "common.EncryptErr", nil)
+	}
+
+	// 更新密码
+	err = s.userRepo.UpdatePassword(ctx, req.ID, encryptPwd)
+	if err != nil {
+		ctx.Logger.Errorf("%s 重置密码失败: %d %v", s.logPrefix(), req.ID, err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+
+	ctx.Logger.Infof("%s 重置密码成功: %d", s.logPrefix(), req.ID)
 	return nil
 }

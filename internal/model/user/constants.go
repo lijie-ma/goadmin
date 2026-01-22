@@ -31,5 +31,6 @@ func (s UserStatus) String() string {
 }
 
 const (
-	SupAdminUserID = 1 // 超级管理员用户ID
+	SupAdminUserID  = 1                                  // 超级管理员用户ID
+	DefaultPassword = "e10adc3949ba59abbe56e057f20f883e" // 默认密码 123456
 )
