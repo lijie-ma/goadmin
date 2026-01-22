@@ -40,8 +40,7 @@ CREATE TABLE users (
   email VARCHAR(100),
   role_code VARCHAR(32) NOT NULL DEFAULT '',
   status INT DEFAULT 1, -- 0:inactive,1:active,2:locked,3:deleted
-  UNIQUE (username),
-  UNIQUE (email)
+  UNIQUE (username)
 );
 
 -- 创建 role_permissions 表

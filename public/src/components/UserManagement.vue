@@ -127,6 +127,7 @@
               :key="role.code"
               :label="role.name"
               :value="role.code"
+              :disabled="role.code === 'sup_admin'"
             />
           </el-select>
         </el-form-item>

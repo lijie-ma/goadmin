@@ -45,7 +45,7 @@ CREATE TABLE `users` (
   `status` int DEFAULT '1' COMMENT '0:inactive,1:active,2:locked,3:deleted',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`)
+  KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
