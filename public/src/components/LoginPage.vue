@@ -76,6 +76,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { ElMessage } from 'element-plus'
 import md5 from 'js-md5'
 import axios from 'axios'
 
@@ -364,7 +365,7 @@ const handleLoginSubmit = async (captchaData) => {
     router.push(`/${route.params.lang}/dashboard`)
   } catch (error) {
     console.error(t('login.failed'), error)
-    alert(t('login.failedMessage'))
+    ElMessage.error(error.response?.data?.message || t('login.failedMessage'))
   } finally {
     loading.value = false
   }
