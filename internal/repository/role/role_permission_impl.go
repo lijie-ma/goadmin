@@ -86,15 +86,6 @@ func (r *RolePermissionRepositoryImpl) DeleteByRoleCode(ctx context.Context, rol
 	return r.DB().WithContext(ctx).Where("role_code = ?", roleCode).Delete(&role.RolePermission{}).Error
 }
 
-// HasPermission 检查角色是否有特定权限
-func (r *RolePermissionRepositoryImpl) HasPermission(ctx context.Context, roleCode string, permissionCode string) (bool, error) {
-	var count int64
-	err := r.DB().WithContext(ctx).Model(&role.RolePermission{}).
-		Where("role_code = ? AND permission_code = ?", roleCode, permissionCode).
-		Count(&count).Error
-	return count > 0, err
-}
-
 // GetPermissionsByRoleCodes 批量获取多个角色的权限列表
 func (r *RolePermissionRepositoryImpl) GetPermissionsByRoleCodes(
 	ctx context.Context, roleCodes []string) (map[string][]permission.Permission, error) {

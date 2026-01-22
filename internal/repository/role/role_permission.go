@@ -28,9 +28,6 @@ type RolePermissionRepository interface {
 	// DeleteByRoleCode 删除角色的所有权限
 	DeleteByRoleCode(ctx context.Context, roleCode string) error
 
-	// HasPermission 检查角色是否有特定权限
-	HasPermission(ctx context.Context, roleCode string, permissionCode string) (bool, error)
-
 	// GetPermissionsByRoleCodes 批量获取多个角色的权限列表
 	GetPermissionsByRoleCodes(ctx context.Context, roleCodes []string) (map[string][]permission.Permission, error)
 

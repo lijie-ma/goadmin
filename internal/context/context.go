@@ -34,10 +34,14 @@ type HandlerFunc = func(ctx *Context)
 
 func Build(h HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := &Context{
-			Context: c,
-			Logger:  logger.Global().With(trace.GetTrace(c)),
-		}
+		ctx := New(c)
 		h(ctx)
+	}
+}
+
+func New(c *gin.Context) *Context {
+	return &Context{
+		Context: c,
+		Logger:  logger.Global().With(trace.GetTrace(c)),
 	}
 }

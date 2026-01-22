@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"strings"
 
+	"goadmin/internal/context"
 	"goadmin/internal/i18n"
 	modeluser "goadmin/internal/model/user"
-	"goadmin/internal/repository/role"
-	userrepo "goadmin/internal/repository/user"
+	roleService "goadmin/internal/service/role"
 	tokenService "goadmin/internal/service/token"
+	userService "goadmin/internal/service/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,9 +22,14 @@ var (
 	whiteList = []string{}
 
 	tokenHeadName = "Authorization"
+
+	userSrv userService.UserService
+	roleSrv roleService.RoleService
 )
 
 func Auth() gin.HandlerFunc {
+	userSrv = userService.NewUserService()
+	roleSrv = roleService.NewRoleService()
 	return func(c *gin.Context) {
 		// 检查是否为忽略认证的路径
 		path := c.Request.URL.Path
@@ -64,7 +70,7 @@ func Auth() gin.HandlerFunc {
 				i18n.E(c, "common.InvalidParameter", map[string]any{"item": i18n.T(c, "common.item.token", nil)}))
 			return
 		}
-		sessionData, err := generateUserSession(c, claims.UserID)
+		sessionData, err := userSrv.GetUserByID(context.New(c), claims.UserID)
 		if err != nil {
 			abortWithError(c, http.StatusUnauthorized, err)
 			return
@@ -83,33 +89,13 @@ func Auth() gin.HandlerFunc {
 	}
 }
 
-func generateUserSession(ctx *gin.Context, userID uint64) (*modeluser.User, error) {
-	u, err := userrepo.NewUserRepository().GetByID(ctx, userID)
-	if err != nil {
-		logger.Global().With(trace.GetTrace(ctx)).Errorf("generateUserSession GetByID %v", err)
-		return nil, i18n.E(ctx, "common.RepositoryErr", nil)
-	}
-	if !u.IsActive() {
-		return nil, i18n.E(ctx, "user.AccountStatusAbnormal", nil)
-	}
-	return u, nil
-}
-
 // 是否有权限
 func hasPermission(ctx *gin.Context, u *modeluser.User) error {
 	if u.IsSuperAdmin() {
 		return nil
 	}
 	path := strings.TrimLeft(ctx.Request.URL.Path, "/")
-	hasPerm, err := role.NewRolePermissionRepositoryWithDB().HasAccessURL(ctx, u.RoleCode, path)
-	if err != nil {
-		logger.Global().With(trace.GetTrace(ctx)).Errorf("hasPermission HasAccessURL %v", err)
-		return i18n.E(ctx, "common.RepositoryErr", nil)
-	}
-	if !hasPerm {
-		return i18n.E(ctx, "common.PermissionDeny", nil)
-	}
-	return nil
+	return roleSrv.HasAccessURL(context.New(ctx), u.RoleCode, path)
 }
 
 // abortWithError 中止请求并返回错误

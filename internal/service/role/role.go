@@ -47,8 +47,8 @@ type RoleService interface {
 	// AssignPermissions 分配权限给角色
 	AssignPermissions(ctx *context.Context, roleCode string, permissionCodes []string) error
 
-	// HasPermission 检查角色是否有特定权限
-	HasPermission(ctx *context.Context, roleCode string, permissionCode string) (bool, error)
+	// HasAccessURL 检查角色是否有访问权限
+	HasAccessURL(ctx *context.Context, roleCode string, accessURL string) error
 
 	// ListAllPermissions 获取所有权限列表
 	ListAllPermissions(ctx *context.Context) ([]map[string]interface{}, error)
@@ -338,8 +338,16 @@ func (s *roleService) AssignPermissions(ctx *context.Context, roleCode string, p
 }
 
 // HasPermission 检查角色是否有特定权限
-func (s *roleService) HasPermission(ctx *context.Context, roleCode string, permissionCode string) (bool, error) {
-	return s.rolePermissionRepo.HasPermission(ctx, roleCode, permissionCode)
+func (s *roleService) HasAccessURL(ctx *context.Context, roleCode string, accessURL string) error {
+	hasPerm, err := s.rolePermissionRepo.HasAccessURL(ctx, roleCode, accessURL)
+	if err != nil {
+		ctx.Logger.Errorf("hasPermission HasAccessURL %v", err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+	if !hasPerm {
+		return i18n.E(ctx.Context, "common.PermissionDeny", nil)
+	}
+	return nil
 }
 
 // ListAllPermissions 获取所有权限列表
