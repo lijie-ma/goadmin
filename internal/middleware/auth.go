@@ -5,7 +5,6 @@ import (
 	"goadmin/pkg/logger"
 	"goadmin/pkg/trace"
 	"net/http"
-	"slices"
 	"strings"
 
 	"goadmin/internal/i18n"
@@ -87,7 +86,7 @@ func Auth() gin.HandlerFunc {
 func generateUserSession(ctx *gin.Context, userID uint64) (*modeluser.User, error) {
 	u, err := userrepo.NewUserRepository().GetByID(ctx, userID)
 	if err != nil {
-		logger.Global().With(trace.GetTrace(ctx)).Error("generateUserSession", logger.String("error", err.Error()))
+		logger.Global().With(trace.GetTrace(ctx)).Errorf("generateUserSession GetByID %v", err)
 		return nil, i18n.E(ctx, "common.RepositoryErr", nil)
 	}
 	if !u.IsActive() {
@@ -98,17 +97,16 @@ func generateUserSession(ctx *gin.Context, userID uint64) (*modeluser.User, erro
 
 // 是否有权限
 func hasPermission(ctx *gin.Context, u *modeluser.User) error {
-	path := strings.TrimLeft(ctx.Request.URL.Path, "/")
-
 	if u.IsSuperAdmin() {
 		return nil
 	}
-	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionURLsByRoleCode(ctx, u.RoleCode)
+	path := strings.TrimLeft(ctx.Request.URL.Path, "/")
+	hasPerm, err := role.NewRolePermissionRepositoryWithDB().HasAccessURL(ctx, u.RoleCode, path)
 	if err != nil {
-		logger.Global().With(trace.GetTrace(ctx)).Error("hasPermission", logger.String("error", err.Error()))
+		logger.Global().With(trace.GetTrace(ctx)).Errorf("hasPermission HasAccessURL %v", err)
 		return i18n.E(ctx, "common.RepositoryErr", nil)
 	}
-	if !slices.Contains(perms, path) {
+	if !hasPerm {
 		return i18n.E(ctx, "common.PermissionDeny", nil)
 	}
 	return nil

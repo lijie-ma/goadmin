@@ -38,4 +38,7 @@ type RolePermissionRepository interface {
 	//
 	// Param: containPublic 是否包含公共权限 默认包含
 	GetAllPermissions(ctx context.Context, containPublic ...bool) ([]permission.Permission, error)
+
+	// HasAccessURL 检查角色是否有访问指定URL的权限
+	HasAccessURL(ctx context.Context, roleCode string, accessURL string) (bool, error)
 }

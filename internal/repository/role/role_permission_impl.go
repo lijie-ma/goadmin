@@ -124,7 +124,8 @@ func (r *RolePermissionRepositoryImpl) GetPermissionsByRoleCodes(
 }
 
 // GetAllPermissions 获取所有权限列表
-func (r *RolePermissionRepositoryImpl) GetAllPermissions(ctx context.Context, containPublic ...bool) ([]permission.Permission, error) {
+func (r *RolePermissionRepositoryImpl) GetAllPermissions(
+	ctx context.Context, containPublic ...bool) ([]permission.Permission, error) {
 	var (
 		permissions []permission.Permission
 		err         error
@@ -136,4 +137,31 @@ func (r *RolePermissionRepositoryImpl) GetAllPermissions(ctx context.Context, co
 	}
 	err = db.Find(&permissions).Error
 	return permissions, err
+}
+
+// HasAccessURL 检查角色是否有访问指定URL的权限
+func (r *RolePermissionRepositoryImpl) HasAccessURL(
+	ctx context.Context, roleCode, accessURL string) (bool, error) {
+	db := r.DB().WithContext(ctx)
+	permTable := (permission.Permission{}).TableName()
+	rolePermTable := (role.RolePermission{}).TableName()
+
+	var cnt int64
+	// 检查角色权限
+	err := db.Table(rolePermTable+" AS rp").
+		Joins("JOIN "+permTable+" AS p ON rp.permission_code = p.code").
+		Where("rp.role_code = ? AND p.path = ?", roleCode, accessURL).
+		Count(&cnt).Error
+	if err != nil {
+		return false, err
+	}
+	if cnt > 0 {
+		return true, nil
+	}
+
+	// 检查全局权限
+	err = db.Table(permTable).
+		Where("path = ? AND global_flag = ?", accessURL, permission.GlobalFlagYes).
+		Count(&cnt).Error
+	return cnt > 0, err
 }
