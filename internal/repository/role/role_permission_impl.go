@@ -2,7 +2,6 @@ package role
 
 import (
 	"context"
-	"fmt"
 	"goadmin/internal/model/permission"
 	"goadmin/internal/model/role"
 	"goadmin/pkg/db"
@@ -56,11 +55,11 @@ func (r *RolePermissionRepositoryImpl) GetPermissionURLsByRoleCode(
 	ctx context.Context, roleCode string) ([]string, error) {
 	var path []string
 	permTable := (permission.Permission{}).TableName()
-	roleTable := (role.RolePermission{}).TableName()
+	rolePermTable := (role.RolePermission{}).TableName()
 
-	err := r.DB().WithContext(ctx).Model(&role.RolePermission{}).
-		Joins(fmt.Sprintf("%s as rp RIGHT JOIN %s as p ON rp.permission_code = p.code", roleTable, permTable)).
-		Where("role_code = ? OR p.global_flag = ?", roleCode, permission.GlobalFlagYes).
+	err := r.DB().WithContext(ctx).Table(permTable+" as p").
+		Joins("LEFT JOIN "+rolePermTable+" AS rp ON rp.permission_code = p.code").
+		Where("rp.role_code = ? OR p.global_flag = ?", roleCode, permission.GlobalFlagYes).
 		Pluck("p.path", &path).Error
 	return path, err
 }

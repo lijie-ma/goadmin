@@ -87,6 +87,7 @@ func Auth() gin.HandlerFunc {
 func generateUserSession(ctx *gin.Context, userID uint64) (*modeluser.User, error) {
 	u, err := userrepo.NewUserRepository().GetByID(ctx, userID)
 	if err != nil {
+		logger.Global().With(trace.GetTrace(ctx)).Error("generateUserSession", logger.String("error", err.Error()))
 		return nil, i18n.E(ctx, "common.RepositoryErr", nil)
 	}
 	if !u.IsActive() {
@@ -104,7 +105,8 @@ func hasPermission(ctx *gin.Context, u *modeluser.User) error {
 	}
 	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionURLsByRoleCode(ctx, u.RoleCode)
 	if err != nil {
-		return err
+		logger.Global().With(trace.GetTrace(ctx)).Error("hasPermission", logger.String("error", err.Error()))
+		return i18n.E(ctx, "common.RepositoryErr", nil)
 	}
 	if !slices.Contains(perms, path) {
 		return i18n.E(ctx, "common.PermissionDeny", nil)
@@ -113,15 +115,8 @@ func hasPermission(ctx *gin.Context, u *modeluser.User) error {
 }
 
 // abortWithError 中止请求并返回错误
-func abortWithError(c *gin.Context, code int, err error) {
-	log := logger.Global().With(trace.GetTrace(c))
-	log.Error("认证失败",
-		logger.String("path", c.Request.URL.Path),
-		logger.String("ip", c.ClientIP()),
-		logger.String("error", err.Error()),
-	)
-
-	c.AbortWithStatusJSON(code, gin.H{
+func abortWithError(ctx *gin.Context, code int, err error) {
+	ctx.AbortWithStatusJSON(code, gin.H{
 		"code":    code,
 		"message": err.Error(),
 	})
