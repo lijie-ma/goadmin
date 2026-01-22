@@ -95,7 +95,7 @@ func (r *UserRepositoryImpl) Delete(ctx context.Context, id uint64) error {
 func (r *UserRepositoryImpl) IsUsernameExists(ctx context.Context, username string, excludeID ...uint64) (bool, error) {
 	var count int64
 	query := r.DB().WithContext(ctx).Model(&user.User{}).
-		Where("username = ? AND status != ?", username, user.UserStatusDeleted)
+		Where("username = ?", username)
 
 	// 排除指定ID
 	if len(excludeID) > 0 && excludeID[0] > 0 {
@@ -110,7 +110,7 @@ func (r *UserRepositoryImpl) IsUsernameExists(ctx context.Context, username stri
 func (r *UserRepositoryImpl) IsEmailExists(ctx context.Context, email string, excludeID ...uint64) (bool, error) {
 	var count int64
 	query := r.DB().WithContext(ctx).Model(&user.User{}).
-		Where("email = ? AND status != ?", email, user.UserStatusDeleted)
+		Where("email = ?", email)
 
 	// 排除指定ID
 	if len(excludeID) > 0 && excludeID[0] > 0 {

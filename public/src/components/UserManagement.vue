@@ -52,7 +52,7 @@
         <el-table-column :label="t('user.operations')" width="200" fixed="right">
           <template #default="scope">
             <el-button link type="primary" size="small" @click="handleEditUser(scope.row)">{{ t('common.edit') }}</el-button>
-            <el-button link type="primary" size="small" @click="handleChangePassword(scope.row)">{{ t('user.changePassword') }}</el-button>
+            <el-button link type="primary" size="small" @click="handleResetPassword(scope.row)">{{ t('user.resetPassword') }}</el-button>
             <el-button
               v-if="scope.row.role_code !== 'sup_admin'"
               link
@@ -207,46 +207,6 @@
       </template>
     </el-drawer>
 
-    <!-- 修改密码弹框 -->
-    <el-dialog
-      v-model="passwordDialogVisible"
-      :title="t('user.changePassword')"
-      width="500px"
-    >
-      <el-form
-        ref="passwordFormRef"
-        :model="passwordForm"
-        :rules="passwordRules"
-        label-width="100px"
-      >
-        <el-form-item :label="t('user.newPassword')" prop="newPassword">
-          <el-input
-            v-model="passwordForm.newPassword"
-            type="password"
-            :placeholder="t('user.newPassword')"
-            maxlength="20"
-            show-password
-          />
-        </el-form-item>
-        <el-form-item :label="t('user.confirmPassword')" prop="confirmPassword">
-          <el-input
-            v-model="passwordForm.confirmPassword"
-            type="password"
-            :placeholder="t('user.confirmPassword')"
-            maxlength="20"
-            show-password
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div style="flex: auto">
-          <el-button @click="passwordDialogVisible = false">{{ t('common.cancel') }}</el-button>
-          <el-button type="primary" :loading="submitLoading" @click="handleSubmitPassword">
-            {{ t('common.confirm') }}
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -292,14 +252,6 @@ const editUserForm = ref({
 })
 const editUserFormRef = ref(null)
 
-// 修改密码对话框
-const passwordDialogVisible = ref(false)
-const passwordForm = ref({
-  id: 0,
-  newPassword: '',
-  confirmPassword: ''
-})
-const passwordFormRef = ref(null)
 
 // 表单验证规则
 const addUserRules = computed(() => ({
@@ -332,25 +284,6 @@ const editUserRules = computed(() => ({
   ]
 }))
 
-const passwordRules = computed(() => ({
-  newPassword: [
-    { required: true, message: t('user.newPassword') + t('common.error.required'), trigger: 'blur' },
-    { min: 6, max: 20, message: t('user.newPassword') + '长度在 6 到 20 个字符', trigger: 'blur' }
-  ],
-  confirmPassword: [
-    { required: true, message: t('user.confirmPassword') + t('common.error.required'), trigger: 'blur' },
-    {
-      validator: (rule, value, callback) => {
-        if (value !== passwordForm.value.newPassword) {
-          callback(new Error(t('user.passwordMismatch')))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'blur'
-    }
-  ]
-}))
 
 // 获取用户列表
 const fetchUsers = async () => {
@@ -580,64 +513,50 @@ const handleSubmitEdit = async () => {
   })
 }
 
-// 修改密码
-const handleChangePassword = (row) => {
-  // 填充表单数据
-  passwordForm.value = {
-    id: row.id,
-    newPassword: '',
-    confirmPassword: ''
-  }
-  // 清除表单验证状态
-  if (passwordFormRef.value) {
-    passwordFormRef.value.clearValidate()
-  }
-  // 打开弹框
-  passwordDialogVisible.value = true
-}
-
-// 处理提交修改密码
-const handleSubmitPassword = async () => {
-  if (!passwordFormRef.value) return
-
-  await passwordFormRef.value.validate(async (valid) => {
-    if (valid) {
-      submitLoading.value = true
-      try {
-        const token = localStorage.getItem('token')
-        if (!token) {
-          ElMessage.error(t('login.loginFailed'))
-          return
-        }
-
-        // MD5加密密码
-        const encryptedPassword = md5(passwordForm.value.newPassword)
-
-        const response = await axios.post('/api/admin/v1/user/change_pwd', {
-          old_password: encryptedPassword,
-          new_password: encryptedPassword,
-          confirm_password: encryptedPassword
-        }, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept-Language': locale.value
-          }
-        })
-
-        if (response.data.code === 200) {
-          ElMessage.success(t('user.changePasswordSuccess'))
-          passwordDialogVisible.value = false
-        } else {
-          ElMessage.error(response.data.message || t('common.failed'))
-        }
-      } catch (error) {
-        console.error('修改密码失败:', error)
-        ElMessage.error(t('common.failed'))
-      } finally {
-        submitLoading.value = false
+// 重置密码
+const handleResetPassword = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      t('user.resetPasswordConfirm'),
+      t('common.confirm'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
       }
+    )
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+      ElMessage.error(t('login.loginFailed'))
+      return
     }
-  })
+
+    submitLoading.value = true
+    try {
+      const response = await axios.post('/api/admin/v1/user/reset_pwd', {
+        id: row.id
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept-Language': locale.value
+        }
+      })
+
+      if (response.data.code === 200) {
+        ElMessage.success(t('user.resetPasswordSuccess'))
+      } else {
+        ElMessage.error(response.data.message || t('common.failed'))
+      }
+    } catch (error) {
+      console.error('重置密码失败:', error)
+      ElMessage.error(t('common.failed'))
+    } finally {
+      submitLoading.value = false
+    }
+  } catch (error) {
+    // 用户取消操作
+  }
 }
 
 // 删除用户
@@ -730,5 +649,12 @@ h1 {
   margin-bottom: 20px;
   display: flex;
   align-items: center;
+}
+
+/* 允许表单标签换行 */
+:deep(.el-form-item__label) {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.5;
 }
 </style>

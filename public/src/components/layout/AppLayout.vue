@@ -91,7 +91,7 @@
       ref="passwordFormRef"
       :model="passwordForm"
       :rules="passwordRules"
-      label-width="100px"
+      label-width="140px"
     >
       <el-form-item :label="t('oldPassword')" prop="oldPassword">
         <el-input
@@ -404,5 +404,10 @@ const handleChangePassword = async () => {
 
 .language-selector:hover {
   background-color: #f5f7fa;
+}
+
+/* 禁止表单标签换行 */
+:deep(.el-form-item__label) {
+  white-space: nowrap;
 }
 </style>
