@@ -157,7 +157,7 @@ func (s *userService) GetUserByIDWithPerm(ctx *context.Context, userID uint64) (
 	if err != nil {
 		return nil, err
 	}
-	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionURLsByRoleCode(ctx, u.RoleCode)
+	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionsByRoleCode(ctx, u.RoleCode, true)
 	if err != nil {
 		ctx.Logger.Errorf("%s GetUserByIDWithPerm GetPermissionURLsByRoleCode %d %v", s.logPrefix(), userID, err)
 		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
