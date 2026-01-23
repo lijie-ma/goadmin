@@ -19,8 +19,12 @@
             action="#"
             :show-file-list="false"
             :before-upload="beforeLogoUpload"
+            :disabled="uploading"
           >
-            <img v-if="settings.logo" :src="settings.logo" class="avatar" />
+            <div v-if="uploading" class="avatar-uploader-loading">
+              <el-icon class="is-loading"><Loading /></el-icon>
+            </div>
+            <img v-else-if="settings.logo" :src="settings.logo" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
         </el-form-item>
@@ -67,7 +71,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Loading } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
@@ -75,6 +79,7 @@ import axios from 'axios'
 const { t } = useI18n()
 const loading = ref(false)
 const saving = ref(false)
+const uploading = ref(false)
 
 const settings = reactive({
   system_name: t('app.title'),
@@ -83,7 +88,7 @@ const settings = reactive({
   admin: 1
 })
 
-const beforeLogoUpload = (file) => {
+const beforeLogoUpload = async (file) => {
   const isImage = file.type.startsWith('image/')
   const isLt2M = file.size / 1024 / 1024 < 2
 
@@ -95,8 +100,34 @@ const beforeLogoUpload = (file) => {
     ElMessage.error(t('settings.uploadSizeLimit'))
     return false
   }
-  // 这里应该调用实际的上传API，这里只是演示
-  settings.logo = URL.createObjectURL(file)
+
+  // 上传文件到服务器
+  uploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await axios.post('/api/admin/v1/upload/file', formData, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    if (response.data.code === 200) {
+      // 使用服务器返回的完整URL
+      settings.logo = response.data.data.url
+      ElMessage.success(t('settings.uploadSuccess'))
+    } else {
+      ElMessage.error(response.data.message || t('settings.uploadFailed'))
+    }
+  } catch (error) {
+    console.error('上传失败:', error)
+    ElMessage.error(t('settings.uploadFailed') + ': ' + (error.response?.data?.message || error.message))
+  } finally {
+    uploading.value = false
+  }
+
   return false
 }
 
@@ -210,5 +241,15 @@ onMounted(() => {
   width: 100px;
   height: 100px;
   display: block;
+}
+
+.avatar-uploader-loading {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--el-color-primary);
 }
 </style>

@@ -195,6 +195,8 @@
     "reset": "Reset",
     "uploadImageOnly": "Only image files can be uploaded!",
     "uploadSizeLimit": "Image size cannot exceed 2MB!",
+    "uploadSuccess": "Upload successful",
+    "uploadFailed": "Upload failed",
     "loadSuccess": "Settings loaded successfully",
     "loadFailed": "Failed to load settings",
     "resetSuccess": "Reset to default settings"

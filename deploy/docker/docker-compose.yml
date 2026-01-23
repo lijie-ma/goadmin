@@ -83,6 +83,9 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    volumes:
+      - logs:/app/logs
+      - uploads:/app/uploads
     depends_on:
       - backend
     networks:
