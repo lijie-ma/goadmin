@@ -37,3 +37,4 @@ uploads/
 
 # Config (if contains sensitive data)
 # config/config.yaml
+/public/src/node_modules
