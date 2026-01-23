@@ -2,7 +2,7 @@
   <el-container class="layout-container">
     <el-aside width="200px" class="aside">
       <div class="logo">
-        <img :src="systemSettings.logo || '/logo.png'" alt="Logo">
+        <img :src="systemSettings.logo || defaultLogo" alt="Logo">
         <span>{{ systemSettings.systemName }}</span>
       </div>
       <el-menu
@@ -130,6 +130,8 @@ import { useI18n } from 'vue-i18n'
 import md5 from 'js-md5'
 import { useUserStore } from '@/stores/user'
 import { useMenuStore } from '@/stores/menu'
+import axios from 'axios'
+import defaultLogo from '@/assets/images/logo.png'
 
 const { t, locale } = useI18n()
 
@@ -175,10 +177,10 @@ const passwordRules = computed(() => ({
   ]
 }))
 
-// 模拟数据 - 实际应该从API获取
+// 系统设置
 const systemSettings = ref({
-  systemName: '后台管理系统',
-  logo: '/assets/images/logo.png',
+  systemName: t('app.title'),
+  logo: defaultLogo,
   theme: {
     primaryColor: '#409EFF',
     navMode: 'light',
@@ -186,11 +188,40 @@ const systemSettings = ref({
   }
 })
 
+// 获取系统设置
+const fetchSystemSettings = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      return
+    }
+
+    const response = await axios.get('/api/admin/v1/setting/get_settings', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept-Language': locale.value === 'zh' ? 'zh-CN' : 'en-US'
+      }
+    })
+
+    if (response.data.code === 200) {
+      // 更新系统设置
+      systemSettings.value = {
+        ...systemSettings.value,
+        ...response.data.data
+      }
+    }
+  } catch (error) {
+    console.error('获取系统设置失败:', error)
+  }
+}
+
 // 从 localStorage 初始化用户信息
 onMounted(() => {
   userStore.initFromLocalStorage()
   // 获取最新的用户信息
   userStore.fetchUserInfo(locale.value)
+  // 获取系统设置
+  fetchSystemSettings()
 })
 
 const activeMenu = computed(() => {
