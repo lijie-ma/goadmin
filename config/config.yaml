@@ -72,3 +72,21 @@ logger:
   caller_skip: 1                   # 调用者信息显示层级
   show_caller: true               # 是否显示调用者信息
   time_format: "2006-01-02T15:04:05Z07:00"  # 时间格式
+
+# 文件上传配置
+upload:
+  enable: true                    # 是否启用文件上传
+  path: "./uploads"               # 上传文件存储路径
+  max_size: 10485760             # 最大文件大小（字节），默认10MB
+  allowed_types:                 # 允许的文件类型
+    - ".jpg"
+    - ".jpeg"
+    - ".png"
+    - ".gif"
+    - ".pdf"
+    - ".doc"
+    - ".docx"
+    - ".xls"
+    - ".xlsx"
+    - ".txt"
+  max_files: 10                  # 单次最多上传文件数量

@@ -39,3 +39,30 @@ other = "Role"
 other = "token"
 [common.item.setting]
 other = "Setting"
+
+[upload.fileNotFound]
+other = "No file uploaded"
+
+[upload.fileTooLarge]
+other = "File size exceeds limit"
+
+[upload.fileTypeNotAllowed]
+other = "File type not allowed"
+
+[upload.saveFailed]
+other = "Failed to save file"
+
+[upload.success]
+other = "File uploaded successfully"
+
+[upload.tooManyFiles]
+other = "Too many files uploaded"
+
+[upload.deleteFailed]
+other = "Failed to delete file"
+
+[upload.deleteSuccess]
+other = "File deleted successfully"
+
+[upload.invalidPath]
+other = "Invalid file path"

@@ -4,10 +4,12 @@ import (
 	"goadmin/internal/api/admin/v1/captcha"
 	"goadmin/internal/api/admin/v1/role"
 	"goadmin/internal/api/admin/v1/setting"
+	"goadmin/internal/api/admin/v1/upload"
 	"goadmin/internal/api/admin/v1/user"
 	"goadmin/internal/context"
 	"goadmin/internal/i18n"
 	"goadmin/internal/middleware"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -49,5 +51,15 @@ func adminHandler(r *gin.Engine) {
 
 		// 角色相关路由
 		role.RegisterRoutes(adminGroup)
+
+		// 文件上传相关路由
+		upload.RegisterRoutes(adminGroup)
 	}
+
+	// 静态文件服务 - 提供上传文件的访问
+	uploadPath := "./uploads"
+	if _, err := os.Stat(uploadPath); os.IsNotExist(err) {
+		os.MkdirAll(uploadPath, 0755)
+	}
+	r.Static("/uploads", uploadPath)
 }

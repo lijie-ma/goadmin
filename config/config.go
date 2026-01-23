@@ -18,6 +18,7 @@ type Config struct {
 	Redis    RedisConfig    `yaml:"redis"`
 	Logger   logger.Config  `yaml:"logger"`
 	JWT      JWTConfig      `yaml:"jwt"`
+	Upload   UploadConfig   `yaml:"upload"`
 }
 
 // AppConfig 应用基础配置
@@ -97,6 +98,15 @@ type JWTConfig struct {
 	RefreshExpire   time.Duration `yaml:"refresh_expire"`
 	Issuer          string        `yaml:"issuer"`
 	RefreshTokenKey string        `yaml:"refresh_token_key"`
+}
+
+// UploadConfig 文件上传配置
+type UploadConfig struct {
+	Enable       bool     `yaml:"enable"`
+	Path         string   `yaml:"path"`
+	MaxSize      int64    `yaml:"max_size"`
+	AllowedTypes []string `yaml:"allowed_types"`
+	MaxFiles     int      `yaml:"max_files"`
 }
 
 var (

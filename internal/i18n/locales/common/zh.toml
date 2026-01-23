@@ -39,3 +39,30 @@ other = "角色"
 other = "令牌"
 [common.item.setting]
 other = "设置"
+
+[upload.fileNotFound]
+other = "未找到上传文件"
+
+[upload.fileTooLarge]
+other = "文件大小超过限制"
+
+[upload.fileTypeNotAllowed]
+other = "不支持的文件类型"
+
+[upload.saveFailed]
+other = "文件保存失败"
+
+[upload.success]
+other = "文件上传成功"
+
+[upload.tooManyFiles]
+other = "上传文件数量超过限制"
+
+[upload.deleteFailed]
+other = "文件删除失败"
+
+[upload.deleteSuccess]
+other = "文件删除成功"
+
+[upload.invalidPath]
+other = "无效的文件路径"

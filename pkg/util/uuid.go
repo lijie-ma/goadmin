@@ -11,6 +11,14 @@ func GenerateUUID() string {
 	return uuid.New().String()
 }
 
+func UUIDV7Str() (string, error) {
+	obj, err := uuid.NewV7()
+	if err != nil {
+		return ``, err
+	}
+	return obj.String(), nil
+}
+
 // GenerateUUIDWithoutHyphen 生成一个没有连字符的UUID字符串
 func GenerateUUIDWithoutHyphen() string {
 	return strings.ReplaceAll(GenerateUUID(), "-", "")

@@ -60,9 +60,10 @@ func (s *serverSettingServiceImpl) getByName(ctx *context.Context, name string) 
 
 // SetByName 设置服务端配置
 func (s *serverSettingServiceImpl) SetByName(ctx *context.Context, name string, value any) error {
-	setting, err := s.getByName(ctx, name)
+	setting, err := s.repo.GetByName(ctx, name)
 	if err != nil {
-		return err
+		ctx.Logger.Errorf("%s SetByName GetByName failed, err: %v", s.logPrefix(), err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 	str, err := encoding(value)
 	if err != nil {

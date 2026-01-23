@@ -59,6 +59,7 @@ services:
     volumes:
       - ../../config:/app/config:ro
       - logs:/app/logs
+      - uploads:/app/uploads
     depends_on:
       mysql:
         condition: service_healthy
@@ -107,4 +108,10 @@ volumes:
     driver_opts:
       type: none
       device: /data/docker/goadmin/logs
+      o: bind
+  uploads:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/docker/goadmin/uploads
       o: bind

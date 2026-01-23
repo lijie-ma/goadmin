@@ -35,6 +35,7 @@ INSERT INTO permissions (code, name, description, path, module, global_flag) VAL
 ('server_set',    '系统设置',   '', 'admin/v1/setting/set',   'server', 0),
 ('server_get',    '系统设置查询',   '', 'admin/v1/setting/get',   'server', 0),
 ('server_batch_get','系统设置批量查询',   '', 'admin/v1/setting/batch',   'server', 0),
+('upload_file',     '上传文件',          '', 'admin/v1/upload/file',     'upload', 1),
 ('user_logout',    '退出',         '', 'admin/v1/user/logout',              'user',   1),
 ('user_changePwd', '修改密码',     '', 'admin/v1/user/change_pwd',           'user',   1),
 ('user_info',      '当前用户信息',   '', 'admin/v1/user/info',               'user',   1),
