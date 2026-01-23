@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import 'element-plus/dist/index.css'
@@ -11,6 +12,10 @@ import en from 'element-plus/es/locale/lang/en'
 
 // 创建Vue应用
 const app = createApp(App)
+
+// 创建并使用 Pinia
+const pinia = createPinia()
+app.use(pinia)
 
 // 使用Element Plus并配置语言
 app.use(ElementPlus, {

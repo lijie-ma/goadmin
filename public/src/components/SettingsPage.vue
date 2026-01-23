@@ -98,7 +98,7 @@ const loadSettings = async () => {
     })
     if (response.data.code === 200) {
       Object.assign(settings, response.data.data)
-      ElMessage.success(t('settings.loadSuccess'))
+      // ElMessage.success(t('settings.loadSuccess'))
     } else {
       throw new Error(response.data.message)
     }

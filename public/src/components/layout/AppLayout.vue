@@ -13,21 +13,15 @@
         :text-color="systemSettings.theme?.navMode === 'dark' ? '#fff' : '#303133'"
         :active-text-color="systemSettings.theme?.primaryColor || '#409EFF'"
       >
-        <el-menu-item :index="`/${locale}/dashboard`">
-          <el-icon><Monitor /></el-icon>
-          <span>{{ t('dashboard') }}</span>
-        </el-menu-item>
-        <el-menu-item :index="`/${locale}/users`">
-          <el-icon><User /></el-icon>
-          <span>{{ t('userManagement') }}</span>
-        </el-menu-item>
-        <el-menu-item :index="`/${locale}/roles`">
-          <el-icon><Lock /></el-icon>
-          <span>{{ t('roleManagement') }}</span>
-        </el-menu-item>
-        <el-menu-item :index="`/${locale}/settings`">
-          <el-icon><Setting /></el-icon>
-          <span>{{ t('systemSettings') }}</span>
+        <el-menu-item
+          v-for="menu in menuStore.filteredMenus"
+          :key="menu.path"
+          :index="`/${locale}${menu.path}`"
+        >
+          <el-icon>
+            <component :is="menu.icon" />
+          </el-icon>
+          <span>{{ t(menu.title) }}</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -62,7 +56,7 @@
           <el-dropdown>
             <span class="user-info">
               <el-avatar :size="32" src="/avatar.png" />
-              {{ userInfo.username }}
+              {{ userStore.userInfo.username }}
             </span>
             <template #dropdown>
               <el-dropdown-menu>
@@ -134,12 +128,18 @@ import { Monitor, User, Lock, Setting, Expand, ArrowDown } from '@element-plus/i
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import md5 from 'js-md5'
+import { useUserStore } from '@/stores/user'
+import { useMenuStore } from '@/stores/menu'
 
 const { t, locale } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
 const isCollapse = ref(false)
+
+// 使用 Pinia stores
+const userStore = useUserStore()
+const menuStore = useMenuStore()
 
 // 修改密码相关
 const changePasswordVisible = ref(false)
@@ -186,29 +186,11 @@ const systemSettings = ref({
   }
 })
 
-// 从 localStorage 获取用户信息
-const userInfo = ref({
-  username: 'Admin'
-})
-
-// 组件挂载时从 localStorage 读取用户信息
+// 从 localStorage 初始化用户信息
 onMounted(() => {
-  const storedUser = localStorage.getItem('user')
-
-  if (storedUser) {
-    try {
-      const userData = JSON.parse(storedUser)
-      userInfo.value = userData
-    } catch (error) {
-      console.error('解析用户信息失败:', error)
-      // 解析失败也跳转到登录页
-      router.push(`/${locale.value}/login`)
-    }
-  } else {
-    // 如果没有用户信息，跳转到登录页
-    console.log('未找到用户信息，跳转到登录页')
-    router.push(`/${locale.value}/login`)
-  }
+  userStore.initFromLocalStorage()
+  // 获取最新的用户信息
+  userStore.fetchUserInfo(locale.value)
 })
 
 const activeMenu = computed(() => {
@@ -258,8 +240,7 @@ const toggleCollapse = () => {
 const handleLogout = async () => {
   try {
     // 调用登出API
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    userStore.logout()
     await router.push(`/${locale.value}/login`)
   } catch (error) {
     console.error('登出失败:', error)

@@ -197,7 +197,6 @@
     "uploadSizeLimit": "Image size cannot exceed 2MB!",
     "loadSuccess": "Settings loaded successfully",
     "loadFailed": "Failed to load settings",
-    "saveFailed": "Failed to save settings",
     "resetSuccess": "Reset to default settings"
   },
   "common": {
