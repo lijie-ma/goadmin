@@ -5,7 +5,13 @@
       <template #header>
         <div class="card-header">
           <span>{{ t('user.title') }}</span>
-          <el-button type="primary" @click="handleAddUser">{{ t('user.add') }}</el-button>
+          <el-button
+            v-permission="'user_create'"
+            type="primary"
+            @click="handleAddUser"
+          >
+            {{ t('user.add') }}
+          </el-button>
         </div>
       </template>
 
@@ -51,9 +57,26 @@
         </el-table-column>
         <el-table-column :label="t('user.operations')" width="200" fixed="right">
           <template #default="scope">
-            <el-button link type="primary" size="small" @click="handleEditUser(scope.row)">{{ t('common.edit') }}</el-button>
-            <el-button link type="primary" size="small" @click="handleResetPassword(scope.row)">{{ t('user.resetPassword') }}</el-button>
             <el-button
+              v-permission="'user_update'"
+              link
+              type="primary"
+              size="small"
+              @click="handleEditUser(scope.row)"
+            >
+              {{ t('common.edit') }}
+            </el-button>
+            <el-button
+              v-permission="'user_resetPwd'"
+              link
+              type="primary"
+              size="small"
+              @click="handleResetPassword(scope.row)"
+            >
+              {{ t('user.resetPassword') }}
+            </el-button>
+            <el-button
+              v-permission="'user_delete'"
               v-if="scope.row.role_code !== 'sup_admin'"
               link
               type="danger"

@@ -5,7 +5,13 @@
       <template #header>
         <div class="card-header">
           <span>{{ t('role.list') }}</span>
-          <el-button type="primary" @click="handleAddRole">{{ t('role.addRole') }}</el-button>
+          <el-button
+            v-permission="'role_create'"
+            type="primary"
+            @click="handleAddRole"
+          >
+            {{ t('role.addRole') }}
+          </el-button>
         </div>
       </template>
       <el-table :data="roles" style="width: 100%" v-loading="loading">
@@ -40,9 +46,26 @@
         </el-table-column>
         <el-table-column :label="t('role.actions')" width="200">
           <template #default="scope">
-            <el-button link type="primary" size="small" @click="handleSetPermissions(scope.row)">{{ t('role.setPermissions') }}</el-button>
-            <el-button link type="primary" size="small" @click="handleEditRole(scope.row)">{{ t('role.edit') }}</el-button>
             <el-button
+              v-permission="'role_perm_set'"
+              link
+              type="primary"
+              size="small"
+              @click="handleSetPermissions(scope.row)"
+            >
+              {{ t('role.setPermissions') }}
+            </el-button>
+            <el-button
+              v-permission="'role_update'"
+              link
+              type="primary"
+              size="small"
+              @click="handleEditRole(scope.row)"
+            >
+              {{ t('role.edit') }}
+            </el-button>
+            <el-button
+              v-permission="'role_delete'"
               v-if="scope.row.system_flag !== 1"
               link
               type="danger"

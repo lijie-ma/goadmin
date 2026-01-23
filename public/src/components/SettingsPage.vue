@@ -45,8 +45,20 @@
 
         <!-- 保存按钮 -->
         <el-form-item>
-          <el-button type="primary" @click="saveSettings" :loading="saving">{{ t('settings.saveSettings') }}</el-button>
-          <el-button @click="resetSettings">{{ t('settings.reset') }}</el-button>
+          <el-button
+            v-permission="'server_set'"
+            type="primary"
+            @click="saveSettings"
+            :loading="saving"
+          >
+            {{ t('settings.saveSettings') }}
+          </el-button>
+          <el-button
+            v-permission="'server_set'"
+            @click="resetSettings"
+          >
+            {{ t('settings.reset') }}
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>

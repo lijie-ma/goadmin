@@ -9,6 +9,7 @@ import axios from 'axios'
 import i18n from './i18n'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import en from 'element-plus/es/locale/lang/en'
+import permission from './directives/permission'
 
 // 创建Vue应用
 const app = createApp(App)
@@ -72,6 +73,9 @@ axios.interceptors.response.use(
 
 // 全局属性
 app.config.globalProperties.$axios = axios
+
+// 注册全局权限指令
+app.directive('permission', permission)
 
 // 挂载应用
 app.mount('#app')
