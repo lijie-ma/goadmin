@@ -80,58 +80,17 @@
         </el-table-column>
       </el-table>
     </el-card>
-
-    <!-- 快捷操作 -->
-    <el-card class="quick-actions">
-      <template #header>
-        <div class="card-header">
-          <span>快捷操作</span>
-        </div>
-      </template>
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-button type="primary" @click="handleQuickAction('users')">
-            <el-icon><User /></el-icon>
-            用户管理
-          </el-button>
-        </el-col>
-        <el-col :span="6">
-          <el-button type="success" @click="handleQuickAction('roles')">
-            <el-icon><Lock /></el-icon>
-            角色管理
-          </el-button>
-        </el-col>
-        <el-col :span="6">
-          <el-button type="warning" @click="handleQuickAction('settings')">
-            <el-icon><Setting /></el-icon>
-            系统设置
-          </el-button>
-        </el-col>
-        <el-col :span="6">
-          <el-button type="info" @click="handleQuickAction('help')">
-            <el-icon><QuestionFilled /></el-icon>
-            帮助中心
-          </el-button>
-        </el-col>
-      </el-row>
-    </el-card>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import {
   User,
   View,
   ShoppingCart,
-  Coin,
-  Lock,
-  Setting,
-  QuestionFilled
+  Coin
 } from '@element-plus/icons-vue'
-
-const router = useRouter()
 
 const recentActivities = ref([
   {
@@ -159,18 +118,6 @@ const recentActivities = ref([
     status: 'failed'
   }
 ])
-
-const handleQuickAction = (action) => {
-  const routes = {
-    users: '/users',
-    roles: '/roles',
-    settings: '/settings',
-    help: '/help'
-  }
-  if (routes[action]) {
-    router.push(routes[action])
-  }
-}
 </script>
 
 <style scoped>
@@ -243,22 +190,9 @@ h1 {
   margin-bottom: 24px;
 }
 
-.quick-actions {
-  margin-bottom: 24px;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.el-button {
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.el-button .el-icon {
-  margin-right: 8px;
 }
 </style>
