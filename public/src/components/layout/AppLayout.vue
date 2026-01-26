@@ -3,7 +3,7 @@
     <el-aside width="200px" class="aside">
       <div class="logo">
         <img :src="systemSettings.logo || defaultLogo" alt="Logo">
-        <span>{{ systemSettings.systemName }}</span>
+        <span>{{ systemSettings.system_name || t('app.title') }}</span>
       </div>
       <el-menu
         class="menu"
@@ -179,14 +179,20 @@ const passwordRules = computed(() => ({
 
 // 系统设置
 const systemSettings = ref({
-  systemName: t('app.title'),
-  logo: defaultLogo,
+  system_name: '',
+  logo: '',
   theme: {
     primaryColor: '#409EFF',
     navMode: 'light',
     darkMode: false
   }
 })
+
+// 更新页面标题
+const updatePageTitle = () => {
+  const systemName = systemSettings.value.system_name || t('app.title')
+  document.title = systemName
+}
 
 // 获取系统设置
 const fetchSystemSettings = async () => {
@@ -209,6 +215,8 @@ const fetchSystemSettings = async () => {
         ...systemSettings.value,
         ...response.data.data
       }
+      // 更新页面标题
+      updatePageTitle()
     }
   } catch (error) {
     console.error('获取系统设置失败:', error)
@@ -222,6 +230,8 @@ onMounted(() => {
   userStore.fetchUserInfo(locale.value)
   // 获取系统设置
   fetchSystemSettings()
+  // 初始化页面标题
+  updatePageTitle()
 })
 
 const activeMenu = computed(() => {
@@ -249,6 +259,9 @@ const handleLanguageChange = async (lang) => {
   const currentPath = route.path
   const newPath = currentPath.replace(/^\/(zh|en)/, `/${lang}`)
   await router.push(newPath)
+
+  // 更新页面标题
+  updatePageTitle()
 
   // 发送语言切换请求到后端
   if (localStorage.getItem('token')) {
