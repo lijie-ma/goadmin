@@ -13,7 +13,9 @@ type OperateLogService interface {
 	ListOperateLogs(ctx *context.Context, req *modeloperatelog.ListRequest) ([]*modeloperatelog.OperateLog, int64, error)
 
 	// CreateOperateLog 创建操作日志
-	CreateOperateLog(ctx *context.Context, content string) error
+	//
+	// @param operator  操作人
+	CreateOperateLog(ctx *context.Context, content string, operator ...string) error
 }
 
 // operateLogService 操作日志服务实现
@@ -46,15 +48,19 @@ func (s *operateLogService) ListOperateLogs(ctx *context.Context, req *modeloper
 }
 
 // CreateOperateLog 创建操作日志
-func (s *operateLogService) CreateOperateLog(ctx *context.Context, content string) error {
+func (s *operateLogService) CreateOperateLog(ctx *context.Context, content string, operator ...string) error {
 	// 获取客户端IP
 	clientIP := ctx.ClientIP()
 
 	// 获取用户名
 	username := ""
-	session := ctx.Session()
-	if session != nil {
-		username = session.GetUsername()
+	if len(operator) > 0 {
+		username = operator[0]
+	} else {
+		session := ctx.Session()
+		if session != nil {
+			username = session.GetUsername()
+		}
 	}
 
 	// 创建操作日志

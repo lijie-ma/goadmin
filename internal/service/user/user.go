@@ -127,7 +127,7 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 		return nil, err
 	}
 
-	s.logService.CreateOperateLog(ctx, i18n.T(ctx.Context, "operate.Login", nil))
+	s.logService.CreateOperateLog(ctx, i18n.T(ctx.Context, "operate.Login", nil), req.Username)
 
 	return &modeluser.LoginResponse{
 		Token:        tokenPairs.AccessToken,
