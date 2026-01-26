@@ -4,6 +4,7 @@
   "userManagement": "用户管理",
   "roleManagement": "角色管理",
   "systemSettings": "系统设置",
+  "operateLogs": "操作日志",
   "userCenter": "用户中心",
   "changePassword": "修改密码",
   "logout": "退出登录",
@@ -60,7 +61,7 @@
     "settings": "系统设置",
     "operateLogs": "操作日志"
   },
-  "dashboard": {
+  "dashboardPage": {
     "welcome": "欢迎回来",
     "totalUsers": "用户总数",
     "activeUsers": "活跃用户",

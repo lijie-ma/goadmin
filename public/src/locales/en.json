@@ -4,6 +4,7 @@
   "userManagement": "User Management",
   "roleManagement": "Role Management",
   "systemSettings": "System Settings",
+  "operateLogs": "Operation Logs",
   "userCenter": "User Center",
   "changePassword": "Change Password",
   "logout": "Logout",
@@ -60,7 +61,7 @@
     "settings": "System Settings",
     "operateLogs": "Operation Logs"
   },
-  "dashboard": {
+  "dashboardPage": {
     "welcome": "Welcome Back",
     "totalUsers": "Total Users",
     "activeUsers": "Active Users",
