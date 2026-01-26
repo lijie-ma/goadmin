@@ -54,6 +54,11 @@ const routes = [
             path: 'settings',
             name: 'Settings',
             component: () => import('../components/SettingsPage.vue')
+          },
+          {
+            path: 'operate-logs',
+            name: 'OperateLogs',
+            component: () => import('../components/OperateLogManagement.vue')
           }
         ]
       }

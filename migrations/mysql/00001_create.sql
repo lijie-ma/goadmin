@@ -71,6 +71,15 @@ CREATE TABLE `role_permissions` (
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COMMENT='服务端配置';
 
+CREATE TABLE `operate_log` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `content` varchar(512) DEFAULT NULL COMMENT '详情内容',
+  `username` varchar(64) NOT NULL DEFAULT '' COMMENT '操作用户',
+  `ip` varchar(45) NOT NULL DEFAULT '' COMMENT '操作人ip',
+  `mtime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ctime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='操作日志';
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
@@ -80,3 +89,4 @@ DROP TABLE IF EXISTS role_permissions;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS server_setting;
+DROP TABLE IF EXISTS operate_log;

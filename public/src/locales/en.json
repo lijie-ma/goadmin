@@ -57,7 +57,8 @@
     "dashboard": "Dashboard",
     "users": "User Management",
     "roles": "Role Management",
-    "settings": "System Settings"
+    "settings": "System Settings",
+    "operateLogs": "Operation Logs"
   },
   "dashboard": {
     "welcome": "Welcome Back",
@@ -200,6 +201,15 @@
     "loadSuccess": "Settings loaded successfully",
     "loadFailed": "Failed to load settings",
     "resetSuccess": "Reset to default settings"
+  },
+  "operateLog": {
+    "title": "Operation Logs",
+    "username": "Username",
+    "content": "Operation Content",
+    "ip": "IP Address",
+    "createTime": "Create Time",
+    "startTime": "Start Time",
+    "endTime": "End Time"
   },
   "common": {
     "save": "Save",

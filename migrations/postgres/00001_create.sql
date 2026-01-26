@@ -66,6 +66,23 @@ CREATE TABLE server_setting (
 COMMENT ON TABLE server_setting IS '服务端配置';
 COMMENT ON COLUMN server_setting.id IS '10000以内为系统内置配置';
 
+CREATE TABLE operate_log (
+    id SERIAL PRIMARY KEY,
+    content VARCHAR(512),
+    username VARCHAR(64) NOT NULL DEFAULT '',
+    ip VARCHAR(45) NOT NULL DEFAULT '',
+    mtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE operate_log IS '操作日志';
+COMMENT ON COLUMN operate_log.content IS '详情内容';
+COMMENT ON COLUMN operate_log.username IS '操作用户';
+COMMENT ON COLUMN operate_log.ip IS '操作人ip';
+COMMENT ON COLUMN operate_log.mtime IS '修改时间';
+COMMENT ON COLUMN operate_log.ctime IS '记录创建时间';
+
+
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
 DROP TABLE IF EXISTS server_setting;
@@ -73,3 +90,4 @@ DROP TABLE IF EXISTS role_permissions;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS permissions;
+DROP TABLE IF EXISTS operate_log;

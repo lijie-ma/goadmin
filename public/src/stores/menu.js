@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { Document } from '@element-plus/icons-vue'
 
 export const useMenuStore = defineStore('menu', () => {
   const userStore = useUserStore()
@@ -25,7 +26,8 @@ export const useMenuStore = defineStore('menu', () => {
     'server_set': '/settings',
     'server_batch_get': '/settings',
     'captcha_get': '/settings',
-    'captcha_set': '/settings'
+    'captcha_set': '/settings',
+    'operate_log': '/operate-logs'
   }
 
   // 菜单配置
@@ -57,6 +59,13 @@ export const useMenuStore = defineStore('menu', () => {
       icon: 'Setting',
       title: 'systemSettings',
       permissionCode: 'server_get'
+    },
+    {
+      path: '/operate-logs',
+      name: 'operateLogs',
+      icon: 'Document',
+      title: 'operateLogs',
+      permissionCode: 'operate_log'
     }
   ])
 

@@ -245,7 +245,8 @@ const currentRoute = computed(() => {
     '/dashboard': 'dashboard',
     '/users': 'userManagement',
     '/roles': 'roleManagement',
-    '/settings': 'systemSettings'
+    '/settings': 'systemSettings',
+    '/operate-logs': 'operateLogs'
   }
   return routeMap[path] || 'unknownPage'
 })
