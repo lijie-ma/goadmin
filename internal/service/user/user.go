@@ -8,6 +8,7 @@ import (
 	modeluser "goadmin/internal/model/user"
 	"goadmin/internal/repository/role"
 	userrepo "goadmin/internal/repository/user"
+	"goadmin/internal/service/operate_log"
 	"goadmin/internal/service/setting"
 	"goadmin/internal/service/token"
 	"goadmin/pkg/util"
@@ -49,17 +50,19 @@ type UserService interface {
 
 // userService 用户服务实现
 type userService struct {
-	userRepo userrepo.UserRepository
-	roleRepo role.RoleRepository
-	cfg      *config.Config
+	userRepo   userrepo.UserRepository
+	roleRepo   role.RoleRepository
+	logService operate_log.OperateLogService
+	cfg        *config.Config
 }
 
 // NewUserService 创建用户服务实例
 func NewUserService() UserService {
 	return &userService{
-		cfg:      config.Get(),
-		userRepo: userrepo.NewUserRepository(),
-		roleRepo: role.NewRoleRepositoryWithDB(),
+		cfg:        config.Get(),
+		userRepo:   userrepo.NewUserRepository(),
+		roleRepo:   role.NewRoleRepositoryWithDB(),
+		logService: operate_log.NewOperateLogService(),
 	}
 }
 
@@ -123,6 +126,8 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 		ctx.Logger.Errorf("%s jwt token: %s %v", s.logPrefix(), req.Username, err)
 		return nil, err
 	}
+
+	s.logService.CreateOperateLog(ctx, i18n.T(ctx.Context, "operate.Login", nil))
 
 	return &modeluser.LoginResponse{
 		Token:        tokenPairs.AccessToken,
@@ -238,6 +243,8 @@ func (s *userService) CreateUser(ctx *context.Context, req *modeluser.CreateUser
 		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
+	s.logService.CreateOperateLog(ctx, i18n.T(ctx.Context, "operate.User.Create", nil))
+
 	ctx.Logger.Infof("%s 创建用户成功: %s", s.logPrefix(), req.Username)
 	return nil
 }
@@ -316,6 +323,8 @@ func (s *userService) UpdateUser(ctx *context.Context, req *modeluser.UpdateUser
 		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
 
+	s.logService.CreateOperateLog(ctx, i18n.T(ctx.Context, "operate.User.Update", nil))
+
 	ctx.Logger.Infof("%s 更新用户成功: %d", s.logPrefix(), req.ID)
 	return nil
 }
@@ -353,6 +362,8 @@ func (s *userService) DeleteUser(ctx *context.Context, req *schema.IDRequest) er
 		ctx.Logger.Errorf("%s 删除用户失败: %d %v", s.logPrefix(), req.ID, err)
 		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
+
+	s.logService.CreateOperateLog(ctx, i18n.T(ctx.Context, "operate.User.Delete", nil))
 
 	ctx.Logger.Infof("%s 删除用户成功: %d", s.logPrefix(), req.ID)
 	return nil
@@ -411,6 +422,8 @@ func (s *userService) ResetPassword(ctx *context.Context, req *schema.IDRequest)
 		ctx.Logger.Errorf("%s 重置密码失败: %d %v", s.logPrefix(), req.ID, err)
 		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
+
+	s.logService.CreateOperateLog(ctx, i18n.T(ctx.Context, "operate.User.ResetPassword", nil))
 
 	ctx.Logger.Infof("%s 重置密码成功: %d", s.logPrefix(), req.ID)
 	return nil

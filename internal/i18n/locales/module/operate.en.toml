@@ -1,0 +1,14 @@
+[operate.Login]
+other = "User Login"
+
+[operate.User.Create]
+other = "User Create"
+
+[operate.User.Update]
+other = "User Update"
+
+[operate.User.Delete]
+other = "User Delete"
+
+[operate.User.ResetPassword]
+other = "User ResetPassword"
