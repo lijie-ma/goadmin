@@ -201,7 +201,12 @@
     "uploadFailed": "Upload failed",
     "loadSuccess": "Settings loaded successfully",
     "loadFailed": "Failed to load settings",
-    "resetSuccess": "Reset to default settings"
+    "resetSuccess": "Reset to default settings",
+    "tabSystem": "System Settings",
+    "tabThirdParty": "Third Party Services",
+    "mapService": "Map Service Configuration",
+    "mapAk": "Map Service Key",
+    "mapAkPlaceholder": "Please enter map service key"
   },
   "operateLog": {
     "title": "Operation Logs",
