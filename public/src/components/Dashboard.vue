@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <h1>仪表板</h1>
+    <h1>{{ t('dashboardPage.title') }}</h1>
 
     <!-- 统计卡片 -->
     <div class="stats-cards">
@@ -13,7 +13,7 @@
               </div>
               <div class="stat-data">
                 <div class="stat-value">1,234</div>
-                <div class="stat-label">用户总数</div>
+                <div class="stat-label">{{ t('dashboardPage.totalUsers') }}</div>
               </div>
             </div>
           </el-card>
@@ -26,7 +26,7 @@
               </div>
               <div class="stat-data">
                 <div class="stat-value">23,456</div>
-                <div class="stat-label">页面访问量</div>
+                <div class="stat-label">{{ t('dashboardPage.pageViews') }}</div>
               </div>
             </div>
           </el-card>
@@ -39,7 +39,7 @@
               </div>
               <div class="stat-data">
                 <div class="stat-value">345</div>
-                <div class="stat-label">订单数量</div>
+                <div class="stat-label">{{ t('dashboardPage.orderCount') }}</div>
               </div>
             </div>
           </el-card>
@@ -52,7 +52,7 @@
               </div>
               <div class="stat-data">
                 <div class="stat-value">¥234,567</div>
-                <div class="stat-label">营业收入</div>
+                <div class="stat-label">{{ t('dashboardPage.revenue') }}</div>
               </div>
             </div>
           </el-card>
@@ -61,63 +61,66 @@
     </div>
 
     <!-- 最近活动表格 -->
-    <el-card class="activity-card">
+    <el-card class="activity-card" v-loading="loading">
       <template #header>
         <div class="card-header">
-          <span>最近活动</span>
+          <span>{{ t('dashboardPage.recentActivities') }}</span>
         </div>
       </template>
       <el-table :data="recentActivities" style="width: 100%">
-        <el-table-column prop="time" label="时间" width="180" />
-        <el-table-column prop="user" label="用户" width="120" />
-        <el-table-column prop="action" label="操作" />
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === 'success' ? 'success' : 'danger'">
-              {{ scope.row.status === 'success' ? '成功' : '失败' }}
-            </el-tag>
-          </template>
-        </el-table-column>
+        <el-table-column prop="ctime" :label="t('dashboardPage.time')" width="180" />
+        <el-table-column prop="username" :label="t('dashboardPage.user')" width="120" />
+        <el-table-column prop="content" :label="t('dashboardPage.action')" />
+        <el-table-column prop="ip" :label="t('dashboardPage.ip')" width="140" />
       </el-table>
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import {
   User,
   View,
   ShoppingCart,
   Coin
 } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
+import axios from 'axios'
 
-const recentActivities = ref([
-  {
-    time: '2024-12-11 16:30:00',
-    user: 'Admin',
-    action: '登录系统',
-    status: 'success'
-  },
-  {
-    time: '2024-12-11 16:25:00',
-    user: 'User001',
-    action: '修改密码',
-    status: 'success'
-  },
-  {
-    time: '2024-12-11 16:20:00',
-    user: 'User002',
-    action: '上传文件',
-    status: 'success'
-  },
-  {
-    time: '2024-12-11 16:15:00',
-    user: 'User003',
-    action: '删除数据',
-    status: 'failed'
+const { t } = useI18n()
+const loading = ref(false)
+const recentActivities = ref([])
+
+// 加载最近活动
+const loadRecentActivities = async () => {
+  loading.value = true
+  try {
+    const response = await axios.get('/api/admin/v1/operate_log/list', {
+      params: {
+        page: 1,
+        page_size: 5,
+        order_by: "id desc"
+      },
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    if (response.data.code === 200) {
+      recentActivities.value = response.data.data.list || []
+    } else {
+      console.error('加载最近活动失败:', response.data.message)
+    }
+  } catch (error) {
+    console.error('加载最近活动失败:', error)
+  } finally {
+    loading.value = false
   }
-])
+}
+
+onMounted(() => {
+  loadRecentActivities()
+})
 </script>
 
 <style scoped>

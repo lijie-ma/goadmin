@@ -62,16 +62,16 @@
     "operateLogs": "Operation Logs"
   },
   "dashboardPage": {
-    "welcome": "Welcome Back",
+    "title": "Dashboard",
+    "recentActivities": "Recent Activities",
+    "time": "Time",
+    "user": "User",
+    "action": "Action",
+    "ip": "IP Address",
     "totalUsers": "Total Users",
-    "activeUsers": "Active Users",
-    "totalRoles": "Total Roles",
-    "systemStatus": "System Status",
-    "normal": "Normal",
-    "quickActions": "Quick Actions",
-    "viewUsers": "View Users",
-    "viewRoles": "View Roles",
-    "systemSettings": "System Settings"
+    "pageViews": "Page Views",
+    "orderCount": "Order Count",
+    "revenue": "Revenue"
   },
   "user": {
     "title": "User Management",

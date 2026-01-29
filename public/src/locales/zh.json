@@ -62,16 +62,16 @@
     "operateLogs": "操作日志"
   },
   "dashboardPage": {
-    "welcome": "欢迎回来",
+    "title": "仪表板",
+    "recentActivities": "最近活动",
+    "time": "时间",
+    "user": "用户",
+    "action": "操作",
+    "ip": "IP地址",
     "totalUsers": "用户总数",
-    "activeUsers": "活跃用户",
-    "totalRoles": "角色总数",
-    "systemStatus": "系统状态",
-    "normal": "正常",
-    "quickActions": "快速操作",
-    "viewUsers": "查看用户",
-    "viewRoles": "查看角色",
-    "systemSettings": "系统设置"
+    "pageViews": "页面访问量",
+    "orderCount": "订单数量",
+    "revenue": "营业收入"
   },
   "user": {
     "title": "用户管理",
