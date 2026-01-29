@@ -88,7 +88,7 @@ func (h *Handler) UpdateSettings(c *context.Context) {
 // @Produce json
 // @Param names query string true "配置名称，多个用逗号分隔"
 // @Success 200 {object} schema.Response
-// @Router /api/admin/v1/settings/names [get]
+// @Router /api/admin/v1/settings/get [get]
 func (h *Handler) GetByNames(ctx *context.Context) {
 	var req struct {
 		Names string `form:"names" json:"names" binding:"required"`
