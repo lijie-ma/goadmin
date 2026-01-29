@@ -265,7 +265,7 @@ const loadThirdPartySettings = async () => {
     })
     if (response.data.code === 200) {
       // 批量获取返回的是map格式，需要从map中取出third_party_config
-      const configData = response.data.data['third_party_config'] || {}
+      const configData = response.data.data || {}
       Object.assign(thirdPartySettings, configData)
     } else {
       throw new Error(response.data.message)
@@ -283,7 +283,7 @@ const saveThirdPartySettings = async () => {
   try {
     const response = await axios.post('/api/admin/v1/setting/set', {
       name: 'map_ak',
-      value: thirdPartySettings
+      value: thirdPartySettings['map_ak']
     }, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
