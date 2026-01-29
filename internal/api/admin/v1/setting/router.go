@@ -26,7 +26,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			authGroup.POST("/set_settings", context.Build(handler.UpdateSettings))
 
 			// 基础配置操作
-			authGroup.GET("/get", context.Build(handler.GetByName))
+			authGroup.GET("/get", context.Build(handler.GetByNames))
 			authGroup.POST("/set", context.Build(handler.SetByName))
 		}
 

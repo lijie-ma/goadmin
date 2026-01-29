@@ -6,6 +6,7 @@ import (
 	"goadmin/internal/model/server"
 	serverRepo "goadmin/internal/repository/server"
 	"goadmin/pkg/db"
+	"reflect"
 )
 
 // ServerSettingService 服务端设置服务接口
@@ -15,6 +16,9 @@ type ServerSettingService interface {
 
 	// GetValue 根据名称获取服务端配置值
 	GetValue(ctx *context.Context, name string, resultPtr any) error
+
+	// GetValues 根据名称批量获取服务端配置值
+	GetValues(ctx *context.Context, names []string) (map[string]any, error)
 
 	// GetByName 根据名称获取服务端配置
 	GetByName(ctx *context.Context, name string) (*server.ServerSetting, error)
@@ -94,7 +98,51 @@ func (s *serverSettingServiceImpl) GetValue(ctx *context.Context, name string, r
 	if err != nil {
 		return err
 	}
+	// 如果配置不存在，返回空对象
+	if setting == nil {
+		// 将resultPtr设置为空map
+		if reflect.ValueOf(resultPtr).Kind() == reflect.Ptr {
+			// 创建一个空的map[string]any并赋值给resultPtr
+			emptyMap := make(map[string]any)
+			reflect.ValueOf(resultPtr).Elem().Set(reflect.ValueOf(emptyMap))
+		}
+		return nil
+	}
 	return decoding(setting.Value, resultPtr)
+}
+
+// GetValues 根据名称批量获取服务端配置值
+func (s *serverSettingServiceImpl) GetValues(ctx *context.Context, names []string) (map[string]any, error) {
+	result := make(map[string]any)
+
+	// 批量获取配置
+	settings, err := s.repo.BatchGet(ctx, names)
+	if err != nil {
+		ctx.Logger.Errorf("%s GetValues failed, err: %v", s.logPrefix(), err)
+		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+
+	// 将配置转换为map
+	for _, setting := range settings {
+		var value any
+		err = decoding(setting.Value, &value)
+		if err != nil {
+			ctx.Logger.Errorf("%s GetValues unmarshal failed for %s, err: %v", s.logPrefix(), setting.Name, err)
+			// 如果解析失败，返回空对象
+			result[setting.Name] = make(map[string]any)
+			continue
+		}
+		result[setting.Name] = value
+	}
+
+	// 对于不存在的配置，返回空对象
+	for _, name := range names {
+		if _, exists := result[name]; !exists {
+			result[name] = make(map[string]any)
+		}
+	}
+
+	return result, nil
 }
 
 // GetByName 根据名称获取服务端配置
