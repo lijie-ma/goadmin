@@ -222,13 +222,11 @@ export function useServiceSettings() {
   const saving = ref(false)
 
   const settings = reactive({
-    service_url: '',
-    service_token: ''
+    region: ''
   })
 
   const defaultSettings = {
-    service_url: '',
-    service_token: ''
+    region: ''
   }
 
   const loadSettings = async () => {
@@ -236,7 +234,7 @@ export function useServiceSettings() {
     try {
       const response = await axios.get('/api/admin/v1/setting/get', {
         params: {
-          names: 'service_config'
+          names: 'service_region'
         },
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -244,13 +242,12 @@ export function useServiceSettings() {
       })
       if (response.data.code === 200) {
         const configData = response.data.data || {}
-        if (configData.service_config) {
+        if (configData.service_region) {
           try {
-            const serviceConfig = JSON.parse(configData.service_config)
-            settings.service_url = serviceConfig.service_url || ''
-            settings.service_token = serviceConfig.service_token || ''
+            const serviceConfig = JSON.parse(configData.service_region)
+            settings.region = serviceConfig.region || ''
           } catch (e) {
-            console.error('解析 service_config 失败:', e)
+            console.error('解析 service_region 失败:', e)
           }
         }
       } else {
@@ -268,12 +265,11 @@ export function useServiceSettings() {
     saving.value = true
     try {
       const serviceConfig = {
-        service_url: settings.service_url,
-        service_token: settings.service_token
+        region: settings.region
       }
 
       const response = await axios.post('/api/admin/v1/setting/set', {
-        name: 'service_config',
+        name: 'service_region',
         value: JSON.stringify(serviceConfig)
       }, {
         headers: {

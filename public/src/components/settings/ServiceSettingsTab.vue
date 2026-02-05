@@ -3,16 +3,10 @@
     <el-form :model="settings" label-width="120px">
       <!-- 服务配置 -->
       <el-divider content-position="left">{{ t('settings.serviceConfig') }}</el-divider>
-      <el-form-item :label="t('settings.serviceUrl')">
+      <el-form-item :label="t('settings.region')">
         <el-input
-          v-model="settings.service_url"
-          :placeholder="t('settings.serviceUrlPlaceholder')"
-        />
-      </el-form-item>
-      <el-form-item :label="t('settings.serviceToken')">
-        <el-input
-          v-model="settings.service_token"
-          :placeholder="t('settings.serviceTokenPlaceholder')"
+          v-model="settings.region"
+          :placeholder="t('settings.regionPlaceholder')"
         />
       </el-form-item>
 

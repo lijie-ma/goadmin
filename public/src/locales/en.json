@@ -211,10 +211,8 @@
     "mapScode": "Service Security Code",
     "mapScodePlaceholder": "Please enter map service security code",
     "serviceConfig": "Service Region",
-    "serviceUrl": "Service URL",
-    "serviceUrlPlaceholder": "Please enter service URL",
-    "serviceToken": "Service Token",
-    "serviceTokenPlaceholder": "Please enter service token"
+    "region": "Region",
+    "regionPlaceholder": "Please enter region"
   },
   "operateLog": {
     "title": "Operation Logs",

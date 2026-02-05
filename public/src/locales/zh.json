@@ -211,10 +211,8 @@
     "mapScode": "地图服务安全码",
     "mapScodePlaceholder": "请输入地图服务安全码",
     "serviceConfig": "服务区域",
-    "serviceUrl": "服务地址",
-    "serviceUrlPlaceholder": "请输入服务地址",
-    "serviceToken": "服务令牌",
-    "serviceTokenPlaceholder": "请输入服务令牌"
+    "region": "区域",
+    "regionPlaceholder": "请输入区域"
   },
   "operateLog": {
     "title": "操作日志",
