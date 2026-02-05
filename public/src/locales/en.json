@@ -204,11 +204,17 @@
     "resetSuccess": "Reset to default settings",
     "tabSystem": "System Settings",
     "tabThirdParty": "Third Party Services",
+    "tabService": "Service Configuration",
     "mapService": "Map Service Configuration",
     "mapAk": "Service Key",
     "mapAkPlaceholder": "Please enter map service key",
     "mapScode": "Service Security Code",
-    "mapScodePlaceholder": "Please enter map service security code"
+    "mapScodePlaceholder": "Please enter map service security code",
+    "serviceConfig": "Service Region",
+    "serviceUrl": "Service URL",
+    "serviceUrlPlaceholder": "Please enter service URL",
+    "serviceToken": "Service Token",
+    "serviceTokenPlaceholder": "Please enter service token"
   },
   "operateLog": {
     "title": "Operation Logs",

@@ -204,11 +204,17 @@
     "resetSuccess": "已重置为默认设置",
     "tabSystem": "系统设置",
     "tabThirdParty": "第三方服务配置",
+    "tabService": "服务配置",
     "mapService": "地图服务配置",
     "mapAk": "地图服务密钥",
     "mapAkPlaceholder": "请输入地图服务密钥",
     "mapScode": "地图服务安全码",
-    "mapScodePlaceholder": "请输入地图服务安全码"
+    "mapScodePlaceholder": "请输入地图服务安全码",
+    "serviceConfig": "服务区域",
+    "serviceUrl": "服务地址",
+    "serviceUrlPlaceholder": "请输入服务地址",
+    "serviceToken": "服务令牌",
+    "serviceTokenPlaceholder": "请输入服务令牌"
   },
   "operateLog": {
     "title": "操作日志",
