@@ -69,7 +69,7 @@ func getCapt() (slide.Captcha, error) {
 
 func Generate(ctx *context.Context) (any, error) {
 	var captchaCfg server.CaptchaSwitchConfig
-	err := setting.NewServerSettingService().GetValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
+	err := setting.NewServerSettingService().GetSrcValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
 	if err != nil {
 		ctx.Logger.Errorf("%s Generate GetValue %+v", logPrefix, err)
 		return nil, err

@@ -85,7 +85,7 @@ func (s *userService) GenerateUserCredential(ctx *context.Context, userID uint64
 
 func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*modeluser.LoginResponse, error) {
 	var captchaCfg server.CaptchaSwitchConfig
-	err := setting.NewServerSettingService().GetValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
+	err := setting.NewServerSettingService().GetSrcValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
 	if err != nil {
 		ctx.Logger.Errorf("%s Generate GetValue %+v", s.logPrefix(), err)
 		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)

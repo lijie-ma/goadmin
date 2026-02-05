@@ -15,17 +15,14 @@ type ServerSettingService interface {
 	// SetByName 设置服务端配置
 	SetByName(ctx *context.Context, name string, value any) error
 
-	// GetValue 根据名称获取服务端配置值
-	GetValue(ctx *context.Context, name string, resultPtr any) error
+	// GetSrcValue 根据名称获取服务端配置值
+	GetSrcValue(ctx *context.Context, name string, resultPtr any) error
 
 	// GetValues 根据名称批量获取服务端配置值
 	GetValues(ctx *context.Context, names []string) (map[string]any, error)
 
 	// GetByName 根据名称获取服务端配置
-	GetByName(ctx *context.Context, name string) (*server.ServerSetting, error)
-
-	// Exists 检查服务端配置是否存在
-	Exists(ctx *context.Context, name string) (bool, error)
+	GetByName(ctx *context.Context, name string, decrypt ...bool) (*server.ServerSetting, error)
 
 	// GetSystemSettings 获取系统设置
 	GetSystemSettings(ctx *context.Context) (*server.SystemSettingsResponse, error)
@@ -50,7 +47,7 @@ func (s *serverSettingServiceImpl) logPrefix() string {
 	return "server-setting"
 }
 
-func (s *serverSettingServiceImpl) getByName(ctx *context.Context, name string) (*server.ServerSetting, error) {
+func (s *serverSettingServiceImpl) GetByName(ctx *context.Context, name string, decrypt ...bool) (*server.ServerSetting, error) {
 	data, err := s.repo.GetByName(ctx, name)
 	if err != nil {
 		ctx.Logger.Errorf("%s getByName failed, err: %v", s.logPrefix(), err)
@@ -60,12 +57,14 @@ func (s *serverSettingServiceImpl) getByName(ctx *context.Context, name string) 
 		return nil, i18n.E(
 			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.setting", nil)})
 	}
-	decryptStr, err := util.DecryptAESGCM(data.Value)
-	if err != nil {
-		ctx.Logger.Errorf("%s SetByName DecryptAESGCM failed, err: %v", s.logPrefix(), err)
-		return nil, err
+	if len(decrypt) == 0 || decrypt[0] {
+		decryptStr, err := util.DecryptAESGCM(data.Value)
+		if err != nil {
+			ctx.Logger.Errorf("%s SetByName DecryptAESGCM failed, err: %v", s.logPrefix(), err)
+			return nil, err
+		}
+		data.Value = string(decryptStr)
 	}
-	data.Value = string(decryptStr)
 	return data, nil
 }
 
@@ -105,8 +104,8 @@ func (s *serverSettingServiceImpl) SetByName(ctx *context.Context, name string, 
 }
 
 // GetValue 根据名称获取服务端配置值
-func (s *serverSettingServiceImpl) GetValue(ctx *context.Context, name string, resultPtr any) error {
-	setting, err := s.getByName(ctx, name)
+func (s *serverSettingServiceImpl) GetSrcValue(ctx *context.Context, name string, resultPtr any) error {
+	setting, err := s.GetByName(ctx, name, false)
 	if err != nil {
 		return err
 	}
@@ -155,16 +154,6 @@ func (s *serverSettingServiceImpl) GetValues(ctx *context.Context, names []strin
 	}
 
 	return result, nil
-}
-
-// GetByName 根据名称获取服务端配置
-func (s *serverSettingServiceImpl) GetByName(ctx *context.Context, name string) (*server.ServerSetting, error) {
-	return s.getByName(ctx, name)
-}
-
-// Exists 检查服务端配置是否存在
-func (s *serverSettingServiceImpl) Exists(ctx *context.Context, name string) (bool, error) {
-	return s.repo.Exists(ctx, name)
 }
 
 // GetSystemSettings 获取系统设置
