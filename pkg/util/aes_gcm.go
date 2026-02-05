@@ -20,12 +20,14 @@ const (
 //	key       - 32字节密钥（AES-256）
 //
 // 返回：base64(nonce + ciphertext)
-func EncryptAESGCM(plaintext, key []byte) (string, error) {
-	if len(key) != 32 {
+func EncryptAESGCM(plaintext []byte, key ...[]byte) (string, error) {
+	if len(key) == 0 {
+		key = [][]byte{[]byte(AESGCMDefaultKey)}
+	} else if len(key[0]) != 32 {
 		return "", errors.New("key must be 32 bytes for AES-256")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher(key[0])
 	if err != nil {
 		return "", err
 	}
@@ -52,8 +54,10 @@ func EncryptAESGCM(plaintext, key []byte) (string, error) {
 }
 
 // DecryptAESGCM 解密 base64 编码的 AES-GCM 密文
-func DecryptAESGCM(encoded string, key []byte) ([]byte, error) {
-	if len(key) != 32 {
+func DecryptAESGCM(encoded string, key ...[]byte) ([]byte, error) {
+	if len(key) == 0 {
+		key = [][]byte{[]byte(AESGCMDefaultKey)}
+	} else if len(key[0]) != 32 {
 		return nil, errors.New("key must be 32 bytes for AES-256")
 	}
 
@@ -62,7 +66,7 @@ func DecryptAESGCM(encoded string, key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher(key[0])
 	if err != nil {
 		return nil, err
 	}

@@ -19,4 +19,20 @@ func TestEncryptAESGCM(t *testing.T) {
 	if string(decrypted) != string(plaintext) {
 		t.Errorf("Decrypted data does not match original data")
 	}
+
+	t.Log("used default key")
+	encrypted, err = EncryptAESGCM(plaintext)
+	if err != nil {
+		t.Errorf("EncryptAESGCM with default key failed: %v", err)
+		return
+	}
+	t.Logf("Encrypted data default key: %s", encrypted)
+	decrypted, err = DecryptAESGCM(encrypted)
+	if err != nil {
+		t.Errorf("DecryptAESGCM default key failed: %v", err)
+		return
+	}
+	if string(decrypted) != string(plaintext) {
+		t.Errorf("Decrypted data does not match original data")
+	}
 }
