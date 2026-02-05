@@ -6,6 +6,7 @@ import (
 	"goadmin/internal/model/server"
 	serverRepo "goadmin/internal/repository/server"
 	"goadmin/pkg/db"
+	"goadmin/pkg/util"
 	"reflect"
 )
 
@@ -59,29 +60,40 @@ func (s *serverSettingServiceImpl) getByName(ctx *context.Context, name string) 
 		return nil, i18n.E(
 			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.setting", nil)})
 	}
+	decryptStr, err := util.DecryptAESGCM(data.Value)
+	if err != nil {
+		ctx.Logger.Errorf("%s SetByName DecryptAESGCM failed, err: %v", s.logPrefix(), err)
+		return nil, err
+	}
+	data.Value = string(decryptStr)
 	return data, nil
 }
 
 // SetByName 设置服务端配置
 func (s *serverSettingServiceImpl) SetByName(ctx *context.Context, name string, value any) error {
+	str, err := encoding(value)
+	if err != nil {
+		return err
+	}
+	encryptStr, err := util.EncryptAESGCM([]byte(str))
+	if err != nil {
+		ctx.Logger.Errorf("%s SetByName EncryptAESGCM failed, err: %v", s.logPrefix(), err)
+		return err
+	}
 	setting, err := s.repo.GetByName(ctx, name)
 	if err != nil {
 		ctx.Logger.Errorf("%s SetByName GetByName failed, err: %v", s.logPrefix(), err)
 		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
 	}
-	str, err := encoding(value)
-	if err != nil {
-		return err
-	}
 	if setting == nil {
 		// 创建新配置
 		setting = &server.ServerSetting{
 			Name:  name,
-			Value: string(str),
+			Value: encryptStr,
 		}
 		err = s.repo.Create(ctx, setting)
 	} else {
-		setting.Value = string(str)
+		setting.Value = encryptStr
 		err = s.repo.Update(ctx, setting)
 	}
 	if err != nil {

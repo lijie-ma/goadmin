@@ -90,6 +90,12 @@
                 :placeholder="t('settings.mapAkPlaceholder')"
               />
             </el-form-item>
+            <el-form-item :label="t('settings.mapScode')">
+              <el-input
+                v-model="thirdPartySettings.map_scode"
+                :placeholder="t('settings.mapScodePlaceholder')"
+              />
+            </el-form-item>
 
             <!-- 保存按钮 -->
             <el-form-item>
@@ -151,7 +157,8 @@ const settings = reactive({
 })
 
 const thirdPartySettings = reactive({
-  map_ak: ''
+  map_ak: '',
+  map_scode: ''
 })
 
 const beforeLogoUpload = async (file) => {
@@ -257,16 +264,24 @@ const loadThirdPartySettings = async () => {
   try {
     const response = await axios.get('/api/admin/v1/setting/get', {
       params: {
-        names: 'map_ak'
+        names: 'map_config'
       },
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     })
     if (response.data.code === 200) {
-      // 批量获取返回的是map格式，需要从map中取出third_party_config
+      // 从 map_config 中解析 JSON 数据
       const configData = response.data.data || {}
-      Object.assign(thirdPartySettings, configData)
+      if (configData.map_config) {
+        try {
+          const mapConfig = JSON.parse(configData.map_config)
+          thirdPartySettings.map_ak = mapConfig.map_ak || ''
+          thirdPartySettings.map_scode = mapConfig.map_scode || ''
+        } catch (e) {
+          console.error('解析 map_config 失败:', e)
+        }
+      }
     } else {
       throw new Error(response.data.message)
     }
@@ -281,9 +296,15 @@ const loadThirdPartySettings = async () => {
 const saveThirdPartySettings = async () => {
   serviceSaving.value = true
   try {
+    // 将 map_ak 和 map_scode 合并成 JSON
+    const mapConfig = {
+      map_ak: thirdPartySettings.map_ak,
+      map_scode: thirdPartySettings.map_scode
+    }
+
     const response = await axios.post('/api/admin/v1/setting/set', {
-      name: 'map_ak',
-      value: thirdPartySettings['map_ak']
+      name: 'map_config',
+      value: JSON.stringify(mapConfig)
     }, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -302,7 +323,8 @@ const saveThirdPartySettings = async () => {
 }
 
 const defaultThirdPartySettings = {
-  map_ak: ''
+  map_ak: '',
+  map_scode: ''
 }
 
 const resetThirdPartySettings = () => {

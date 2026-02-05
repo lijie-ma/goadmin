@@ -205,8 +205,10 @@
     "tabSystem": "System Settings",
     "tabThirdParty": "Third Party Services",
     "mapService": "Map Service Configuration",
-    "mapAk": "Map Service Key",
-    "mapAkPlaceholder": "Please enter map service key"
+    "mapAk": "Service Key",
+    "mapAkPlaceholder": "Please enter map service key",
+    "mapScode": "Service Security Code",
+    "mapScodePlaceholder": "Please enter map service security code"
   },
   "operateLog": {
     "title": "Operation Logs",

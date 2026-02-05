@@ -206,7 +206,9 @@
     "tabThirdParty": "第三方服务配置",
     "mapService": "地图服务配置",
     "mapAk": "地图服务密钥",
-    "mapAkPlaceholder": "请输入地图服务密钥"
+    "mapAkPlaceholder": "请输入地图服务密钥",
+    "mapScode": "地图服务安全码",
+    "mapScodePlaceholder": "请输入地图服务安全码"
   },
   "operateLog": {
     "title": "操作日志",
