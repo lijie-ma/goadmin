@@ -81,6 +81,23 @@ CREATE TABLE `operate_log` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='操作日志';
 
+
+CREATE TABLE `position` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `city` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '城市名称',
+  `location` VARCHAR(128) NOT NULL DEFAULT '' COMMENT '详细位置（如街道/建筑）',
+  `longitude` DECIMAL(10,6) NOT NULL COMMENT '经度',
+  `latitude` DECIMAL(10,6) NOT NULL COMMENT '纬度',
+  `custom_name` VARCHAR(128) DEFAULT NULL COMMENT '自定义名称',
+  `creator_id` int DEFAULT 0 COMMENT '创建人',
+  `creator` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '创建人',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_city` (`city`),
+  KEY `idx_location` (`location`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='位置信息表';
+
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
 DROP TABLE IF EXISTS permissions;
@@ -90,3 +107,4 @@ DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS server_setting;
 DROP TABLE IF EXISTS operate_log;
+DROP TABLE IF EXISTS position;

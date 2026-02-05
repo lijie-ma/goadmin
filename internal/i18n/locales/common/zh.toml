@@ -39,6 +39,8 @@ other = "角色"
 other = "令牌"
 [common.item.setting]
 other = "设置"
+[common.item.position]
+other = "位置"
 
 [upload.fileNotFound]
 other = "未找到上传文件"

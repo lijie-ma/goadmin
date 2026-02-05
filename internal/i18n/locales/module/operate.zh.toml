@@ -13,3 +13,12 @@ other = "用户删除"
 [operate.User.ResetPassword]
 other = "用户重置密码"
 
+[operate.Position.Create]
+other = "位置创建"
+
+[operate.Position.Update]
+other = "位置编辑"
+
+[operate.Position.Delete]
+other = "位置删除"
+

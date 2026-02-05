@@ -82,6 +82,35 @@ COMMENT ON COLUMN operate_log.ip IS '操作人ip';
 COMMENT ON COLUMN operate_log.mtime IS '修改时间';
 COMMENT ON COLUMN operate_log.ctime IS '记录创建时间';
 
+CREATE TABLE position (
+    id SERIAL PRIMARY KEY,                             -- 主键ID，自增
+    city VARCHAR(64) NOT NULL DEFAULT '' ,              -- 城市名称
+    location VARCHAR(128) NOT NULL DEFAULT '',          -- 详细位置（如街道/建筑）
+    longitude NUMERIC(10,6) NOT NULL,                   -- 经度
+    latitude NUMERIC(10,6) NOT NULL,                    -- 纬度
+    custom_name VARCHAR(128) DEFAULT NULL,              -- 自定义名称
+    creator_id INTEGER DEFAULT 0,                       -- 创建人ID
+    creator VARCHAR(64) NOT NULL DEFAULT '',            -- 创建人
+    ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- 创建时间
+    mtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- 更新时间
+    CONSTRAINT chk_coordinates CHECK (longitude BETWEEN -180 AND 180 AND latitude BETWEEN -90 AND 90)
+);
+
+-- 索引
+CREATE INDEX idx_city ON position(city);
+CREATE INDEX idx_location ON position(location);
+
+-- 表注释
+COMMENT ON TABLE position IS '位置信息表';
+
+-- 字段注释
+COMMENT ON COLUMN position.city IS '城市名称';
+COMMENT ON COLUMN position.location IS '详细位置（如街道/建筑）';
+COMMENT ON COLUMN position.longitude IS '经度';
+COMMENT ON COLUMN position.latitude IS '纬度';
+COMMENT ON COLUMN position.custom_name IS '自定义名称';
+COMMENT ON COLUMN position.creator_id IS '创建人ID';
+COMMENT ON COLUMN position.creator IS '创建人';
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
@@ -91,3 +120,4 @@ DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS permissions;
 DROP TABLE IF EXISTS operate_log;
+DROP TABLE IF EXISTS position;

@@ -30,6 +30,13 @@ INSERT INTO role_permissions (role_code, permission_code) VALUES
  ('sup_admin', 'role_perm_set'),
  ('sup_admin', 'role_perm_info');
 
+INSERT INTO role_permissions (role_code, permission_code) VALUES
+('sup_admin', 'position_list'),
+('sup_admin', 'position_info'),
+('sup_admin', 'position_create'),
+('sup_admin', 'position_update'),
+('sup_admin', 'position_delete');
+
 INSERT INTO permissions (code, name, description, path, module, global_flag) VALUES
 ('captcha_get',    '查询验证码',   '', 'admin/v1/setting/get_captcha_switch',   'server', 0),
 ('captcha_set',    '设置验证码',   '', 'admin/v1/setting/set_captcha_switch',   'server', 0),
@@ -56,10 +63,16 @@ INSERT INTO permissions (code, name, description, path, module, global_flag) VAL
 ('role_perm_set',  '角色权限设置', '', 'admin/v1/role/permissions/assign',  'role',   0),
 ('role_perm_info', '角色权限查看', '', 'admin/v1/role/permissions/get',     'role',   0);
 
+INSERT INTO permissions (code, name, description, path, module, global_flag) VALUES
+('position_list',      '位置列表',     '', 'admin/v1/position/list',                'position',   0),
+('position_info',      '位置详情',     '', 'admin/v1/position/get',                 'position',   0),
+('position_create',    '位置创建',     '', 'admin/v1/position/create',              'position',   0),
+('position_update',    '位置更新',     '', 'admin/v1/position/update',              'position',   0),
+('position_delete',    '位置删除',     '', 'admin/v1/position/delete',              'position',   0);
 
 INSERT INTO server_setting (id, name, value) VALUES
 (1, 'captcha_switch', '{"admin":1, "web":1}'),
-('2', 'system_config', '{"system_name":"admin", "logo":"", "language":"zh-CN"}');
+(2, 'system_config', '{"system_name":"admin", "logo":"", "language":"zh-CN"}');
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.

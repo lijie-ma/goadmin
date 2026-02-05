@@ -12,3 +12,12 @@ other = "User Delete"
 
 [operate.User.ResetPassword]
 other = "User ResetPassword"
+
+[operate.Position.Create]
+other = "Position Create"
+
+[operate.Position.Update]
+other = "Position Update"
+
+[operate.Position.Delete]
+other = "Position Delete"

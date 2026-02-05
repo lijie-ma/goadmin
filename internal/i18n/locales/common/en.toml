@@ -39,6 +39,8 @@ other = "Role"
 other = "token"
 [common.item.setting]
 other = "Setting"
+[common.item.position]
+other = "Position"
 
 [upload.fileNotFound]
 other = "No file uploaded"

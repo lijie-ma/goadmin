@@ -3,6 +3,7 @@ package api
 import (
 	"goadmin/internal/api/admin/v1/captcha"
 	"goadmin/internal/api/admin/v1/operate_log"
+	"goadmin/internal/api/admin/v1/position"
 	"goadmin/internal/api/admin/v1/role"
 	"goadmin/internal/api/admin/v1/setting"
 	"goadmin/internal/api/admin/v1/upload"
@@ -58,6 +59,9 @@ func adminHandler(r *gin.Engine) {
 
 		// 操作日志相关路由
 		operate_log.RegisterRoutes(adminGroup)
+
+		// 位置相关路由
+		position.RegisterRoutes(adminGroup)
 	}
 
 	// 静态文件服务 - 提供上传文件的访问
