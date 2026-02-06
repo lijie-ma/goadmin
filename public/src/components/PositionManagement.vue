@@ -182,7 +182,7 @@
       v-model="editDialogVisible"
       :title="t('position.edit')"
       direction="rtl"
-      size="500px"
+      size="800px"
     >
       <el-form
         ref="editPositionFormRef"
@@ -198,6 +198,32 @@
             show-word-limit
           />
         </el-form-item>
+
+        <!-- 地图容器 -->
+        <el-form-item label="">
+          <div style="position: relative; width: 100%;">
+            <!-- 地图搜索浮层 -->
+            <div class="map-search-overlay">
+              <el-input
+                v-model="editSearchLocation"
+                :placeholder="t('position.locationPlaceholder')"
+                clearable
+                @keyup.enter="handleEditSearchLocation"
+                style="width: 300px;"
+              >
+                <template #append>
+                  <el-button @click="handleEditSearchLocation">{{ t('common.search') }}</el-button>
+                </template>
+              </el-input>
+            </div>
+
+            <div id="editMapContainer" style="width: 100%; height: 400px; border: 1px solid #dcdfe6; border-radius: 4px;"></div>
+            <div style="margin-top: 8px; color: #909399; font-size: 12px;">
+              {{ t('position.mapTip') || '点击地图选择位置，或使用上方搜索框搜索地点' }}
+            </div>
+          </div>
+        </el-form-item>
+
         <el-form-item :label="t('position.customName')" prop="custom_name">
           <el-input
             v-model="editPositionForm.custom_name"
@@ -214,6 +240,7 @@
             :min="-180"
             :max="180"
             style="width: 100%"
+            :disabled="true"
           />
         </el-form-item>
         <el-form-item :label="t('position.latitude')" prop="latitude">
@@ -224,6 +251,7 @@
             :min="-90"
             :max="90"
             style="width: 100%"
+            :disabled="true"
           />
         </el-form-item>
       </el-form>
@@ -281,6 +309,7 @@ const amapKey = ref('') // 高德地图API密钥
 
 // 编辑位置对话框
 const editDialogVisible = ref(false)
+const editSearchLocation = ref('')
 const editPositionForm = ref({
   id: 0,
   location: '',
@@ -289,6 +318,12 @@ const editPositionForm = ref({
   latitude: 0
 })
 const editPositionFormRef = ref(null)
+
+// 编辑地图相关
+let editMap = null
+let editMarker = null
+let editPlaceSearch = null
+let editGeocoder = null
 
 // 表单验证规则
 const addPositionRules = computed(() => ({
@@ -509,6 +544,157 @@ const updateMarker = (lng, lat) => {
   }
 }
 
+// 初始化编辑地图
+const initEditMap = async () => {
+  try {
+    await loadAMapScript()
+    await nextTick()
+
+    const mapContainer = document.getElementById('editMapContainer')
+    if (!mapContainer) {
+      console.error('Edit map container not found')
+      return
+    }
+
+    const initialCity = serviceSettings.region || '全国'
+
+    // 创建地图实例
+    editMap = new AMap.Map('editMapContainer', {
+      zoom: 11,
+      viewMode: '2D',
+      resizeEnable: true
+    })
+
+    // 动态加载控件插件
+    AMap.plugin(['AMap.ControlBar', 'AMap.Scale'], () => {
+      editMap.addControl(
+        new AMap.ControlBar({
+          position: { right: '10px', top: '10px' }
+        })
+      )
+      editMap.addControl(new AMap.Scale())
+    })
+
+    // 初始化搜索与地理编码服务
+    editPlaceSearch = new AMap.PlaceSearch({
+      city: initialCity,
+      pageSize: 5,
+      pageIndex: 1,
+      extensions: 'all'
+    })
+
+    editGeocoder = new AMap.Geocoder({
+      city: initialCity
+    })
+
+    // 地图点击事件
+    editMap.on('click', (e) => {
+      handleEditMapClick(e.lnglat)
+    })
+
+    // 设置地图中心到当前位置
+    if (editPositionForm.value.longitude && editPositionForm.value.latitude) {
+      editMap.setCenter([editPositionForm.value.longitude, editPositionForm.value.latitude])
+      editMap.setZoom(15)
+      updateEditMarker(editPositionForm.value.longitude, editPositionForm.value.latitude)
+    } else if (initialCity && initialCity !== '全国') {
+      setEditMapCenterByCity(initialCity)
+    } else {
+      editMap.setZoom(4)
+      editMap.setCenter([104.195397, 35.86166])
+    }
+  } catch (error) {
+    console.error('Failed to initialize edit map:', error)
+    ElMessage.error(t('position.mapLoadFailed') || '地图加载失败')
+  }
+}
+
+// 根据城市设置编辑地图中心
+const setEditMapCenterByCity = (city) => {
+  if (!editGeocoder || !city) {
+    console.log('Cannot set edit map center: geocoder or city missing')
+    return
+  }
+
+  editGeocoder.getLocation(city, (status, result) => {
+    if (status === 'complete' && result.geocodes?.length > 0) {
+      const location = result.geocodes[0].location
+      editMap.setCenter([location.lng, location.lat])
+      editMap.setZoom(11)
+    } else {
+      console.warn(`City not found: ${city}`)
+      editMap.setZoom(4)
+      editMap.setCenter([104.195397, 35.86166])
+    }
+  })
+}
+
+// 编辑地图搜索地点
+const handleEditSearchLocation = () => {
+  if (!editSearchLocation.value || !editPlaceSearch) {
+    return
+  }
+
+  editPlaceSearch.search(editSearchLocation.value, (status, result) => {
+    if (status === 'complete' && result.poiList.pois.length > 0) {
+      const poi = result.poiList.pois[0]
+      const location = poi.location
+
+      // 设置地图中心和标记
+      editMap.setCenter([location.lng, location.lat])
+      editMap.setZoom(15)
+
+      // 更新标记
+      updateEditMarker(location.lng, location.lat)
+
+      // 填充表单数据
+      editPositionForm.value.location = poi.name
+      editPositionForm.value.longitude = location.lng
+      editPositionForm.value.latitude = location.lat
+
+      ElMessage.success(t('position.locationFound') || '已找到位置')
+    } else {
+      ElMessage.warning(t('position.locationNotFound') || '未找到该位置')
+    }
+  })
+}
+
+// 处理编辑地图点击
+const handleEditMapClick = (lnglat) => {
+  updateEditMarker(lnglat.lng, lnglat.lat)
+
+  // 反向地理编码获取地址
+  if (editGeocoder) {
+    editGeocoder.getAddress(lnglat, (status, result) => {
+      if (status === 'complete' && result.regeocode) {
+        editPositionForm.value.location = result.regeocode.formattedAddress
+      }
+    })
+  }
+
+  editPositionForm.value.longitude = lnglat.lng
+  editPositionForm.value.latitude = lnglat.lat
+}
+
+// 更新编辑地图标记
+const updateEditMarker = (lng, lat) => {
+  if (editMarker) {
+    editMarker.setPosition([lng, lat])
+  } else {
+    editMarker = new AMap.Marker({
+      position: [lng, lat],
+      map: editMap,
+      draggable: true
+    })
+
+    // 标记拖拽事件
+    editMarker.on('dragend', (e) => {
+      const position = e.target.getPosition()
+      handleEditMapClick(position)
+    })
+  }
+}
+
 // 获取高德地图密钥
 const fetchAMapKey = async () => {
   try {
@@ -704,7 +890,10 @@ const handleSubmitAdd = async () => {
 }
 
 // 编辑位置
-const handleEditPosition = (row) => {
+const handleEditPosition = async (row) => {
+  // 加载服务配置（service_region）
+  await loadServiceSettings()
+
   // 填充表单数据
   editPositionForm.value = {
     id: row.id,
@@ -713,12 +902,23 @@ const handleEditPosition = (row) => {
     longitude: row.longitude,
     latitude: row.latitude
   }
+  editSearchLocation.value = ''
+
   // 清除表单验证状态
   if (editPositionFormRef.value) {
     editPositionFormRef.value.clearValidate()
   }
+
   // 打开弹框
   editDialogVisible.value = true
+
+  // 初始化地图
+  await nextTick()
+  if (amapKey.value) {
+    await initEditMap()
+  } else {
+    ElMessage.warning(t('position.mapKeyNotFound') || '未配置地图密钥')
+  }
 }
 
 // 处理取消编辑
@@ -728,6 +928,14 @@ const handleCancelEdit = () => {
   if (editPositionFormRef.value) {
     editPositionFormRef.value.clearValidate()
   }
+  // 清理地图资源
+  if (editMap) {
+    editMap.destroy()
+    editMap = null
+  }
+  editMarker = null
+  editPlaceSearch = null
+  editGeocoder = null
 }
 
 // 处理提交编辑
@@ -849,6 +1057,16 @@ onMounted(async () => {
 }
 
 #addMapContainer :deep(.amap-toolbar) {
+  right: 10px !important;
+  top: 10px !important;
+}
+
+#editMapContainer {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#editMapContainer :deep(.amap-toolbar) {
   right: 10px !important;
   top: 10px !important;
 }
