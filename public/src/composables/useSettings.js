@@ -152,9 +152,9 @@ export function useThirdPartySettings() {
       })
       if (response.data.code === 200) {
         const configData = response.data.data || {}
-        if (configData.map_config) {
+        if (configData) {
           try {
-            const mapConfig = JSON.parse(configData.map_config)
+            const mapConfig = JSON.parse(configData)
             settings.map_ak = mapConfig.map_ak || ''
             settings.map_scode = mapConfig.map_scode || ''
           } catch (e) {
