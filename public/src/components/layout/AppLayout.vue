@@ -13,16 +13,34 @@
         :text-color="systemSettings.theme?.navMode === 'dark' ? '#fff' : '#303133'"
         :active-text-color="systemSettings.theme?.primaryColor || '#409EFF'"
       >
-        <el-menu-item
-          v-for="menu in menuStore.filteredMenus"
-          :key="menu.path"
-          :index="`/${locale}${menu.path}`"
-        >
-          <el-icon>
-            <component :is="menu.icon" />
-          </el-icon>
-          <span>{{ t(menu.title) }}</span>
-        </el-menu-item>
+        <template v-for="menu in menuStore.filteredMenus" :key="menu.path">
+          <!-- 有子菜单的情况 -->
+          <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="`/${locale}${menu.path}`">
+            <template #title>
+              <el-icon>
+                <component :is="menu.icon" />
+              </el-icon>
+              <span>{{ t(menu.title) }}</span>
+            </template>
+            <el-menu-item
+              v-for="child in menu.children"
+              :key="child.path"
+              :index="`/${locale}${child.path}`"
+            >
+              <el-icon>
+                <component :is="child.icon" />
+              </el-icon>
+              <span>{{ t(child.title) }}</span>
+            </el-menu-item>
+          </el-sub-menu>
+          <!-- 没有子菜单的情况 -->
+          <el-menu-item v-else :index="`/${locale}${menu.path}`">
+            <el-icon>
+              <component :is="menu.icon" />
+            </el-icon>
+            <span>{{ t(menu.title) }}</span>
+          </el-menu-item>
+        </template>
       </el-menu>
     </el-aside>
     <el-container>
@@ -124,7 +142,7 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, User, Lock, Setting, Expand, ArrowDown } from '@element-plus/icons-vue'
+import { Monitor, User, Lock, Setting, Expand, ArrowDown, Location } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import md5 from 'js-md5'
@@ -245,7 +263,8 @@ const currentRoute = computed(() => {
     '/dashboard': 'dashboard',
     '/users': 'userManagement',
     '/roles': 'roleManagement',
-    '/settings': 'systemSettings',
+    '/settings/system': 'systemSettings',
+    '/settings/position': 'positionManagement',
     '/operate-logs': 'operateLogs'
   }
   return routeMap[path] || 'unknownPage'

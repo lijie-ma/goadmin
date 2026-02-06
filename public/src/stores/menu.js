@@ -22,11 +22,15 @@ export const useMenuStore = defineStore('menu', () => {
     'role_info': '/roles',
     'role_perm_set': '/roles',
     'role_perm_info': '/roles',
-    'server_get': '/settings',
-    'server_set': '/settings',
-    'server_batch_get': '/settings',
-    'captcha_get': '/settings',
-    'captcha_set': '/settings',
+    'server_get': '/settings/system',
+    'server_set': '/settings/system',
+    'server_batch_get': '/settings/system',
+    'captcha_get': '/settings/system',
+    'captcha_set': '/settings/system',
+    'position_list': '/settings/position',
+    'position_create': '/settings/position',
+    'position_update': '/settings/position',
+    'position_delete': '/settings/position',
     'operate_log': '/operate-logs'
   }
 
@@ -58,7 +62,23 @@ export const useMenuStore = defineStore('menu', () => {
       name: 'settings',
       icon: 'Setting',
       title: 'systemSettings',
-      permissionCode: 'server_get'
+      permissionCode: null,
+      children: [
+        {
+          path: '/settings/system',
+          name: 'systemSettings',
+          icon: 'Setting',
+          title: 'systemSettings',
+          permissionCode: 'server_get'
+        },
+        {
+          path: '/settings/position',
+          name: 'positionManagement',
+          icon: 'Location',
+          title: 'positionManagement',
+          permissionCode: 'position_list'
+        }
+      ]
     },
     {
       path: '/operate-logs',
@@ -82,14 +102,34 @@ export const useMenuStore = defineStore('menu', () => {
 
   // 根据权限过滤菜单
   const filteredMenus = computed(() => {
-    return menuConfig.value.filter(menu => {
+    return menuConfig.value.map(menu => {
+      // 如果有子菜单，递归过滤子菜单
+      if (menu.children && menu.children.length > 0) {
+        const filteredChildren = menu.children.filter(child => {
+          // 如果子菜单没有配置权限代码，默认显示
+          if (!child.permissionCode) {
+            return true
+          }
+          // 检查用户是否有该权限代码
+          return userStore.hasPermissionCode(child.permissionCode)
+        })
+        // 如果有可见的子菜单，返回带子菜单的父菜单
+        if (filteredChildren.length > 0) {
+          return {
+            ...menu,
+            children: filteredChildren
+          }
+        }
+        // 如果没有可见的子菜单，不显示父菜单
+        return null
+      }
       // 如果菜单没有配置权限代码，默认显示
       if (!menu.permissionCode) {
-        return true
+        return menu
       }
       // 检查用户是否有该权限代码
-      return userStore.hasPermissionCode(menu.permissionCode)
-    })
+      return userStore.hasPermissionCode(menu.permissionCode) ? menu : null
+    }).filter(menu => menu !== null)
   })
 
   return {

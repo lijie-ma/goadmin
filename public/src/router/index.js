@@ -53,7 +53,19 @@ const routes = [
           {
             path: 'settings',
             name: 'Settings',
-            component: () => import('../components/SettingsPage.vue')
+            redirect: 'settings/system',
+            children: [
+              {
+                path: 'system',
+                name: 'SystemSettings',
+                component: () => import('../components/SettingsPage.vue')
+              },
+              {
+                path: 'position',
+                name: 'PositionManagement',
+                component: () => import('../components/PositionManagement.vue')
+              }
+            ]
           },
           {
             path: 'operate-logs',
