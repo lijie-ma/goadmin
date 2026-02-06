@@ -29,27 +29,12 @@
             <el-icon><Search /></el-icon>
           </template>
         </el-input>
-        <el-select
-          v-model="searchCity"
-          :placeholder="t('position.city')"
-          clearable
-          @clear="handleSearch"
-          style="width: 200px; margin-right: 10px;"
-        >
-          <el-option
-            v-for="city in cities"
-            :key="city"
-            :label="city"
-            :value="city"
-          />
-        </el-select>
         <el-button type="primary" @click="handleSearch">{{ t('common.search') }}</el-button>
         <el-button @click="handleReset">{{ t('common.reset') }}</el-button>
       </div>
 
       <el-table :data="positions" style="width: 100%" v-loading="loading">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="city" :label="t('position.city')" width="120" />
         <el-table-column prop="location" :label="t('position.location')" />
         <el-table-column prop="custom_name" :label="t('position.customName')" width="150">
           <template #default="scope">
@@ -117,41 +102,37 @@
         :rules="addPositionRules"
         label-width="100px"
       >
-        <el-form-item :label="t('position.city')" prop="city">
-          <el-input
-            v-model="addPositionForm.city"
-            :placeholder="t('position.cityPlaceholder')"
-            maxlength="64"
-            show-word-limit
-            @blur="handleCityChange"
-          >
-            <template #append>
-              <el-button @click="useServiceCity">{{ t('position.useServiceCity') || '使用服务城市' }}</el-button>
-            </template>
-          </el-input>
-        </el-form-item>
-
-        <!-- 地图搜索区域 -->
         <el-form-item :label="t('position.location')" prop="location">
-          <div style="width: 100%">
-            <el-input
-              v-model="searchLocation"
-              :placeholder="t('position.locationPlaceholder')"
-              clearable
-              @keyup.enter="handleSearchLocation"
-            >
-              <template #append>
-                <el-button @click="handleSearchLocation">{{ t('common.search') }}</el-button>
-              </template>
-            </el-input>
-          </div>
+          <el-input
+            v-model="addPositionForm.location"
+            :placeholder="t('position.locationPlaceholder')"
+            maxlength="128"
+            show-word-limit
+          />
         </el-form-item>
 
         <!-- 地图容器 -->
         <el-form-item label="">
-          <div id="addMapContainer" style="width: 100%; height: 400px; border: 1px solid #dcdfe6; border-radius: 4px;"></div>
-          <div style="margin-top: 8px; color: #909399; font-size: 12px;">
-            {{ t('position.mapTip') || '点击地图选择位置，或使用上方搜索框搜索地点' }}
+          <div style="position: relative; width: 100%;">
+            <!-- 地图搜索浮层 -->
+            <div class="map-search-overlay">
+              <el-input
+                v-model="searchLocation"
+                :placeholder="t('position.locationPlaceholder')"
+                clearable
+                @keyup.enter="handleSearchLocation"
+                style="width: 300px;"
+              >
+                <template #append>
+                  <el-button @click="handleSearchLocation">{{ t('common.search') }}</el-button>
+                </template>
+              </el-input>
+            </div>
+
+            <div id="addMapContainer" style="width: 100%; height: 400px; border: 1px solid #dcdfe6; border-radius: 4px;"></div>
+            <div style="margin-top: 8px; color: #909399; font-size: 12px;">
+              {{ t('position.mapTip') || '点击地图选择位置，或使用上方搜索框搜索地点' }}
+            </div>
           </div>
         </el-form-item>
 
@@ -209,14 +190,6 @@
         :rules="editPositionRules"
         label-width="100px"
       >
-        <el-form-item :label="t('position.city')" prop="city">
-          <el-input
-            v-model="editPositionForm.city"
-            :placeholder="t('position.cityPlaceholder')"
-            maxlength="64"
-            show-word-limit
-          />
-        </el-form-item>
         <el-form-item :label="t('position.location')" prop="location">
           <el-input
             v-model="editPositionForm.location"
@@ -268,7 +241,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
@@ -280,20 +253,17 @@ const { settings: serviceSettings, loadSettings: loadServiceSettings } = useServ
 
 // 响应式数据
 const positions = ref([])
-const cities = ref([])
 const loading = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const searchKeyword = ref('')
-const searchCity = ref('')
 
 // 新增位置对话框
 const addDialogVisible = ref(false)
 const submitLoading = ref(false)
 const searchLocation = ref('')
 const addPositionForm = ref({
-  city: '',
   location: '',
   custom_name: '',
   longitude: 0,
@@ -313,7 +283,6 @@ const amapKey = ref('') // 高德地图API密钥
 const editDialogVisible = ref(false)
 const editPositionForm = ref({
   id: 0,
-  city: '',
   location: '',
   custom_name: '',
   longitude: 0,
@@ -323,9 +292,6 @@ const editPositionFormRef = ref(null)
 
 // 表单验证规则
 const addPositionRules = computed(() => ({
-  city: [
-    { required: true, message: t('position.city') + t('common.error.required'), trigger: 'blur' }
-  ],
   location: [
     { required: true, message: t('position.location') + t('common.error.required'), trigger: 'blur' }
   ],
@@ -338,9 +304,6 @@ const addPositionRules = computed(() => ({
 }))
 
 const editPositionRules = computed(() => ({
-  city: [
-    { required: true, message: t('position.city') + t('common.error.required'), trigger: 'blur' }
-  ],
   location: [
     { required: true, message: t('position.location') + t('common.error.required'), trigger: 'blur' }
   ],
@@ -367,9 +330,16 @@ const loadAMapScript = () => {
       return
     }
 
+    // 检查安全配置是否已设置
+    if (!window._AMapSecurityConfig) {
+      console.error('AMap security config not set')
+      reject(new Error('AMap security config not set'))
+      return
+    }
+
     const script = document.createElement('script')
     script.type = 'text/javascript'
-    script.src = `https://webapi.amap.com/maps?v=2.0&key=${amapKey.value}&plugin=AMap.PlaceSearch,AMap.Geocoder,AMap.ControlBar,AMap.Scale`
+    script.src = `https://webapi.amap.com/maps?v=2.0&key=${amapKey.value}&plugin=AMap.PlaceSearch,AMap.Geocoder`
     script.onload = () => {
       mapLoaded.value = true
       resolve()
@@ -382,11 +352,10 @@ const loadAMapScript = () => {
 }
 
 // 初始化新增地图
-const initAddMap = async () => {
+// 初始化新增地图
+const initAddMap = async (initialCityParam = '') => {
   try {
-
     await loadAMapScript()
-
     await nextTick()
 
     const mapContainer = document.getElementById('addMapContainer')
@@ -395,8 +364,13 @@ const initAddMap = async () => {
       return
     }
 
-    // 确定初始城市：优先使用服务配置中的城市，其次使用表单中的城市，最后使用全国
-    const initialCity = serviceSettings.region || addPositionForm.value.city || '全国'
+    // ✅ 确定初始城市优先级
+    const initialCity =
+      initialCityParam ||
+      serviceSettings.region ||
+      '全国'
+
+    console.log('Initializing map with city:', initialCity)
 
     // 创建地图实例
     addMap = new AMap.Map('addMapContainer', {
@@ -404,16 +378,18 @@ const initAddMap = async () => {
       viewMode: '2D',
       resizeEnable: true
     })
+
+    // 动态加载控件插件
     AMap.plugin(['AMap.ControlBar', 'AMap.Scale'], () => {
-       // 添加工具栏
-      addMap.addControl(new AMap.ControlBar({
-        position: { right: '10px', top: '10px' }
-      }))
-      // 添加比例尺
+      addMap.addControl(
+        new AMap.ControlBar({
+          position: { right: '10px', top: '10px' }
+        })
+      )
       addMap.addControl(new AMap.Scale())
     })
 
-    // 初始化地点搜索服务
+    // 初始化搜索与地理编码服务
     addPlaceSearch = new AMap.PlaceSearch({
       city: initialCity,
       pageSize: 5,
@@ -421,7 +397,6 @@ const initAddMap = async () => {
       extensions: 'all'
     })
 
-    // 初始化地理编码服务
     addGeocoder = new AMap.Geocoder({
       city: initialCity
     })
@@ -431,56 +406,42 @@ const initAddMap = async () => {
       handleMapClick(e.lnglat)
     })
 
-    // 如果有初始城市，设置地图中心
+    // ✅ 设置地图中心
     if (initialCity && initialCity !== '全国') {
-      console.log('Setting map center to city:', initialCity)
       setMapCenterByCity(initialCity)
     } else {
-      console.log('No initial city set, using default view')
+      console.log('No specific city, using default China center')
+      addMap.setZoom(4)
+      addMap.setCenter([104.195397, 35.86166]) // 中国地理中心点
     }
-
   } catch (error) {
     console.error('Failed to initialize map:', error)
     ElMessage.error(t('position.mapLoadFailed') || '地图加载失败')
   }
 }
 
+
 // 根据城市设置地图中心
 const setMapCenterByCity = (city) => {
   if (!addGeocoder || !city) {
-    console.log('Cannot set map center: geocoder or city is missing')
+    console.log('Cannot set map center: geocoder or city missing')
     return
   }
 
-  console.log('Setting map center for city:', city)
   addGeocoder.getLocation(city, (status, result) => {
-    console.log('Geocoder status:', status, 'result:', result)
-    if (status === 'complete' && result.geocodes && result.geocodes.length > 0) {
+    if (status === 'complete' && result.geocodes?.length > 0) {
       const location = result.geocodes[0].location
-      console.log('Setting center to:', location.lng, location.lat)
       addMap.setCenter([location.lng, location.lat])
       addMap.setZoom(11)
     } else {
-      console.error('Failed to geocode city:', city, 'status:', status)
+      console.warn(`City not found: ${city}`)
       ElMessage.warning(t('position.cityNotFound') || `未找到城市: ${city}`)
+      addMap.setZoom(4)
+      addMap.setCenter([104.195397, 35.86166])
     }
   })
 }
 
-// 处理城市改变
-const handleCityChange = () => {
-  if (addMap && addPositionForm.value.city) {
-    setMapCenterByCity(addPositionForm.value.city)
-
-    // 更新搜索服务的城市
-    if (addPlaceSearch) {
-      addPlaceSearch.setCity(addPositionForm.value.city)
-    }
-    if (addGeocoder) {
-      addGeocoder.setCity(addPositionForm.value.city)
-    }
-  }
-}
 
 // 搜索地点
 const handleSearchLocation = () => {
@@ -570,6 +531,9 @@ const fetchAMapKey = async () => {
     if (response.data.code === 200 && response.data.data) {
       const mapConfig = JSON.parse(response.data.data)
       amapKey.value = mapConfig.map_ak
+      window._AMapSecurityConfig = {
+          securityJsCode: mapConfig.map_scode,
+      };
     } else {
       ElMessage.warning(t('position.mapKeyNotFound') || '未配置地图密钥')
     }
@@ -598,17 +562,13 @@ const fetchPositions = async () => {
         page: currentPage.value,
         page_size: pageSize.value,
         order_by: 'id desc',
-        keyword: searchKeyword.value,
-        city: searchCity.value
+        keyword: searchKeyword.value
       }
     })
 
     if (response.data.code === 200) {
       positions.value = response.data.data.list || []
       total.value = response.data.data.total || 0
-      // 提取城市列表
-      const citySet = new Set(positions.value.map(p => p.city))
-      cities.value = Array.from(citySet)
     } else {
       ElMessage.error(response.data.message || t('common.failed'))
     }
@@ -629,7 +589,6 @@ const handleSearch = () => {
 // 重置
 const handleReset = () => {
   searchKeyword.value = ''
-  searchCity.value = ''
   currentPage.value = 1
   fetchPositions()
 }
@@ -647,41 +606,23 @@ const handleCurrentChange = (val) => {
   fetchPositions()
 }
 
-// 使用服务配置中的城市
-const useServiceCity = async () => {
-  try {
-    await loadServiceSettings()
-    if (serviceSettings.region) {
-      addPositionForm.value.city = serviceSettings.region
-      handleCityChange()
-      ElMessage.success(t('position.citySetFromService') || '已使用服务配置中的城市')
-    } else {
-      ElMessage.warning(t('position.serviceCityNotSet') || '服务配置中未设置城市')
-    }
-  } catch (error) {
-    console.error('加载服务配置失败:', error)
-    ElMessage.error(t('position.loadServiceConfigFailed') || '加载服务配置失败')
-  }
-}
 
 // 新增位置
 const handleAddPosition = async () => {
-  // 确保服务配置已加载
-  if (!serviceSettings.region) {
-    await loadServiceSettings()
-  }
+  // 加载服务配置（service_region）
+  await loadServiceSettings()
 
-  // 重置表单，并自动填充服务配置中的城市
+  // 加载地图配置（map_config）
+  await fetchAMapKey()
+
+  // 重置表单
   addPositionForm.value = {
-    city: serviceSettings.region || '',
     location: '',
     custom_name: '',
     longitude: 0,
     latitude: 0
   }
   searchLocation.value = ''
-
-  console.log('Opening add dialog with city:', addPositionForm.value.city)
 
   // 清除表单验证状态
   if (addPositionFormRef.value) {
@@ -693,25 +634,12 @@ const handleAddPosition = async () => {
 
   // 初始化地图
   await nextTick()
-  if (!mapLoaded.value) {
-    await fetchAMapKey()
-    if (amapKey.value) {
-      await initAddMap()
-    }
-  } else {
+  if (amapKey.value) {
     await initAddMap()
+  } else {
+    ElMessage.warning(t('position.mapKeyNotFound') || '未配置地图密钥')
   }
 }
-
-// 监听对话框打开状态
-watch(addDialogVisible, (newVal) => {
-  if (newVal) {
-    // 对话框打开时，延迟初始化地图
-    setTimeout(() => {
-      initAddMap()
-    }, 300)
-  }
-})
 
 // 处理取消添加
 const handleCancelAdd = () => {
@@ -744,7 +672,13 @@ const handleSubmitAdd = async () => {
           return
         }
 
-        const response = await axios.post('/api/admin/v1/position/create', addPositionForm.value, {
+        // 构建提交数据，自动添加 city 字段
+        const submitData = {
+          ...addPositionForm.value,
+          city: serviceSettings.region || ''
+        }
+
+        const response = await axios.post('/api/admin/v1/position/create', submitData, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept-Language': locale.value
@@ -774,7 +708,6 @@ const handleEditPosition = (row) => {
   // 填充表单数据
   editPositionForm.value = {
     id: row.id,
-    city: row.city,
     location: row.location,
     custom_name: row.custom_name || '',
     longitude: row.longitude,
@@ -811,7 +744,13 @@ const handleSubmitEdit = async () => {
           return
         }
 
-        const response = await axios.post('/api/admin/v1/position/update', editPositionForm.value, {
+        // 构建提交数据，自动添加 city 字段
+        const submitData = {
+          ...editPositionForm.value,
+          city: serviceSettings.region || ''
+        }
+
+        const response = await axios.post('/api/admin/v1/position/update', submitData, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept-Language': locale.value
@@ -884,8 +823,6 @@ onMounted(async () => {
   fetchPositions()
   // 预加载地图密钥
   await fetchAMapKey()
-  // 加载服务配置
-  await loadServiceSettings()
 })
 </script>
 
@@ -914,5 +851,16 @@ onMounted(async () => {
 #addMapContainer :deep(.amap-toolbar) {
   right: 10px !important;
   top: 10px !important;
+}
+
+.map-search-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  background: white;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 </style>
