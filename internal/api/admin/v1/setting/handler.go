@@ -179,3 +179,79 @@ func (h *Handler) SetByName(ctx *context.Context) {
 		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
 	})
 }
+
+// SetEncryptedValue 加密存储配置值
+// @Summary 加密存储配置值
+// @Description 根据配置名称加密存储配置值
+// @Tags 系统设置
+// @Accept json
+// @Produce json
+// @Param setting body object true "配置信息"
+// @Success 200 {object} schema.Response
+// @Router /api/admin/v1/settings/encrypted [post]
+func (h *Handler) SetEncryptedValue(ctx *context.Context) {
+	var req struct {
+		Name  string `json:"name" binding:"required"`
+		Value string `json:"value" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, schema.Response{
+			Code:    http.StatusBadRequest,
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
+		})
+		return
+	}
+
+	err := h.settingSrv.SetEncryptedValue(ctx, req.Name, req.Value)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
+	})
+}
+
+// GetDecryptedValue 获取解密后的配置值
+// @Summary 获取解密后的配置值
+// @Description 根据配置名称获取解密后的配置值
+// @Tags 系统设置
+// @Accept json
+// @Produce json
+// @Param name query string true "配置名称"
+// @Success 200 {object} schema.Response
+// @Router /api/admin/v1/settings/decrypted [get]
+func (h *Handler) GetDecryptedValue(ctx *context.Context) {
+	var req struct {
+		Name string `form:"name" json:"name" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, schema.Response{
+			Code:    http.StatusBadRequest,
+			Message: i18n.T(ctx.Context, "common.BadParameter", nil),
+		})
+		return
+	}
+
+	value, err := h.settingSrv.GetDecryptedValue(ctx, req.Name)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, schema.Response{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, schema.Response{
+		Code:    http.StatusOK,
+		Message: i18n.T(ctx.Context, "common.ActionSuccess", nil),
+		Data:    value,
+	})
+}

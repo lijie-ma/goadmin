@@ -28,6 +28,10 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			// 基础配置操作
 			authGroup.GET("/get", context.Build(handler.GetByNames))
 			authGroup.POST("/set", context.Build(handler.SetByName))
+
+			// 加密配置操作
+			authGroup.POST("/encrypted", context.Build(handler.SetEncryptedValue))
+			authGroup.GET("/decrypted", context.Build(handler.GetDecryptedValue))
 		}
 
 	}

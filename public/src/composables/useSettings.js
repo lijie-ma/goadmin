@@ -142,9 +142,9 @@ export function useThirdPartySettings() {
   const loadSettings = async () => {
     loading.value = true
     try {
-      const response = await axios.get('/api/admin/v1/setting/get', {
+      const response = await axios.get('/api/admin/v1/setting/decrypted', {
         params: {
-          names: 'map_config'
+          name: 'map_config'
         },
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -180,7 +180,7 @@ export function useThirdPartySettings() {
         map_scode: settings.map_scode
       }
 
-      const response = await axios.post('/api/admin/v1/setting/set', {
+      const response = await axios.post('/api/admin/v1/setting/encrypted', {
         name: 'map_config',
         value: JSON.stringify(mapConfig)
       }, {

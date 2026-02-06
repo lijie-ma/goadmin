@@ -22,13 +22,19 @@ type ServerSettingService interface {
 	GetValues(ctx *context.Context, names []string) (map[string]any, error)
 
 	// GetByName 根据名称获取服务端配置
-	GetByName(ctx *context.Context, name string, decrypt ...bool) (*server.ServerSetting, error)
+	GetByName(ctx *context.Context, name string) (*server.ServerSetting, error)
 
 	// GetSystemSettings 获取系统设置
 	GetSystemSettings(ctx *context.Context) (*server.SystemSettingsResponse, error)
 
 	// SetSystemSettings 设置系统设置
 	SetSystemSettings(ctx *context.Context, settings *server.SystemSettingsRequest) error
+
+	// SetEncryptedValue 加密存储配置值
+	SetEncryptedValue(ctx *context.Context, name string, value any) error
+
+	// GetDecryptedValue 获取解密后的配置值
+	GetDecryptedValue(ctx *context.Context, name string) (any, error)
 }
 
 // serverSettingServiceImpl 服务端设置服务实现
@@ -47,7 +53,7 @@ func (s *serverSettingServiceImpl) logPrefix() string {
 	return "server-setting"
 }
 
-func (s *serverSettingServiceImpl) GetByName(ctx *context.Context, name string, decrypt ...bool) (*server.ServerSetting, error) {
+func (s *serverSettingServiceImpl) GetByName(ctx *context.Context, name string) (*server.ServerSetting, error) {
 	data, err := s.repo.GetByName(ctx, name)
 	if err != nil {
 		ctx.Logger.Errorf("%s getByName failed, err: %v", s.logPrefix(), err)
@@ -57,14 +63,6 @@ func (s *serverSettingServiceImpl) GetByName(ctx *context.Context, name string, 
 		return nil, i18n.E(
 			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.setting", nil)})
 	}
-	if len(decrypt) == 0 || decrypt[0] {
-		decryptStr, err := util.DecryptAESGCM(data.Value)
-		if err != nil {
-			ctx.Logger.Errorf("%s SetByName DecryptAESGCM failed, err: %v", s.logPrefix(), err)
-			return nil, err
-		}
-		data.Value = string(decryptStr)
-	}
 	return data, nil
 }
 
@@ -72,11 +70,6 @@ func (s *serverSettingServiceImpl) GetByName(ctx *context.Context, name string, 
 func (s *serverSettingServiceImpl) SetByName(ctx *context.Context, name string, value any) error {
 	str, err := encoding(value)
 	if err != nil {
-		return err
-	}
-	encryptStr, err := util.EncryptAESGCM([]byte(str))
-	if err != nil {
-		ctx.Logger.Errorf("%s SetByName EncryptAESGCM failed, err: %v", s.logPrefix(), err)
 		return err
 	}
 	setting, err := s.repo.GetByName(ctx, name)
@@ -88,11 +81,11 @@ func (s *serverSettingServiceImpl) SetByName(ctx *context.Context, name string, 
 		// 创建新配置
 		setting = &server.ServerSetting{
 			Name:  name,
-			Value: encryptStr,
+			Value: str,
 		}
 		err = s.repo.Create(ctx, setting)
 	} else {
-		setting.Value = encryptStr
+		setting.Value = str
 		err = s.repo.Update(ctx, setting)
 	}
 	if err != nil {
@@ -105,7 +98,7 @@ func (s *serverSettingServiceImpl) SetByName(ctx *context.Context, name string, 
 
 // GetValue 根据名称获取服务端配置值
 func (s *serverSettingServiceImpl) GetSrcValue(ctx *context.Context, name string, resultPtr any) error {
-	setting, err := s.GetByName(ctx, name, false)
+	setting, err := s.GetByName(ctx, name)
 	if err != nil {
 		return err
 	}
@@ -203,4 +196,71 @@ func (s *serverSettingServiceImpl) SetSystemSettings(ctx *context.Context, setti
 		return err
 	}
 	return nil
+}
+
+// SetEncryptedValue 加密存储配置值
+func (s *serverSettingServiceImpl) SetEncryptedValue(ctx *context.Context, name string, value any) error {
+	str, err := encoding(value)
+	if err != nil {
+		return err
+	}
+	// 加密值
+	encryptStr, err := util.EncryptAESGCM([]byte(str))
+	if err != nil {
+		ctx.Logger.Errorf("%s SetEncryptedValue EncryptAESGCM failed, err: %v", s.logPrefix(), err)
+		return err
+	}
+
+	// 检查配置是否存在
+	setting, err := s.repo.GetByName(ctx, name)
+	if err != nil {
+		ctx.Logger.Errorf("%s SetEncryptedValue GetByName failed, err: %v", s.logPrefix(), err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+
+	if setting == nil {
+		// 创建新配置
+		setting = &server.ServerSetting{
+			Name:  name,
+			Value: encryptStr,
+		}
+		err = s.repo.Create(ctx, setting)
+	} else {
+		// 更新现有配置
+		setting.Value = encryptStr
+		err = s.repo.Update(ctx, setting)
+	}
+
+	if err != nil {
+		ctx.Logger.Errorf("%s SetEncryptedValue failed, err: %v", s.logPrefix(), err)
+		return i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+
+	return nil
+}
+
+// GetDecryptedValue 获取解密后的配置值
+func (s *serverSettingServiceImpl) GetDecryptedValue(ctx *context.Context, name string) (any, error) {
+	// 获取配置
+	setting, err := s.repo.GetByName(ctx, name)
+	if err != nil {
+		ctx.Logger.Errorf("%s GetDecryptedValue GetByName failed, err: %v", s.logPrefix(), err)
+		return "", i18n.E(ctx.Context, "common.RepositoryErr", nil)
+	}
+
+	if setting == nil {
+		return "", i18n.E(
+			ctx.Context, "common.NotFound", map[string]any{"item": i18n.T(ctx.Context, "common.item.setting", nil)})
+	}
+
+	// 解密值
+	decryptStr, err := util.DecryptAESGCM(setting.Value)
+	if err != nil {
+		ctx.Logger.Errorf("%s GetDecryptedValue DecryptAESGCM failed, err: %v", s.logPrefix(), err)
+		return "", err
+	}
+	var value any
+	err = decoding(string(decryptStr), &value)
+
+	return value, err
 }

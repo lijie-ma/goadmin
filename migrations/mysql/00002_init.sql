@@ -13,6 +13,8 @@ INSERT INTO `role_permissions` (`role_code`, `permission_code`) VALUES
  ('sup_admin', 'captcha_set'),
  ('sup_admin', 'server_set'),
  ('sup_admin', 'server_get'),
+ ('sup_admin', 'server_encrypted'),
+ ('sup_admin', 'server_decrypted'),
  ('sup_admin', 'server_batch_get'),
  ('sup_admin', 'operate_log'),
  ('sup_admin', 'user_resetPwd'),
@@ -38,10 +40,12 @@ INSERT INTO `role_permissions` (`role_code`, `permission_code`) VALUES
 ('sup_admin', 'position_delete');
 
 INSERT INTO `permissions` (`code`, `name`, `description`, `path`, `module`, `global_flag`) VALUES
-('captcha_get',    '查询验证码',   '', 'admin/v1/setting/get_captcha_switch',   'server', 0),
-('captcha_set',    '设置验证码',   '', 'admin/v1/setting/set_captcha_switch',   'server', 0),
-('server_set',    '系统设置',   '', 'admin/v1/setting/set',   'server', 0),
-('server_get',    '系统设置查询',   '', 'admin/v1/setting/get',   'server', 0),
+('captcha_get',         '查询验证码',        '', 'admin/v1/setting/get_captcha_switch',   'server', 0),
+('captcha_set',         '设置验证码',        '', 'admin/v1/setting/set_captcha_switch',   'server', 0),
+('server_set',          '系统设置',          '', 'admin/v1/setting/set',   'server', 0),
+('server_get',          '系统设置查询',      '', 'admin/v1/setting/get',   'server', 0),
+('server_encrypted',    '系统设置(加密)',    '', 'admin/v1/setting/encrypted',   'server', 0),
+('server_decrypted',    '系统设置(解密)查询', '', 'admin/v1/setting/decrypted',   'server', 0),
 ('server_batch_get','系统设置批量查询',   '', 'admin/v1/setting/batch',   'server', 0),
 ('upload_file',     '上传文件',          '', 'admin/v1/upload/file',     'upload', 1),
 ('operate_log',     '操作日志',          '', 'admin/v1/operate_log/list', 'operate_log', 0),
