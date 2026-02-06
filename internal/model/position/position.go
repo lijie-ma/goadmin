@@ -17,5 +17,5 @@ type Position struct {
 
 // TableName 指定表名
 func (Position) TableName() string {
-	return "positions"
+	return "position"
 }

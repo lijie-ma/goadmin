@@ -83,7 +83,7 @@ CREATE TABLE `operate_log` (
 
 
 CREATE TABLE `position` (
-  `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `city` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '城市名称',
   `location` VARCHAR(128) NOT NULL DEFAULT '' COMMENT '详细位置（如街道/建筑）',
   `longitude` DECIMAL(10,6) NOT NULL COMMENT '经度',
@@ -91,8 +91,8 @@ CREATE TABLE `position` (
   `custom_name` VARCHAR(128) DEFAULT NULL COMMENT '自定义名称',
   `creator_id` int DEFAULT 0 COMMENT '创建人',
   `creator` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '创建人',
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
+  `ctime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `mtime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_city` (`city`),
   KEY `idx_location` (`location`)
