@@ -120,11 +120,11 @@
                 v-model="searchLocation"
                 :placeholder="t('position.locationPlaceholder')"
                 clearable
-                @keyup.enter="handleSearchLocation"
+                @keyup.enter="handleAddSearchLocation"
                 style="width: 300px;"
               >
                 <template #append>
-                  <el-button @click="handleSearchLocation">{{ t('common.search') }}</el-button>
+                  <el-button @click="handleAddSearchLocation">{{ t('common.search') }}</el-button>
                 </template>
               </el-input>
             </div>
@@ -208,11 +208,11 @@
                 v-model="editSearchLocation"
                 :placeholder="t('position.locationPlaceholder')"
                 clearable
-                @keyup.enter="handleEditSearchLocation"
+                @keyup.enter="onEditSearchLocation"
                 style="width: 300px;"
               >
                 <template #append>
-                  <el-button @click="handleEditSearchLocation">{{ t('common.search') }}</el-button>
+                  <el-button @click="onEditSearchLocation">{{ t('common.search') }}</el-button>
                 </template>
               </el-input>
             </div>
@@ -271,59 +271,88 @@
 <script setup>
 import { ref, onMounted, computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import axios from 'axios'
 import { useServiceSettings } from '@/composables/useSettings'
+import { useMap } from '@/composables/useMap'
+import { usePosition } from '@/composables/usePosition'
 
 const { t, locale } = useI18n()
 const { settings: serviceSettings, loadSettings: loadServiceSettings } = useServiceSettings()
 
-// 响应式数据
-const positions = ref([])
-const loading = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(10)
-const total = ref(0)
-const searchKeyword = ref('')
+// 高德地图API密钥
+const amapKey = ref('')
 
-// 新增位置对话框
-const addDialogVisible = ref(false)
-const submitLoading = ref(false)
-const searchLocation = ref('')
-const addPositionForm = ref({
-  location: '',
-  custom_name: '',
-  longitude: 0,
-  latitude: 0
-})
-const addPositionFormRef = ref(null)
+// 获取高德地图密钥
+const fetchAMapKey = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      return
+    }
 
-// 地图相关
-let addMap = null
-let addMarker = null
-let addPlaceSearch = null
-let addGeocoder = null
-const mapLoaded = ref(false)
-const amapKey = ref('') // 高德地图API密钥
+    const response = await axios.get('/api/admin/v1/setting/decrypted', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept-Language': locale.value
+      },
+      params: {
+        name: 'map_config'
+      }
+    })
 
-// 编辑位置对话框
-const editDialogVisible = ref(false)
-const editSearchLocation = ref('')
-const editPositionForm = ref({
-  id: 0,
-  location: '',
-  custom_name: '',
-  longitude: 0,
-  latitude: 0
-})
-const editPositionFormRef = ref(null)
+    if (response.data.code === 200 && response.data.data) {
+      const mapConfig = JSON.parse(response.data.data)
+      amapKey.value = mapConfig.map_ak
+      window._AMapSecurityConfig = {
+        securityJsCode: mapConfig.map_scode,
+      }
+    }
+  } catch (error) {
+    console.error('获取地图密钥失败:', error)
+  }
+}
 
-// 编辑地图相关
-let editMap = null
-let editMarker = null
-let editPlaceSearch = null
-let editGeocoder = null
+// 使用地图 composable
+const {
+  initAddMap,
+  handleSearchLocation,
+  handleMapClick,
+  initEditMap,
+  handleEditSearchLocation,
+  handleEditMapClick,
+  destroyAddMap,
+  destroyEditMap
+} = useMap(serviceSettings, amapKey)
+
+// 使用位置管理 composable
+const {
+  positions,
+  loading,
+  currentPage,
+  pageSize,
+  total,
+  searchKeyword,
+  addDialogVisible,
+  submitLoading,
+  searchLocation,
+  addPositionForm,
+  addPositionFormRef,
+  editDialogVisible,
+  editSearchLocation,
+  editPositionForm,
+  editPositionFormRef,
+  fetchPositions,
+  handleSearch,
+  handleReset,
+  handleSizeChange,
+  handleCurrentChange,
+  handleSubmitAdd,
+  handleCancelAdd,
+  handleSubmitEdit,
+  handleCancelEdit,
+  handleDeletePosition
+} = usePosition(t, locale, serviceSettings)
 
 // 表单验证规则
 const addPositionRules = computed(() => ({
@@ -357,442 +386,6 @@ const formatDate = (dateStr) => {
   return date.toLocaleString(locale.value === 'zh' ? 'zh-CN' : 'en-US')
 }
 
-// 加载高德地图API
-const loadAMapScript = () => {
-  return new Promise((resolve, reject) => {
-    if (window.AMap) {
-      resolve()
-      return
-    }
-
-    // 检查安全配置是否已设置
-    if (!window._AMapSecurityConfig) {
-      console.error('AMap security config not set')
-      reject(new Error('AMap security config not set'))
-      return
-    }
-
-    const script = document.createElement('script')
-    script.type = 'text/javascript'
-    script.src = `https://webapi.amap.com/maps?v=2.0&key=${amapKey.value}&plugin=AMap.PlaceSearch,AMap.Geocoder`
-    script.onload = () => {
-      mapLoaded.value = true
-      resolve()
-    }
-    script.onerror = () => {
-      reject(new Error('Failed to load AMap script'))
-    }
-    document.head.appendChild(script)
-  })
-}
-
-// 初始化新增地图
-// 初始化新增地图
-const initAddMap = async (initialCityParam = '') => {
-  try {
-    await loadAMapScript()
-    await nextTick()
-
-    const mapContainer = document.getElementById('addMapContainer')
-    if (!mapContainer) {
-      console.error('Map container not found')
-      return
-    }
-
-    // ✅ 确定初始城市优先级
-    const initialCity =
-      initialCityParam ||
-      serviceSettings.region ||
-      '全国'
-
-    console.log('Initializing map with city:', initialCity)
-
-    // 创建地图实例
-    addMap = new AMap.Map('addMapContainer', {
-      zoom: 11,
-      viewMode: '2D',
-      resizeEnable: true
-    })
-
-    // 动态加载控件插件
-    AMap.plugin(['AMap.ControlBar', 'AMap.Scale'], () => {
-      addMap.addControl(
-        new AMap.ControlBar({
-          position: { right: '10px', top: '10px' }
-        })
-      )
-      addMap.addControl(new AMap.Scale())
-    })
-
-    // 初始化搜索与地理编码服务
-    addPlaceSearch = new AMap.PlaceSearch({
-      city: initialCity,
-      pageSize: 5,
-      pageIndex: 1,
-      extensions: 'all'
-    })
-
-    addGeocoder = new AMap.Geocoder({
-      city: initialCity
-    })
-
-    // 地图点击事件
-    addMap.on('click', (e) => {
-      handleMapClick(e.lnglat)
-    })
-
-    // ✅ 设置地图中心
-    if (initialCity && initialCity !== '全国') {
-      setMapCenterByCity(initialCity)
-    } else {
-      console.log('No specific city, using default China center')
-      addMap.setZoom(4)
-      addMap.setCenter([104.195397, 35.86166]) // 中国地理中心点
-    }
-  } catch (error) {
-    console.error('Failed to initialize map:', error)
-    ElMessage.error(t('position.mapLoadFailed') || '地图加载失败')
-  }
-}
-
-
-// 根据城市设置地图中心
-const setMapCenterByCity = (city) => {
-  if (!addGeocoder || !city) {
-    console.log('Cannot set map center: geocoder or city missing')
-    return
-  }
-
-  addGeocoder.getLocation(city, (status, result) => {
-    if (status === 'complete' && result.geocodes?.length > 0) {
-      const location = result.geocodes[0].location
-      addMap.setCenter([location.lng, location.lat])
-      addMap.setZoom(11)
-    } else {
-      console.warn(`City not found: ${city}`)
-      ElMessage.warning(t('position.cityNotFound') || `未找到城市: ${city}`)
-      addMap.setZoom(4)
-      addMap.setCenter([104.195397, 35.86166])
-    }
-  })
-}
-
-
-// 搜索地点
-const handleSearchLocation = () => {
-  if (!searchLocation.value || !addPlaceSearch) {
-    return
-  }
-
-  addPlaceSearch.search(searchLocation.value, (status, result) => {
-    if (status === 'complete' && result.poiList.pois.length > 0) {
-      const poi = result.poiList.pois[0]
-      const location = poi.location
-
-      // 设置地图中心和标记
-      addMap.setCenter([location.lng, location.lat])
-      addMap.setZoom(15)
-
-      // 更新标记
-      updateMarker(location.lng, location.lat)
-
-      // 填充表单数据
-      addPositionForm.value.location = poi.name
-      addPositionForm.value.longitude = location.lng
-      addPositionForm.value.latitude = location.lat
-
-      ElMessage.success(t('position.locationFound') || '已找到位置')
-    } else {
-      ElMessage.warning(t('position.locationNotFound') || '未找到该位置')
-    }
-  })
-}
-
-// 处理地图点击
-const handleMapClick = (lnglat) => {
-  updateMarker(lnglat.lng, lnglat.lat)
-
-  // 反向地理编码获取地址
-  if (addGeocoder) {
-    addGeocoder.getAddress(lnglat, (status, result) => {
-      if (status === 'complete' && result.regeocode) {
-        addPositionForm.value.location = result.regeocode.formattedAddress
-      }
-    })
-  }
-
-  addPositionForm.value.longitude = lnglat.lng
-  addPositionForm.value.latitude = lnglat.lat
-}
-
-// 更新地图标记
-const updateMarker = (lng, lat) => {
-  if (addMarker) {
-    addMarker.setPosition([lng, lat])
-  } else {
-    addMarker = new AMap.Marker({
-      position: [lng, lat],
-      map: addMap,
-      draggable: true
-    })
-
-    // 标记拖拽事件
-    addMarker.on('dragend', (e) => {
-      const position = e.target.getPosition()
-      handleMapClick(position)
-    })
-  }
-}
-
-// 初始化编辑地图
-const initEditMap = async () => {
-  try {
-    await loadAMapScript()
-    await nextTick()
-
-    const mapContainer = document.getElementById('editMapContainer')
-    if (!mapContainer) {
-      console.error('Edit map container not found')
-      return
-    }
-
-    const initialCity = serviceSettings.region || '全国'
-
-    // 创建地图实例
-    editMap = new AMap.Map('editMapContainer', {
-      zoom: 11,
-      viewMode: '2D',
-      resizeEnable: true
-    })
-
-    // 动态加载控件插件
-    AMap.plugin(['AMap.ControlBar', 'AMap.Scale'], () => {
-      editMap.addControl(
-        new AMap.ControlBar({
-          position: { right: '10px', top: '10px' }
-        })
-      )
-      editMap.addControl(new AMap.Scale())
-    })
-
-    // 初始化搜索与地理编码服务
-    editPlaceSearch = new AMap.PlaceSearch({
-      city: initialCity,
-      pageSize: 5,
-      pageIndex: 1,
-      extensions: 'all'
-    })
-
-    editGeocoder = new AMap.Geocoder({
-      city: initialCity
-    })
-
-    // 地图点击事件
-    editMap.on('click', (e) => {
-      handleEditMapClick(e.lnglat)
-    })
-
-    // 设置地图中心到当前位置
-    if (editPositionForm.value.longitude && editPositionForm.value.latitude) {
-      editMap.setCenter([editPositionForm.value.longitude, editPositionForm.value.latitude])
-      editMap.setZoom(15)
-      updateEditMarker(editPositionForm.value.longitude, editPositionForm.value.latitude)
-    } else if (initialCity && initialCity !== '全国') {
-      setEditMapCenterByCity(initialCity)
-    } else {
-      editMap.setZoom(4)
-      editMap.setCenter([104.195397, 35.86166])
-    }
-  } catch (error) {
-    console.error('Failed to initialize edit map:', error)
-    ElMessage.error(t('position.mapLoadFailed') || '地图加载失败')
-  }
-}
-
-// 根据城市设置编辑地图中心
-const setEditMapCenterByCity = (city) => {
-  if (!editGeocoder || !city) {
-    console.log('Cannot set edit map center: geocoder or city missing')
-    return
-  }
-
-  editGeocoder.getLocation(city, (status, result) => {
-    if (status === 'complete' && result.geocodes?.length > 0) {
-      const location = result.geocodes[0].location
-      editMap.setCenter([location.lng, location.lat])
-      editMap.setZoom(11)
-    } else {
-      console.warn(`City not found: ${city}`)
-      editMap.setZoom(4)
-      editMap.setCenter([104.195397, 35.86166])
-    }
-  })
-}
-
-// 编辑地图搜索地点
-const handleEditSearchLocation = () => {
-  if (!editSearchLocation.value || !editPlaceSearch) {
-    return
-  }
-
-  editPlaceSearch.search(editSearchLocation.value, (status, result) => {
-    if (status === 'complete' && result.poiList.pois.length > 0) {
-      const poi = result.poiList.pois[0]
-      const location = poi.location
-
-      // 设置地图中心和标记
-      editMap.setCenter([location.lng, location.lat])
-      editMap.setZoom(15)
-
-      // 更新标记
-      updateEditMarker(location.lng, location.lat)
-
-      // 填充表单数据
-      editPositionForm.value.location = poi.name
-      editPositionForm.value.longitude = location.lng
-      editPositionForm.value.latitude = location.lat
-
-      ElMessage.success(t('position.locationFound') || '已找到位置')
-    } else {
-      ElMessage.warning(t('position.locationNotFound') || '未找到该位置')
-    }
-  })
-}
-
-// 处理编辑地图点击
-const handleEditMapClick = (lnglat) => {
-  updateEditMarker(lnglat.lng, lnglat.lat)
-
-  // 反向地理编码获取地址
-  if (editGeocoder) {
-    editGeocoder.getAddress(lnglat, (status, result) => {
-      if (status === 'complete' && result.regeocode) {
-        editPositionForm.value.location = result.regeocode.formattedAddress
-      }
-    })
-  }
-
-  editPositionForm.value.longitude = lnglat.lng
-  editPositionForm.value.latitude = lnglat.lat
-}
-
-// 更新编辑地图标记
-const updateEditMarker = (lng, lat) => {
-  if (editMarker) {
-    editMarker.setPosition([lng, lat])
-  } else {
-    editMarker = new AMap.Marker({
-      position: [lng, lat],
-      map: editMap,
-      draggable: true
-    })
-
-    // 标记拖拽事件
-    editMarker.on('dragend', (e) => {
-      const position = e.target.getPosition()
-      handleEditMapClick(position)
-    })
-  }
-}
-
-// 获取高德地图密钥
-const fetchAMapKey = async () => {
-  try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      ElMessage.error(t('login.loginFailed'))
-      return
-    }
-
-    const response = await axios.get('/api/admin/v1/setting/decrypted', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept-Language': locale.value
-      },
-      params: {
-        name: 'map_config'
-      }
-    })
-
-    if (response.data.code === 200 && response.data.data) {
-      const mapConfig = JSON.parse(response.data.data)
-      amapKey.value = mapConfig.map_ak
-      window._AMapSecurityConfig = {
-          securityJsCode: mapConfig.map_scode,
-      };
-    } else {
-      ElMessage.warning(t('position.mapKeyNotFound') || '未配置地图密钥')
-    }
-  } catch (error) {
-    console.error('获取地图密钥失败:', error)
-    ElMessage.warning(t('position.mapKeyNotFound') || '未配置地图密钥')
-  }
-}
-
-// 获取位置列表
-const fetchPositions = async () => {
-  loading.value = true
-  try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      ElMessage.error(t('login.loginFailed'))
-      return
-    }
-
-    const response = await axios.get('/api/admin/v1/position/list', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept-Language': locale.value
-      },
-      params: {
-        page: currentPage.value,
-        page_size: pageSize.value,
-        order_by: 'id desc',
-        keyword: searchKeyword.value
-      }
-    })
-
-    if (response.data.code === 200) {
-      positions.value = response.data.data.list || []
-      total.value = response.data.data.total || 0
-    } else {
-      ElMessage.error(response.data.message || t('common.failed'))
-    }
-  } catch (error) {
-    console.error('获取位置列表失败:', error)
-    ElMessage.error(t('common.error.systemError'))
-  } finally {
-    loading.value = false
-  }
-}
-
-// 搜索
-const handleSearch = () => {
-  currentPage.value = 1
-  fetchPositions()
-}
-
-// 重置
-const handleReset = () => {
-  searchKeyword.value = ''
-  currentPage.value = 1
-  fetchPositions()
-}
-
-// 分页大小改变
-const handleSizeChange = (val) => {
-  pageSize.value = val
-  currentPage.value = 1
-  fetchPositions()
-}
-
-// 当前页改变
-const handleCurrentChange = (val) => {
-  currentPage.value = val
-  fetchPositions()
-}
-
-
 // 新增位置
 const handleAddPosition = async () => {
   // 加载服务配置（service_region）
@@ -821,71 +414,27 @@ const handleAddPosition = async () => {
   // 初始化地图
   await nextTick()
   if (amapKey.value) {
-    await initAddMap()
-  } else {
-    ElMessage.warning(t('position.mapKeyNotFound') || '未配置地图密钥')
+    await initAddMap('', handleAddMapClick)
   }
 }
 
-// 处理取消添加
-const handleCancelAdd = () => {
-  addDialogVisible.value = false
-  // 清除表单验证状态
-  if (addPositionFormRef.value) {
-    addPositionFormRef.value.clearValidate()
-  }
-  // 清理地图资源
-  if (addMap) {
-    addMap.destroy()
-    addMap = null
-  }
-  addMarker = null
-  addPlaceSearch = null
-  addGeocoder = null
+// 新增地图搜索地点
+const handleAddSearchLocation = () => {
+  handleSearchLocation(searchLocation.value, (poi, location) => {
+    addPositionForm.value.location = poi.name
+    addPositionForm.value.longitude = location.lng
+    addPositionForm.value.latitude = location.lat
+  })
 }
 
-// 处理提交添加
-const handleSubmitAdd = async () => {
-  if (!addPositionFormRef.value) return
-
-  await addPositionFormRef.value.validate(async (valid) => {
-    if (valid) {
-      submitLoading.value = true
-      try {
-        const token = localStorage.getItem('token')
-        if (!token) {
-          ElMessage.error(t('login.loginFailed'))
-          return
-        }
-
-        // 构建提交数据，自动添加 city 字段
-        const submitData = {
-          ...addPositionForm.value,
-          city: serviceSettings.region || ''
-        }
-
-        const response = await axios.post('/api/admin/v1/position/create', submitData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept-Language': locale.value
-          }
-        })
-
-        if (response.data.code === 200) {
-          ElMessage.success(t('position.addSuccess'))
-          addDialogVisible.value = false
-          // 刷新列表
-          fetchPositions()
-        } else {
-          ElMessage.error(response.data.message || t('common.failed'))
-        }
-      } catch (error) {
-        console.error('添加位置失败:', error)
-        ElMessage.error(t('common.failed'))
-      } finally {
-        submitLoading.value = false
-      }
+// 新增地图点击
+const handleAddMapClick = (lnglat) => {
+  handleMapClick(lnglat, (address, lng, lat) => {
+    if (address) {
+      addPositionForm.value.location = address
     }
+    addPositionForm.value.longitude = lng
+    addPositionForm.value.latitude = lat
   })
 }
 
@@ -915,114 +464,27 @@ const handleEditPosition = async (row) => {
   // 初始化地图
   await nextTick()
   if (amapKey.value) {
-    await initEditMap()
-  } else {
-    ElMessage.warning(t('position.mapKeyNotFound') || '未配置地图密钥')
+    await initEditMap(editPositionForm.value, onEditMapClick)
   }
 }
 
-// 处理取消编辑
-const handleCancelEdit = () => {
-  editDialogVisible.value = false
-  // 清除表单验证状态
-  if (editPositionFormRef.value) {
-    editPositionFormRef.value.clearValidate()
-  }
-  // 清理地图资源
-  if (editMap) {
-    editMap.destroy()
-    editMap = null
-  }
-  editMarker = null
-  editPlaceSearch = null
-  editGeocoder = null
-}
-
-// 处理提交编辑
-const handleSubmitEdit = async () => {
-  if (!editPositionFormRef.value) return
-
-  await editPositionFormRef.value.validate(async (valid) => {
-    if (valid) {
-      submitLoading.value = true
-      try {
-        const token = localStorage.getItem('token')
-        if (!token) {
-          ElMessage.error(t('login.loginFailed'))
-          return
-        }
-
-        // 构建提交数据，自动添加 city 字段
-        const submitData = {
-          ...editPositionForm.value,
-          city: serviceSettings.region || ''
-        }
-
-        const response = await axios.post('/api/admin/v1/position/update', submitData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept-Language': locale.value
-          }
-        })
-
-        if (response.data.code === 200) {
-          ElMessage.success(t('position.editSuccess'))
-          editDialogVisible.value = false
-          // 刷新列表
-          fetchPositions()
-        } else {
-          ElMessage.error(response.data.message || t('common.failed'))
-        }
-      } catch (error) {
-        console.error('更新位置失败:', error)
-        ElMessage.error(t('common.failed'))
-      } finally {
-        submitLoading.value = false
-      }
-    }
+// 编辑地图搜索地点
+const onEditSearchLocation = () => {
+  handleEditSearchLocation(editSearchLocation.value, (poi, location) => {
+    editPositionForm.value.location = poi.name
+    editPositionForm.value.longitude = location.lng
+    editPositionForm.value.latitude = location.lat
   })
 }
 
-// 删除位置
-const handleDeletePosition = (row) => {
-  ElMessageBox.confirm(
-    t('position.deleteConfirm'),
-    t('common.confirm'),
-    {
-      confirmButtonText: t('common.confirm'),
-      cancelButtonText: t('common.cancel'),
-      type: 'warning'
+// 编辑地图点击
+const onEditMapClick = (lnglat) => {
+  handleEditMapClick(lnglat, (address, lng, lat) => {
+    if (address) {
+      editPositionForm.value.location = address
     }
-  ).then(async () => {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        ElMessage.error(t('login.loginFailed'))
-        return
-      }
-
-      const response = await axios.post('/api/admin/v1/position/delete', {
-        id: row.id
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept-Language': locale.value
-        }
-      })
-
-      if (response.data.code === 200) {
-        ElMessage.success(t('position.deleteSuccess'))
-        // 刷新列表
-        fetchPositions()
-      } else {
-        ElMessage.error(response.data.message || t('common.failed'))
-      }
-    } catch (error) {
-      console.error('删除位置失败:', error)
-      ElMessage.error(t('common.failed'))
-    }
-  }).catch(() => {
-    // 用户取消删除
+    editPositionForm.value.longitude = lng
+    editPositionForm.value.latitude = lat
   })
 }
 
