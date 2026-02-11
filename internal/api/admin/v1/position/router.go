@@ -11,7 +11,7 @@ import (
 // RegisterRoutes 注册位置相关的API路由
 func RegisterRoutes(r *gin.RouterGroup) {
 	// 创建依赖服务
-	positionService := positionSrv.NewPositionService()
+	positionService := positionSrv.NewPositionService_legacy()
 	handler := NewHandler(positionService)
 
 	group := r.Group("/position")

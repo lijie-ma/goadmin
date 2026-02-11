@@ -42,11 +42,22 @@ type serverSettingServiceImpl struct {
 	repo serverRepo.ServerSettingRepository
 }
 
-// NewServerSettingService 创建服务端设置服务
-func NewServerSettingService() ServerSettingService {
+// NewServerSettingService 创建服务端设置服务（Wire 注入）
+func NewServerSettingService(repo serverRepo.ServerSettingRepository) ServerSettingService {
 	return &serverSettingServiceImpl{
-		repo: serverRepo.NewServerSettingRepository(db.GetDB()),
+		repo: repo,
 	}
+}
+
+// Deprecated: 使用 NewServerSettingService(repo) 替代
+// NewServerSettingService_legacy 创建服务端设置服务（兼容旧代码，使用全局db）
+func NewServerSettingService_legacy() ServerSettingService {
+	return NewServerSettingService(serverRepo.NewServerSettingRepository(db.GetDB()))
+}
+
+// NewServerSettingServiceWithRepo creates a ServerSettingService with the given repository (for Wire compatibility).
+func NewServerSettingServiceWithRepo(repo serverRepo.ServerSettingRepository) ServerSettingService {
+	return NewServerSettingService(repo)
 }
 
 func (s *serverSettingServiceImpl) logPrefix() string {

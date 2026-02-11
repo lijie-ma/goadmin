@@ -5,6 +5,8 @@ import (
 	"errors"
 	"goadmin/internal/model/position"
 	"goadmin/pkg/db"
+
+	"gorm.io/gorm"
 )
 
 // 确保PositionRepositoryImpl实现了PositionRepository接口
@@ -15,11 +17,22 @@ type PositionRepositoryImpl struct {
 	*db.BaseRepository[position.Position]
 }
 
-// NewPositionRepository 创建位置仓储实例
-func NewPositionRepository() PositionRepository {
+// NewPositionRepositoryImpl 创建位置仓储实例（Wire 注入）
+func NewPositionRepositoryImpl(database *gorm.DB) *PositionRepositoryImpl {
 	return &PositionRepositoryImpl{
-		db.NewBaseRepository[position.Position](db.GetDB()),
+		db.NewBaseRepository[position.Position](database),
 	}
+}
+
+// NewPositionRepository 创建位置仓储实例（接口类型，Wire 用）
+func NewPositionRepository(database *gorm.DB) PositionRepository {
+	return NewPositionRepositoryImpl(database)
+}
+
+// Deprecated: 使用 NewPositionRepository 替代
+// NewPositionRepository_legacy 创建位置仓储实例（兼容旧代码，使用全局db）
+func NewPositionRepository_legacy() PositionRepository {
+	return NewPositionRepositoryImpl(db.GetDB())
 }
 
 // GetByID 根据ID获取位置

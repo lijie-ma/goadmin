@@ -28,8 +28,8 @@ var (
 )
 
 func Auth() gin.HandlerFunc {
-	userSrv = userService.NewUserService()
-	roleSrv = roleService.NewRoleService()
+	userSrv = userService.NewUserService_legacy()
+	roleSrv = roleService.NewRoleService_legacy()
 	return func(c *gin.Context) {
 		// 检查是否为忽略认证的路径
 		path := c.Request.URL.Path

@@ -17,11 +17,16 @@ type ServerSettingRepositoryImpl struct {
 	*db.BaseRepository[server.ServerSetting]
 }
 
-// NewServerSettingRepository 创建服务端配置仓储实例
+// NewServerSettingRepository 创建服务端配置仓储实例（Wire 注入）
 func NewServerSettingRepository(dbInstance *gorm.DB) ServerSettingRepository {
 	return &ServerSettingRepositoryImpl{
 		db.NewBaseRepository[server.ServerSetting](dbInstance),
 	}
+}
+
+// Deprecated: NewServerSettingRepository_legacy 使用全局db（兼容旧代码）
+func NewServerSettingRepository_legacy() ServerSettingRepository {
+	return NewServerSettingRepository(db.GetDB())
 }
 
 // GetByName 根据名称获取服务端配置

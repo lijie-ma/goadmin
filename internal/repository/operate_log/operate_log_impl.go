@@ -4,6 +4,8 @@ import (
 	"context"
 	"goadmin/internal/model/operate_log"
 	"goadmin/pkg/db"
+
+	"gorm.io/gorm"
 )
 
 // 确保OperateLogRepositoryImpl实现了OperateLogRepository接口
@@ -14,11 +16,22 @@ type OperateLogRepositoryImpl struct {
 	*db.BaseRepository[operate_log.OperateLog]
 }
 
-// NewOperateLogRepository 创建操作日志仓储实例
-func NewOperateLogRepository() OperateLogRepository {
+// NewOperateLogRepositoryImpl 创建操作日志仓储实例（Wire 注入）
+func NewOperateLogRepositoryImpl(database *gorm.DB) *OperateLogRepositoryImpl {
 	return &OperateLogRepositoryImpl{
-		db.NewBaseRepository[operate_log.OperateLog](db.GetDB()),
+		db.NewBaseRepository[operate_log.OperateLog](database),
 	}
+}
+
+// NewOperateLogRepository 创建操作日志仓储实例（接口类型，Wire 用）
+func NewOperateLogRepository(database *gorm.DB) OperateLogRepository {
+	return NewOperateLogRepositoryImpl(database)
+}
+
+// Deprecated: 使用 NewOperateLogRepository 替代
+// NewOperateLogService_legacy 创建操作日志仓储实例（兼容旧代码，使用全局db）
+func NewOperateLogRepository_legacy() OperateLogRepository {
+	return NewOperateLogRepositoryImpl(db.GetDB())
 }
 
 // PageList 获取操作日志列表（支持多条件查询）

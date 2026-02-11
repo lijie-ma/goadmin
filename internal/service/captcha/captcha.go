@@ -23,6 +23,20 @@ var (
 	logPrefix      = "captcha"
 )
 
+// CaptchaService defines the interface for captcha operations.
+type CaptchaService interface {
+	Generate(ctx *context.Context) (any, error)
+	Check(ctx *context.Context, formData captcha.CheckForm) error
+}
+
+// captchaService implements CaptchaService.
+type captchaService struct{}
+
+// NewCaptchaService creates a new captcha service instance.
+func NewCaptchaService() CaptchaService {
+	return &captchaService{}
+}
+
 func getCapt() (slide.Captcha, error) {
 	sliderMutex.Lock()
 	defer sliderMutex.Unlock()
@@ -67,9 +81,10 @@ func getCapt() (slide.Captcha, error) {
 	return slideBasicCapt, nil
 }
 
-func Generate(ctx *context.Context) (any, error) {
+// Generate generates a captcha challenge.
+func (s *captchaService) Generate(ctx *context.Context) (any, error) {
 	var captchaCfg server.CaptchaSwitchConfig
-	err := setting.NewServerSettingService().GetSrcValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
+	err := setting.NewServerSettingService_legacy().GetSrcValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
 	if err != nil {
 		ctx.Logger.Errorf("%s Generate GetValue %+v", logPrefix, err)
 		return nil, err
@@ -122,7 +137,8 @@ func Generate(ctx *context.Context) (any, error) {
 	}, nil
 }
 
-func Check(ctx *context.Context, formData captcha.CheckForm) error {
+// Check validates the captcha form submission.
+func (s *captchaService) Check(ctx *context.Context, formData captcha.CheckForm) error {
 	redisClient := redisx.GetClient()
 	catchData, err := redisClient.Get(ctx, formData.Key).Result()
 	if err != nil {
@@ -142,4 +158,17 @@ func Check(ctx *context.Context, formData captcha.CheckForm) error {
 		return fmt.Errorf("%s Validate failed", logPrefix)
 	}
 	return nil
+}
+
+// Package-level functions for backward compatibility
+var GlobalCaptchaService = NewCaptchaService()
+
+// Generate generates a captcha challenge (backward compatible function).
+func Generate(ctx *context.Context) (any, error) {
+	return GlobalCaptchaService.Generate(ctx)
+}
+
+// Check validates the captcha form submission (backward compatible function).
+func Check(ctx *context.Context, formData captcha.CheckForm) error {
+	return GlobalCaptchaService.Check(ctx, formData)
 }

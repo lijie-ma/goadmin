@@ -8,6 +8,7 @@ import (
 	modeluser "goadmin/internal/model/user"
 	"goadmin/internal/repository/role"
 	userrepo "goadmin/internal/repository/user"
+	"goadmin/internal/service/captcha"
 	"goadmin/internal/service/operate_log"
 	"goadmin/internal/service/setting"
 	"goadmin/internal/service/token"
@@ -53,17 +54,49 @@ type userService struct {
 	userRepo   userrepo.UserRepository
 	roleRepo   role.RoleRepository
 	logService operate_log.OperateLogService
+	tokenSvc   *token.TokenService
+	jwtToken   *token.JwtTokenService
+	captchaSvc captcha.CaptchaService
+	setSrv     setting.ServerSettingService
 	cfg        *config.Config
 }
 
-// NewUserService 创建用户服务实例
-func NewUserService() UserService {
+// NewUserService 创建用户服务实例（Wire 注入）
+func NewUserService(
+	cfg *config.Config,
+	userRepo userrepo.UserRepository,
+	roleRepo role.RoleRepository,
+	logService operate_log.OperateLogService,
+	tokenSvc *token.TokenService,
+	jwtToken *token.JwtTokenService,
+	captchaSvc captcha.CaptchaService,
+	setSrv setting.ServerSettingService,
+) UserService {
 	return &userService{
-		cfg:        config.Get(),
-		userRepo:   userrepo.NewUserRepository(),
-		roleRepo:   role.NewRoleRepositoryWithDB(),
-		logService: operate_log.NewOperateLogService(),
+		cfg:        cfg,
+		userRepo:   userRepo,
+		roleRepo:   roleRepo,
+		logService: logService,
+		tokenSvc:   tokenSvc,
+		jwtToken:   jwtToken,
+		captchaSvc: captchaSvc,
+		setSrv:     setSrv,
 	}
+}
+
+// Deprecated: 使用 NewUserService 替代
+// NewUserService_legacy 创建用户服务实例（兼容旧代码，使用全局db）
+func NewUserService_legacy() UserService {
+	return NewUserService(
+		config.Get(),
+		userrepo.NewUserRepository_legacy(),
+		role.NewRoleRepositoryWithDB(),
+		operate_log.NewOperateLogService_legacy(),
+		token.NewTokenService(),
+		token.NewJwtTokenService(&config.Get().JWT),
+		captcha.NewCaptchaService(),
+		setting.NewServerSettingService_legacy(),
+	)
 }
 
 func (*userService) logPrefix() string {
@@ -73,7 +106,7 @@ func (*userService) logPrefix() string {
 // GenerateUserCredential 根据用户ID生成用户身份凭证
 func (s *userService) GenerateUserCredential(ctx *context.Context, userID uint64) (*token.TokenPair, error) {
 	// 生成JWT令牌
-	tokenPairs, err := token.NewJwtTokenService(&s.cfg.JWT).GenerateJWTTokenPair(
+	tokenPairs, err := s.jwtToken.GenerateJWTTokenPair(
 		ctx, token.NewAdminClaims(userID, s.cfg.JWT.AccessExpire))
 	if err != nil {
 		ctx.Logger.Errorf("%s 生成用户凭证失败: %d %v", s.logPrefix(), userID, err)
@@ -85,7 +118,7 @@ func (s *userService) GenerateUserCredential(ctx *context.Context, userID uint64
 
 func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*modeluser.LoginResponse, error) {
 	var captchaCfg server.CaptchaSwitchConfig
-	err := setting.NewServerSettingService().GetSrcValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
+	err := s.setSrv.GetSrcValue(ctx, server.SettingCaptchaSwitch, &captchaCfg)
 	if err != nil {
 		ctx.Logger.Errorf("%s Generate GetValue %+v", s.logPrefix(), err)
 		return nil, i18n.E(ctx.Context, "common.RepositoryErr", nil)
@@ -95,7 +128,7 @@ func (s *userService) Login(ctx *context.Context, req modeluser.LoginRequest) (*
 			ctx.Logger.Warnf("%s Login captcha require token", s.logPrefix())
 			return nil, i18n.E(ctx.Context, "common.BadParameter", nil)
 		}
-		if !token.NewTokenService().ValidateToken(ctx, req.Token) {
+		if !s.tokenSvc.ValidateToken(ctx, req.Token) {
 			ctx.Logger.Errorf("%s ValidateToken faild %s %s", s.logPrefix(), req.Username, req.Token)
 			return nil, i18n.E(
 				ctx.Context,
@@ -162,6 +195,7 @@ func (s *userService) GetUserByIDWithPerm(ctx *context.Context, userID uint64) (
 	if err != nil {
 		return nil, err
 	}
+	// TODO: Need to inject RolePermissionRepository separately
 	perms, err := role.NewRolePermissionRepositoryWithDB().GetPermissionsByRoleCode(ctx, u.RoleCode, true)
 	if err != nil {
 		ctx.Logger.Errorf("%s GetUserByIDWithPerm GetPermissionURLsByRoleCode %d %v", s.logPrefix(), userID, err)

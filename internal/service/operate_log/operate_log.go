@@ -5,6 +5,7 @@ import (
 	"goadmin/internal/i18n"
 	modeloperatelog "goadmin/internal/model/operate_log"
 	operatelogrepo "goadmin/internal/repository/operate_log"
+	"goadmin/pkg/db"
 )
 
 // OperateLogService 操作日志服务接口
@@ -23,11 +24,17 @@ type operateLogService struct {
 	logRepo operatelogrepo.OperateLogRepository
 }
 
-// NewOperateLogService 创建操作日志服务实例
-func NewOperateLogService() OperateLogService {
+// NewOperateLogService 创建操作日志服务实例（Wire 注入）
+func NewOperateLogService(logRepo operatelogrepo.OperateLogRepository) OperateLogService {
 	return &operateLogService{
-		logRepo: operatelogrepo.NewOperateLogRepository(),
+		logRepo: logRepo,
 	}
+}
+
+// Deprecated: 使用 NewOperateLogService(logRepo) 替代
+// NewOperateLogService_legacy 创建操作日志服务实例（兼容旧代码，使用全局db）
+func NewOperateLogService_legacy() OperateLogService {
+	return NewOperateLogService(operatelogrepo.NewOperateLogRepository(db.GetDB()))
 }
 
 func (*operateLogService) logPrefix() string {

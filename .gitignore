@@ -38,3 +38,6 @@ uploads/
 # Config (if contains sensitive data)
 # config/config.yaml
 /public/src/node_modules
+
+# Wire generated files
+internal/wire/wire_gen.go

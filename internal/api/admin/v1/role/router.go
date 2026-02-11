@@ -11,7 +11,7 @@ import (
 // RegisterRoutes 注册角色相关的API路由
 func RegisterRoutes(r *gin.RouterGroup) {
 	// 创建依赖服务
-	roleService := rolesrv.NewRoleService()
+	roleService := rolesrv.NewRoleService_legacy()
 	handler := NewHandler(roleService)
 
 	group := r.Group("/role")

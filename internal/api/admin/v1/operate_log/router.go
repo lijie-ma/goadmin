@@ -12,7 +12,7 @@ import (
 func RegisterRoutes(r *gin.RouterGroup) {
 
 	// 创建依赖服务
-	logService := operatelog.NewOperateLogService()
+	logService := operatelog.NewOperateLogService_legacy()
 	handler := NewHandler(logService)
 
 	group := r.Group("/operate_log")

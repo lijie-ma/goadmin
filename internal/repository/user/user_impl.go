@@ -6,6 +6,8 @@ import (
 	"goadmin/internal/model/user"
 	"goadmin/pkg/db"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // 确保UserRepositoryImpl实现了UserRepository接口
@@ -16,8 +18,21 @@ type UserRepositoryImpl struct {
 	*db.BaseRepository[user.User]
 }
 
-// NewUserRepository 创建用户仓储实例
-func NewUserRepository() UserRepository {
+// NewUserRepositoryImpl 创建用户仓储实例（Wire 注入）
+func NewUserRepositoryImpl(database *gorm.DB) *UserRepositoryImpl {
+	return &UserRepositoryImpl{
+		db.NewBaseRepository[user.User](database),
+	}
+}
+
+// NewUserRepository 创建用户仓储实例（接口类型，Wire 用）
+func NewUserRepository(database *gorm.DB) UserRepository {
+	return NewUserRepositoryImpl(database)
+}
+
+// Deprecated: 使用 NewUserRepository 替代
+// NewUserRepository_legacy 创建用户仓储实例（兼容旧代码，使用全局db）
+func NewUserRepository_legacy() UserRepository {
 	return &UserRepositoryImpl{
 		db.NewBaseRepository[user.User](db.GetDB()),
 	}

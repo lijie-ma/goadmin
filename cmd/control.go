@@ -1,12 +1,7 @@
 package cmd
 
 import (
-	"goadmin/cmd/server"
-	"goadmin/internal/i18n"
-	"goadmin/pkg/db"
-	"goadmin/pkg/logger"
-	"goadmin/pkg/redisx"
-	"goadmin/pkg/task"
+	"goadmin/internal/wire"
 
 	"github.com/spf13/cobra"
 )
@@ -24,27 +19,13 @@ var (
 
 // runServer 启动HTTP服务器
 func runServer() error {
-	// 配置全局日志实例
-	logger.SetGlobal(logger.New(
-		logger.WithConfig(&cfg.Logger),
-	))
-	err := db.Init(&cfg.Database)
+	// 使用 Wire 初始化应用
+	app, err := wire.InitializeApp()
 	if err != nil {
 		return err
 	}
-	err = redisx.Init(&cfg.Redis)
-	if err != nil {
-		return err
-	}
-	i18n.Init()
 
-	services := task.NewServiceManager()
-	services.AddService(
-		server.NewCronManager(),
-		server.NewWebServer(cfg),
-		server.NewHookServer(),
-	)
-
-	services.Run()
+	// 运行服务管理器
+	app.ServiceManager.Run()
 	return nil
 }

@@ -61,13 +61,23 @@ type roleService struct {
 	cfg                *config.Config
 }
 
-// NewRoleService 创建角色服务实例
-func NewRoleService() RoleService {
+// NewRoleService 创建角色服务实例（Wire 注入）
+func NewRoleService(roleRepo rolerepo.RoleRepository, rolePermissionRepo rolerepo.RolePermissionRepository, cfg *config.Config) RoleService {
 	return &roleService{
-		cfg:                config.Get(),
-		roleRepo:           rolerepo.NewRoleRepositoryWithDB(),
-		rolePermissionRepo: rolerepo.NewRolePermissionRepositoryWithDB(),
+		cfg:                cfg,
+		roleRepo:           roleRepo,
+		rolePermissionRepo: rolePermissionRepo,
 	}
+}
+
+// Deprecated: 使用 NewRoleService(roleRepo, rolePermissionRepo, cfg) 替代
+// NewRoleService_legacy 创建角色服务实例（兼容旧代码，使用全局db）
+func NewRoleService_legacy() RoleService {
+	return NewRoleService(
+		rolerepo.NewRoleRepositoryWithDB(),
+		rolerepo.NewRolePermissionRepositoryWithDB(),
+		config.Get(),
+	)
 }
 
 func (*roleService) logPrefix() string {

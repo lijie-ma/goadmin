@@ -33,12 +33,21 @@ type positionService struct {
 	logService   operate_log.OperateLogService
 }
 
-// NewPositionService 创建位置服务实例
-func NewPositionService() PositionService {
+// NewPositionService 创建位置服务实例（Wire 注入）
+func NewPositionService(positionRepo positionrepo.PositionRepository, logService operate_log.OperateLogService) PositionService {
 	return &positionService{
-		positionRepo: positionrepo.NewPositionRepository(),
-		logService:   operate_log.NewOperateLogService(),
+		positionRepo: positionRepo,
+		logService:   logService,
 	}
+}
+
+// Deprecated: 使用 NewPositionService(positionRepo, logService) 替代
+// NewPositionService_legacy 创建位置服务实例（兼容旧代码，使用全局db）
+func NewPositionService_legacy() PositionService {
+	return NewPositionService(
+		positionrepo.NewPositionRepository_legacy(),
+		operate_log.NewOperateLogService_legacy(),
+	)
 }
 
 func (*positionService) logPrefix() string {

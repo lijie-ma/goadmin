@@ -14,9 +14,9 @@ import (
 func RegisterRoutes(r *gin.RouterGroup) {
 
 	// 创建依赖服务
-	userRepo := user.NewUserRepository()
+	userRepo := user.NewUserRepository_legacy()
 	tokenSrv := token.NewTokenService()
-	userService := userSrv.NewUserService()
+	userService := userSrv.NewUserService_legacy()
 	handler := NewHandler(userService, userRepo, tokenSrv)
 
 	group := r.Group("/user")
