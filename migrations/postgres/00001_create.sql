@@ -1,6 +1,19 @@
 -- +goose Up
 -- SQL in this section is executed when the migration is applied.
 
+CREATE TABLE tenants (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(128) NOT NULL,
+  code VARCHAR(64)NOT NULL,  -- 租户唯一编码
+  contact_email VARCHAR(128),
+  contact_phone VARCHAR(32),
+  status SMALLINT DEFAULT 1,         -- 1 启用, 2 停用
+  config JSONB NULL,                 -- JSON → JSONB（性能更优）
+  ctime TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  mtime TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (code)
+);
+
 -- 创建 permissions 表
 CREATE TABLE permissions (
   id SERIAL PRIMARY KEY,

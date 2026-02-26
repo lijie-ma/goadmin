@@ -1,6 +1,18 @@
 -- +goose Up
 -- SQL in this section is executed when the migration is applied.
 
+CREATE TABLE tenants (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(128) NOT NULL,
+  code VARCHAR(64) UNIQUE NOT NULL COMMENT '租户唯一编码',
+  contact_email VARCHAR(128),
+  contact_phone VARCHAR(32),
+  status TINYINT DEFAULT 1 COMMENT '1启用 2停用',
+  config JSON NULL COMMENT '扩展配置，如logo、域名、自定义参数',
+  ctime DATETIME DEFAULT CURRENT_TIMESTAMP,
+  mtime DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- 创建permissions表
 CREATE TABLE `permissions` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
