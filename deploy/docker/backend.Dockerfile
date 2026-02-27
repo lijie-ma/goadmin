@@ -49,10 +49,9 @@ COPY --from=builder /app/internal/i18n/locales ./internal/i18n/locales
 COPY --from=builder /app/migrations ./migrations
 
 # 复制并设置初始化脚本
-COPY deploy/docker/init-db.sh /app/init-db.sh
 COPY deploy/docker/run.sh /app/run.sh
 
-RUN chmod +x /app/init-db.sh /app/run.sh && mkdir -p /app/logs && chown -R appuser:appuser /app
+RUN chmod +x /app/run.sh && mkdir -p /app/logs && chown -R appuser:appuser /app
 USER appuser
 EXPOSE 8080
 
