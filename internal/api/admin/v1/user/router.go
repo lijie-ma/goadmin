@@ -11,13 +11,13 @@ import (
 )
 
 // RegisterRoutes 注册用户相关的API路由
-func RegisterRoutes(r *gin.RouterGroup) {
-
-	// 创建依赖服务
-	userRepo := user.NewUserRepository_legacy()
-	tokenSrv := token.NewTokenService()
-	userService := userSrv.NewUserService_legacy()
-	handler := NewHandler(userService, userRepo, tokenSrv)
+func RegisterRoutes(
+	r *gin.RouterGroup,
+	userService userSrv.UserService,
+	userRepository user.UserRepository,
+	tokenService *token.TokenService,
+) {
+	handler := NewHandler(userService, userRepository, tokenService)
 
 	group := r.Group("/user")
 	{

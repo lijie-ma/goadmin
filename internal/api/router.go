@@ -7,16 +7,34 @@ import (
 	"goadmin/internal/api/admin/v1/role"
 	"goadmin/internal/api/admin/v1/setting"
 	"goadmin/internal/api/admin/v1/upload"
-	"goadmin/internal/api/admin/v1/user"
+	userapi "goadmin/internal/api/admin/v1/user"
 	"goadmin/internal/context"
 	"goadmin/internal/i18n"
 	"goadmin/internal/middleware"
+	"goadmin/internal/service/token"
+	userservice "goadmin/internal/service/user"
+	roleservice "goadmin/internal/service/role"
+	positionservice "goadmin/internal/service/position"
+	operatelogsService "goadmin/internal/service/operate_log"
+	settingsservice "goadmin/internal/service/setting"
+	"goadmin/internal/repository/user"
 	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRouter(r *gin.Engine) {
+// Services holds all services for dependency injection into routers
+type Services struct {
+	TokenService      *token.TokenService
+	UserService       userservice.UserService
+	RoleService       roleservice.RoleService
+	PositionService   positionservice.PositionService
+	OperateLogService operatelogsService.OperateLogService
+	SettingService    settingsservice.ServerSettingService
+	UserRepository    user.UserRepository
+}
+
+func RegisterRouter(r *gin.Engine, services Services) {
 	r.Use(
 		middleware.Trace(),
 		i18n.Middleware(),
@@ -32,10 +50,10 @@ func RegisterRouter(r *gin.Engine) {
 	})
 
 	// API路由组
-	adminHandler(r)
+	adminHandler(r, services)
 }
 
-func adminHandler(r *gin.Engine) {
+func adminHandler(r *gin.Engine, services Services) {
 	adminGroup := r.Group("/admin/v1")
 	{
 		// 验证码路由
@@ -46,22 +64,22 @@ func adminHandler(r *gin.Engine) {
 		}
 
 		// 用户相关路由
-		user.RegisterRoutes(adminGroup)
+		userapi.RegisterRoutes(adminGroup, services.UserService, services.UserRepository, services.TokenService)
 
 		// 系统设置相关路由
-		setting.RegisterRoutes(adminGroup)
+		setting.RegisterRoutes(adminGroup, services.SettingService)
 
 		// 角色相关路由
-		role.RegisterRoutes(adminGroup)
+		role.RegisterRoutes(adminGroup, services.RoleService)
 
 		// 文件上传相关路由
 		upload.RegisterRoutes(adminGroup)
 
 		// 操作日志相关路由
-		operate_log.RegisterRoutes(adminGroup)
+		operate_log.RegisterRoutes(adminGroup, services.OperateLogService)
 
 		// 位置相关路由
-		position.RegisterRoutes(adminGroup)
+		position.RegisterRoutes(adminGroup, services.PositionService)
 	}
 
 	// 静态文件服务 - 提供上传文件的访问

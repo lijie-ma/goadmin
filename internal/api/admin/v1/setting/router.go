@@ -9,9 +9,7 @@ import (
 )
 
 // RegisterRoutes 注册系统设置相关的API路由
-func RegisterRoutes(r *gin.RouterGroup) {
-	// 创建依赖服务
-	settingService := setting.NewServerSettingService_legacy()
+func RegisterRoutes(r *gin.RouterGroup, settingService setting.ServerSettingService) {
 	handler := NewHandler(settingService)
 
 	group := r.Group("/setting")

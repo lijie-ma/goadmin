@@ -10,6 +10,7 @@ import (
 	"goadmin/pkg/task"
 
 	// Internal
+	"goadmin/internal/api"
 	_ "goadmin/internal/i18n"
 
 	// Repository
@@ -159,28 +160,39 @@ func ProvideUserService(
 // HTTP Server Providers
 // ============================================================================
 
-// ProvideGinEngine provides the Gin HTTP engine with all routes registered.
-func ProvideGinEngine(cfg *config.Config) *gin.Engine {
-	// Set Gin mode
-	if cfg.App.Debug {
-		gin.SetMode(gin.DebugMode)
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	// Create Gin instance
+// ProvideGinEngine provides the Gin HTTP engine.
+// Note: Gin mode is set by NewWebServer
+func ProvideGinEngine() *gin.Engine {
+	// Create Gin instance without default middleware
+	// Middleware will be registered by RegisterRouter
 	r := gin.New()
-
-	// Register middleware and routes
-	// TODO: Will be updated in Phase 4 to inject services
-
 	return r
 }
 
 // ProvideWebServer provides the web server.
-func ProvideWebServer(cfg *config.Config, engine *gin.Engine) *serverpkg.WebServer {
-	// TODO: Update NewWebServer to accept gin.Engine in Phase 4
-	return serverpkg.NewWebServer(cfg)
+func ProvideWebServer(
+	cfg *config.Config,
+	engine *gin.Engine,
+	tokenService *token.TokenService,
+	userService userservice.UserService,
+	roleService role.RoleService,
+	positionService position.PositionService,
+	logService operate_log.OperateLogService,
+	settingService setting.ServerSettingService,
+	userRepository userrepo.UserRepository,
+) *serverpkg.WebServer {
+	// Create services struct for route registration
+	services := api.Services{
+		TokenService:      tokenService,
+		UserService:       userService,
+		RoleService:       roleService,
+		PositionService:   positionService,
+		OperateLogService: logService,
+		SettingService:    settingService,
+		UserRepository:    userRepository,
+	}
+	// Pass the gin.Engine to NewWebServer to avoid creating it twice
+	return serverpkg.NewWebServer(cfg, engine, services)
 }
 
 // ProvideCronManager provides the cron manager.

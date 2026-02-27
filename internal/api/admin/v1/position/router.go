@@ -9,9 +9,7 @@ import (
 )
 
 // RegisterRoutes 注册位置相关的API路由
-func RegisterRoutes(r *gin.RouterGroup) {
-	// 创建依赖服务
-	positionService := positionSrv.NewPositionService_legacy()
+func RegisterRoutes(r *gin.RouterGroup, positionService positionSrv.PositionService) {
 	handler := NewHandler(positionService)
 
 	group := r.Group("/position")

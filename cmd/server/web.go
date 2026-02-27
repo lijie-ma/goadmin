@@ -15,7 +15,10 @@ type WebServer struct {
 	httpServer *http.Server
 }
 
-func NewWebServer(cfg *config.Config) *WebServer {
+// RegisterServices 用于注册路由需要的 services
+type RegisterServices = api.Services
+
+func NewWebServer(cfg *config.Config, r *gin.Engine, services RegisterServices) *WebServer {
 	// 设置Gin模式
 	if cfg.App.Debug {
 		gin.SetMode(gin.DebugMode)
@@ -23,11 +26,8 @@ func NewWebServer(cfg *config.Config) *WebServer {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	// 创建Gin实例
-	r := gin.Default()
-
 	// 配置路由
-	api.RegisterRouter(r)
+	api.RegisterRouter(r, services)
 
 	return &WebServer{
 		httpServer: &http.Server{

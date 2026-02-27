@@ -4,6 +4,14 @@
 package wire
 
 import (
+	userservice "goadmin/internal/service/user"
+	roleservice "goadmin/internal/service/role"
+	positionservice "goadmin/internal/service/position"
+	operatelogsService "goadmin/internal/service/operate_log"
+	settingsservice "goadmin/internal/service/setting"
+	"goadmin/internal/service/token"
+	userrepo "goadmin/internal/repository/user"
+	"github.com/gin-gonic/gin"
 	"goadmin/pkg/task"
 
 	"github.com/google/wire"
@@ -11,7 +19,17 @@ import (
 
 // App represents the application container with all necessary dependencies.
 type App struct {
-	ServiceManager *task.ServiceManager
+	ServiceManager  *task.ServiceManager
+	GinEngine       *gin.Engine
+	// Services
+	TokenService    *token.TokenService
+	UserService     userservice.UserService
+	RoleService     roleservice.RoleService
+	PositionService positionservice.PositionService
+	LogService      operatelogsService.OperateLogService
+	SettingService  settingsservice.ServerSettingService
+	// Repositories
+	UserRepository  userrepo.UserRepository
 }
 
 // InitializeApp initializes the application with all dependencies.

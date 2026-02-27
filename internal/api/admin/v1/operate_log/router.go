@@ -9,10 +9,7 @@ import (
 )
 
 // RegisterRoutes 注册操作日志相关的API路由
-func RegisterRoutes(r *gin.RouterGroup) {
-
-	// 创建依赖服务
-	logService := operatelog.NewOperateLogService_legacy()
+func RegisterRoutes(r *gin.RouterGroup, logService operatelog.OperateLogService) {
 	handler := NewHandler(logService)
 
 	group := r.Group("/operate_log")
