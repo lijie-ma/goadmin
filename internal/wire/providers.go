@@ -11,7 +11,7 @@ import (
 
 	// Internal
 	"goadmin/internal/api"
-	_ "goadmin/internal/i18n"
+	"goadmin/internal/i18n"
 
 	// Repository
 	userrepo "goadmin/internal/repository/user"
@@ -163,6 +163,8 @@ func ProvideUserService(
 // ProvideGinEngine provides the Gin HTTP engine.
 // Note: Gin mode is set by NewWebServer
 func ProvideGinEngine() *gin.Engine {
+	// Initialize i18n to ensure Bundle is not nil
+	i18n.Init()
 	// Create Gin instance without default middleware
 	// Middleware will be registered by RegisterRouter
 	r := gin.New()
