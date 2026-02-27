@@ -3,7 +3,7 @@ FROM golang:1.24-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
-RUN apk add --no-cache git bash
+RUN apk add --no-cache git bash findutils
 
 COPY go.mod go.sum ./
 RUN go mod download
