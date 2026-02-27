@@ -3,20 +3,20 @@ FROM golang:1.24-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
+RUN apk add --no-cache git bash
 
-# 安装必要的系统依赖
-RUN apk add --no-cache git
-
-# 复制 go.mod 和 go.sum 文件
 COPY go.mod go.sum ./
-
-# 下载 Go 模块依赖
 RUN go mod download
 
-# 复制源代码
+# 安装 wire 工具
+RUN go install github.com/google/wire/cmd/wire@latest
+
 COPY . .
 
-# 构建应用
+# 执行 wire 自动生成
+RUN find . -type f -name "wire.go" -execdir wire gen \;
+
+# 构建二进制
 RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags="-s -w" -o goadmin main.go
 
 # 运行阶段
@@ -26,7 +26,8 @@ FROM alpine:3.23
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 
 # 更新索引并安装依赖（包括 mysql-client 用于数据库初始化）
-RUN apk update && apk --no-cache add ca-certificates tzdata mysql-client bash
+RUN apk update && \
+    apk --no-cache add ca-certificates tzdata mysql-client bash busybox-extras curl
 
 # 设置时区为上海
 RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
@@ -49,17 +50,10 @@ COPY --from=builder /app/migrations ./migrations
 
 # 复制并设置初始化脚本
 COPY deploy/docker/init-db.sh /app/init-db.sh
-RUN chmod +x /app/init-db.sh
+COPY deploy/docker/run.sh /app/run.sh
 
-# 创建日志目录
-RUN mkdir -p /app/logs && \
-    chown -R appuser:appuser /app
-
-# 切换到非 root 用户
+RUN chmod +x /app/init-db.sh /app/run.sh && mkdir -p /app/logs && chown -R appuser:appuser /app
 USER appuser
-
-# 暴露端口（根据配置文件调整）
 EXPOSE 8080
 
-# 启动应用
-CMD ["./goadmin", "control", "--config", "/app/config/config.yaml"]
+CMD ["/app/run.sh"]
