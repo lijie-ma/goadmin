@@ -17,7 +17,7 @@ type ServerSettingRepository interface {
 	Update(ctx context.Context, setting *server.ServerSetting) error
 
 	// Exists 检查服务端配置是否存在
-	Exists(ctx context.Context, name string) (bool, error)
+	ExistsByName(ctx context.Context, name string) (bool, error)
 
 	// BatchGet 批量获取服务端配置
 	BatchGet(ctx context.Context, names []string) ([]*server.ServerSetting, error)

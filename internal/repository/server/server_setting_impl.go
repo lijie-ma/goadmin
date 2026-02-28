@@ -43,10 +43,12 @@ func (r *ServerSettingRepositoryImpl) GetByName(ctx context.Context, name string
 }
 
 // Exists 检查服务端配置是否存在
-func (r *ServerSettingRepositoryImpl) Exists(ctx context.Context, name string) (bool, error) {
-	var count int64
-	err := r.DB().WithContext(ctx).Model(&server.ServerSetting{}).Where("name = ?", name).Count(&count).Error
-	return count > 0, err
+func (r *ServerSettingRepositoryImpl) ExistsByName(ctx context.Context, name string) (bool, error) {
+	opts := []db.QueryOption[server.ServerSetting]{
+		db.Where[server.ServerSetting]("name = ?", name),
+	}
+
+	return r.Exists(ctx, opts...)
 }
 
 // BatchGet 批量获取服务端配置
