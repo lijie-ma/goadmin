@@ -84,4 +84,6 @@ type Repository[T Model] interface {
 
 	// Find 根据条件查询记录，不分页
 	Find(ctx context.Context, opts ...QueryOption[T]) ([]*T, error)
+
+	Exists(ctx context.Context, opts ...QueryOption[T]) (bool, error)
 }

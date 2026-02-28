@@ -94,6 +94,15 @@ func (r *BaseRepository[T]) Find(ctx context.Context, opts ...QueryOption[T]) ([
 	return models, err
 }
 
+// Exists 根据条件判断数据是否存在
+func (r *BaseRepository[T]) Exists(ctx context.Context, opts ...QueryOption[T]) (bool, error) {
+	var exists bool
+	sub := r.db.Model(new(T)).Select("1")
+	sub = r.applyOptions(sub, opts...)
+	err := r.db.WithContext(ctx).Select("EXISTS(?)", sub).Scan(&exists).Error
+	return exists, err
+}
+
 // Update 更新记录
 func (r *BaseRepository[T]) Update(ctx context.Context, model *T) error {
 	return r.db.WithContext(ctx).Save(model).Error
