@@ -38,8 +38,13 @@ import (
 )
 
 // ============================================================================
-// Infrastructure Providers
+// Core Infrastructure Providers (基础必须初始化)
+// 注：这些初始化必须在所有服务之前完成
 // ============================================================================
+
+// CoreInfraInit 基础设施初始化标记
+// 确保基础功能（DB、Redis、i18n）在所有服务之前初始化
+type CoreInfraInit struct{}
 
 // ProvideConfig provides the global configuration instance.
 func ProvideConfig() *config.Config {
@@ -55,9 +60,32 @@ func ProvideDB(cfg *config.Config) (*gorm.DB, error) {
 	return db.GetDB(), nil
 }
 
-// ProvideRedis provides the Redis client initialization.
-func ProvideRedis(cfg *config.Config) error {
-	return redisx.Init(&cfg.Redis)
+// ProvideRedis initializes the Redis client.
+type redisInit struct{}
+
+func ProvideRedis(cfg *config.Config) redisInit {
+	_ = redisx.Init(&cfg.Redis)
+	return redisInit{}
+}
+
+// ProvideI18n initializes the i18n bundle for internationalization.
+type i18nInit struct{}
+
+func ProvideI18n() i18nInit {
+	i18n.Init()
+	return i18nInit{}
+}
+
+// ProvideCoreInfrastructure initializes all core infrastructure components.
+// Dependency: Config → DB, Redis, I18N → CoreInfraInit
+// This ensures DB, Redis, and i18n are initialized before any services.
+func ProvideCoreInfrastructure(
+	cfg *config.Config,
+	db *gorm.DB,
+	redisInit redisInit,
+	i18nInit i18nInit,
+) CoreInfraInit {
+	return CoreInfraInit{}
 }
 
 // ============================================================================
@@ -109,7 +137,8 @@ func ProvideJwtTokenService(cfg *config.Config) *token.JwtTokenService {
 }
 
 // ProvideCaptchaService provides the captcha service.
-func ProvideCaptchaService() captcha.CaptchaService {
+// Depends on CoreInfraInit to ensure all core infrastructure is initialized.
+func ProvideCaptchaService(coreInfra CoreInfraInit) captcha.CaptchaService {
 	return captcha.NewCaptchaService()
 }
 
@@ -163,15 +192,12 @@ func ProvideUserService(
 // ProvideGinEngine provides the Gin HTTP engine.
 // Note: Gin mode is set by NewWebServer
 func ProvideGinEngine() *gin.Engine {
-	// Initialize i18n to ensure Bundle is not nil
-	i18n.Init()
-	// Create Gin instance without default middleware
-	// Middleware will be registered by RegisterRouter
 	r := gin.New()
 	return r
 }
 
 // ProvideWebServer provides the web server.
+// Depends on CoreInfraInit to ensure all infrastructure is initialized first.
 func ProvideWebServer(
 	cfg *config.Config,
 	engine *gin.Engine,
@@ -182,6 +208,7 @@ func ProvideWebServer(
 	logService operate_log.OperateLogService,
 	settingService setting.ServerSettingService,
 	userRepository userrepo.UserRepository,
+	coreInfra CoreInfraInit,
 ) *serverpkg.WebServer {
 	// Create services struct for route registration
 	services := api.Services{
@@ -208,10 +235,12 @@ func ProvideHookServer() *serverpkg.HookServer {
 }
 
 // ProvideServiceManager provides the service manager with all services.
+// Depends on CoreInfraInit to ensure基础设施初始化完成
 func ProvideServiceManager(
 	cronManager *serverpkg.CronManager,
 	webServer *serverpkg.WebServer,
 	hookServer *serverpkg.HookServer,
+	infraInit CoreInfraInit,
 ) *task.ServiceManager {
 	services := task.NewServiceManager()
 	services.AddService(cronManager, webServer, hookServer)
@@ -222,14 +251,19 @@ func ProvideServiceManager(
 // Provider Sets (grouped by functionality)
 // ============================================================================
 
-// InfrastructureSet provides all infrastructure dependencies.
-var InfrastructureSet = wire.NewSet(
+// CoreInfraSet provides all core infrastructure dependencies.
+// 顺序：Config → DB, Redis, I18N → CoreInfraInit
+// 这是应用启动时最先初始化的部分
+var CoreInfraSet = wire.NewSet(
 	ProvideConfig,
 	ProvideDB,
 	ProvideRedis,
+	ProvideI18n,
+	ProvideCoreInfrastructure,
 )
 
 // RepositorySet provides all repository dependencies.
+// 依赖：CoreInfraSet → RepositorySet
 var RepositorySet = wire.NewSet(
 	ProvideUserRepository,
 	ProvideRoleRepository,
@@ -240,6 +274,7 @@ var RepositorySet = wire.NewSet(
 )
 
 // ServiceSet provides all service dependencies.
+// 依赖：CoreInfraSet, RepositorySet → ServiceSet
 var ServiceSet = wire.NewSet(
 	ProvideTokenService,
 	ProvideJwtTokenService,
@@ -252,6 +287,7 @@ var ServiceSet = wire.NewSet(
 )
 
 // ServerSet provides all HTTP server dependencies.
+// 依赖：CoreInfraSet, ServiceSet → ServerSet
 var ServerSet = wire.NewSet(
 	ProvideGinEngine,
 	ProvideWebServer,
@@ -261,8 +297,9 @@ var ServerSet = wire.NewSet(
 )
 
 // AppSet provides all application dependencies.
+// 初始化顺序：CoreInfraSet → RepositorySet → ServiceSet → ServerSet
 var AppSet = wire.NewSet(
-	InfrastructureSet,
+	CoreInfraSet,
 	RepositorySet,
 	ServiceSet,
 	ServerSet,
