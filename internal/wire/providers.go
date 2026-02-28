@@ -14,27 +14,29 @@ import (
 	"goadmin/internal/i18n"
 
 	// Repository
-	userrepo "goadmin/internal/repository/user"
-	rolerepo "goadmin/internal/repository/role"
 	operatelogrepo "goadmin/internal/repository/operate_log"
 	positionrepo "goadmin/internal/repository/position"
+	rolerepo "goadmin/internal/repository/role"
 	serverrepo "goadmin/internal/repository/server"
+	tenantrepo "goadmin/internal/repository/tenant"
+	userrepo "goadmin/internal/repository/user"
 
 	// Service
-	"goadmin/internal/service/token"
 	"goadmin/internal/service/captcha"
 	"goadmin/internal/service/operate_log"
 	"goadmin/internal/service/position"
 	"goadmin/internal/service/role"
 	"goadmin/internal/service/setting"
+	tenantservice "goadmin/internal/service/tenant"
+	"goadmin/internal/service/token"
 	userservice "goadmin/internal/service/user"
 
 	// HTTP Server
 	serverpkg "goadmin/cmd/server"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"github.com/google/wire"
+	"gorm.io/gorm"
 )
 
 // ============================================================================
@@ -122,6 +124,11 @@ func ProvideServerSettingRepository(database *gorm.DB) serverrepo.ServerSettingR
 	return serverrepo.NewServerSettingRepository(database)
 }
 
+// ProvideTenantRepository provides the tenant repository.
+func ProvideTenantRepository(database *gorm.DB) tenantrepo.Repository {
+	return tenantrepo.NewTenantRepository(database)
+}
+
 // ============================================================================
 // Service Providers
 // ============================================================================
@@ -155,6 +162,11 @@ func ProvideOperateLogService(logRepo operatelogrepo.OperateLogRepository) opera
 // ProvidePositionService provides the position service.
 func ProvidePositionService(positionRepo positionrepo.PositionRepository, logService operate_log.OperateLogService) position.PositionService {
 	return position.NewPositionService(positionRepo, logService)
+}
+
+// ProvideTenantService provides the tenant service.
+func ProvideTenantService(tenantRepo tenantrepo.Repository, logService operate_log.OperateLogService) tenantservice.TenantService {
+	return tenantservice.NewTenantService(tenantRepo, logService)
 }
 
 // ProvideRoleService provides the role service.
@@ -207,6 +219,7 @@ func ProvideWebServer(
 	positionService position.PositionService,
 	logService operate_log.OperateLogService,
 	settingService setting.ServerSettingService,
+	tenantService tenantservice.TenantService,
 	userRepository userrepo.UserRepository,
 	coreInfra CoreInfraInit,
 ) *serverpkg.WebServer {
@@ -218,6 +231,7 @@ func ProvideWebServer(
 		PositionService:   positionService,
 		OperateLogService: logService,
 		SettingService:    settingService,
+		TenantService:     tenantService,
 		UserRepository:    userRepository,
 	}
 	// Pass the gin.Engine to NewWebServer to avoid creating it twice
@@ -271,6 +285,7 @@ var RepositorySet = wire.NewSet(
 	ProvideOperateLogRepository,
 	ProvidePositionRepository,
 	ProvideServerSettingRepository,
+	ProvideTenantRepository,
 )
 
 // ServiceSet provides all service dependencies.
@@ -282,6 +297,7 @@ var ServiceSet = wire.NewSet(
 	ProvideServerSettingService,
 	ProvideOperateLogService,
 	ProvidePositionService,
+	ProvideTenantService,
 	ProvideRoleService,
 	ProvideUserService,
 )

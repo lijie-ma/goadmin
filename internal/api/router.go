@@ -1,24 +1,27 @@
 package api
 
 import (
+	"os"
+
 	"goadmin/internal/api/admin/v1/captcha"
 	"goadmin/internal/api/admin/v1/operate_log"
 	"goadmin/internal/api/admin/v1/position"
 	"goadmin/internal/api/admin/v1/role"
 	"goadmin/internal/api/admin/v1/setting"
+	"goadmin/internal/api/admin/v1/tenant"
 	"goadmin/internal/api/admin/v1/upload"
 	userapi "goadmin/internal/api/admin/v1/user"
 	"goadmin/internal/context"
 	"goadmin/internal/i18n"
 	"goadmin/internal/middleware"
+	"goadmin/internal/repository/user"
+	operatelogsService "goadmin/internal/service/operate_log"
+	positionservice "goadmin/internal/service/position"
+	roleservice "goadmin/internal/service/role"
+	settingsservice "goadmin/internal/service/setting"
+	tenantservice "goadmin/internal/service/tenant"
 	"goadmin/internal/service/token"
 	userservice "goadmin/internal/service/user"
-	roleservice "goadmin/internal/service/role"
-	positionservice "goadmin/internal/service/position"
-	operatelogsService "goadmin/internal/service/operate_log"
-	settingsservice "goadmin/internal/service/setting"
-	"goadmin/internal/repository/user"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,6 +34,7 @@ type Services struct {
 	PositionService   positionservice.PositionService
 	OperateLogService operatelogsService.OperateLogService
 	SettingService    settingsservice.ServerSettingService
+	TenantService     tenantservice.TenantService
 	UserRepository    user.UserRepository
 }
 
@@ -80,6 +84,9 @@ func adminHandler(r *gin.Engine, services Services) {
 
 		// 位置相关路由
 		position.RegisterRoutes(adminGroup, services.PositionService)
+
+		// 租户相关路由
+		tenant.RegisterRoutes(adminGroup, services.TenantService)
 	}
 
 	// 静态文件服务 - 提供上传文件的访问
