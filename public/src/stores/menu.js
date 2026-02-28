@@ -31,6 +31,11 @@ export const useMenuStore = defineStore('menu', () => {
     'position_create': '/settings/position',
     'position_update': '/settings/position',
     'position_delete': '/settings/position',
+    'tenant_list': '/settings/tenant',
+    'tenant_create': '/settings/tenant',
+    'tenant_update': '/settings/tenant',
+    'tenant_delete': '/settings/tenant',
+    'tenant_info': '/settings/tenant',
     'operate_log': '/operate-logs'
   }
 
@@ -77,6 +82,13 @@ export const useMenuStore = defineStore('menu', () => {
           icon: 'Location',
           title: 'positionManagement',
           permissionCode: 'position_list'
+        },
+        {
+          path: '/settings/tenant',
+          name: 'tenantManagement',
+          icon: 'OfficeBuilding',
+          title: 'tenantManagement',
+          permissionCode: 'tenant_list'
         }
       ]
     },

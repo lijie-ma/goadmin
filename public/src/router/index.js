@@ -64,6 +64,11 @@ const routes = [
                 path: 'position',
                 name: 'PositionManagement',
                 component: () => import('../components/PositionManagement.vue')
+              },
+              {
+                path: 'tenant',
+                name: 'TenantManagement',
+                component: () => import('../components/TenantManagement.vue')
               }
             ]
           },
